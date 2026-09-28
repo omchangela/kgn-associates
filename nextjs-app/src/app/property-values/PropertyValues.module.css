@@ -1,0 +1,554 @@
+.layoutWrapper {
+  display: flex;
+  height: auto;
+  min-height: 100vh;
+  overflow: visible;
+  background-color: var(--bg-primary);
+}
+
+.rightSide {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: auto;
+}
+
+.mainScrollArea {
+  flex: 1;
+  overflow-y: visible;
+  display: flex;
+  flex-direction: column;
+}
+
+.contentPadding {
+  padding: 30px;
+  flex: 1;
+}
+
+/* Scrollbar styling */
+.mainScrollArea::-webkit-scrollbar {
+  width: 8px;
+}
+
+.mainScrollArea::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+.mainScrollArea::-webkit-scrollbar-thumb {
+  background: var(--dark-gold);
+  border-radius: 10px;
+}
+
+.mainScrollArea::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-gold);
+}
+
+.formWrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.formBody {
+  padding: 20px 0;
+}
+
+/* Navigation Tabs */
+.tabsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 30px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 12px;
+}
+
+.tabBtn {
+  background: transparent;
+  border: 1px solid transparent;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: var(--font-body);
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: var(--border-radius);
+  transition: var(--transition);
+}
+
+.tabBtn:hover {
+  color: var(--primary-gold);
+  background: var(--bg-card);
+}
+
+.activeTab {
+  background: var(--gradient-gold);
+  color: var(--bg-primary);
+  border-color: transparent;
+  box-shadow: var(--shadow-gold);
+}
+
+.activeTab:hover {
+  color: var(--bg-primary);
+  background: var(--gradient-gold);
+  filter: brightness(1.1);
+}
+
+/* Typography */
+.pageTitle {
+  font-size: 1.8rem;
+  font-weight: 800;
+  font-family: var(--font-heading);
+  color: var(--primary-gold);
+  margin-bottom: 20px;
+  letter-spacing: 1px;
+}
+
+.sectionHeading, .sectionTitle {
+  font-size: 1.3rem;
+  font-weight: 700;
+  font-family: var(--font-heading);
+  color: var(--text-primary);
+  margin: 30px 0 15px 0;
+}
+
+.subHeading {
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  margin-bottom: 15px;
+}
+
+/* Form Card */
+.card {
+  background: var(--bg-card);
+  border-radius: var(--border-radius);
+  padding: 30px;
+  box-shadow: var(--shadow-dark);
+  border: 1px solid var(--border-color);
+  margin-bottom: 25px;
+}
+
+.formGrid, .grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px 40px;
+}
+
+.fullWidth {
+  grid-column: span 2;
+}
+
+.inputStack, .inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-family: var(--font-heading);
+  color: var(--text-primary);
+  letter-spacing: 0.5px;
+}
+
+/* Inputs & Selects */
+.fieldWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.inputField, .input, .selectBox select, .select, .textarea, .tableInput {
+  width: 100%;
+  padding: 12px 14px;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  font-size: 0.95rem;
+  font-family: var(--font-body);
+  color: var(--text-primary);
+  outline: none;
+  transition: var(--transition);
+}
+
+.inputField::placeholder, .input::placeholder, .textarea::placeholder, .tableInput::placeholder {
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+.selectBox select, .select {
+  appearance: none;
+}
+
+.selectBox select option, .select option {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.inputField:focus, .input:focus, .selectBox select:focus, .select:focus, .textarea:focus, .tableInput:focus {
+  border-color: var(--primary-gold);
+  box-shadow: 0 0 0 1px var(--primary-gold);
+  background-color: var(--bg-secondary);
+}
+
+.fieldIcon, .selectIcon {
+  position: absolute;
+  right: 14px;
+  color: var(--text-muted);
+  pointer-events: none;
+  transition: var(--transition);
+}
+
+.inputField:focus + .fieldIcon, 
+.select:focus + .selectIcon {
+  color: var(--primary-gold);
+}
+
+/* Address Stack */
+.addressStack {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Radio Buttons */
+.radioGroup {
+  display: flex;
+  gap: 25px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.radioItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.radioItem:hover {
+  color: var(--text-primary);
+}
+
+.radioItem input { display: none; }
+
+.customRadio, .radioCircle {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--border-color);
+  border-radius: 50%;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.radioItem input:checked + .customRadio,
+.radioLabel input:checked + .radioCircle {
+  border-color: var(--primary-gold);
+  background-color: var(--bg-card); /* Keep inner dark */
+  box-shadow: inset 0 0 0 4px var(--primary-gold); /* Gold dot inside */
+}
+
+/* Radio Yes/No */
+.radioList {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.radioRow {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.radioQuestion {
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-family: var(--font-heading);
+  color: var(--text-primary);
+}
+
+.radioOptions {
+  display: flex;
+  gap: 30px;
+}
+
+.radioLabel {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.95rem;
+  font-family: var(--font-body);
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.radioLabel input { display: none; }
+
+/* Buttons */
+.blueBtn, .nextBtn {
+  background: var(--gradient-gold);
+  color: var(--bg-primary);
+  border: none;
+  padding: 12px 24px;
+  border-radius: var(--border-radius);
+  font-weight: 700;
+  font-family: var(--font-heading);
+  cursor: pointer;
+  width: fit-content;
+  transition: var(--transition);
+  box-shadow: var(--shadow-gold);
+}
+
+.blueBtn:hover, .nextBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px var(--border-hover);
+  filter: brightness(1.1);
+}
+
+.nextBtn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 35px;
+  font-size: 1.05rem;
+}
+
+.mt20 { margin-top: 25px; }
+
+.actionArea, .footerActions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 30px 0;
+}
+
+.selectWrapper, .selectBox {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+/* Schedule Table */
+.scheduleTable {
+  overflow-x: auto;
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-color);
+}
+
+.scheduleTable table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.scheduleTable th {
+  background-color: var(--bg-secondary);
+  color: var(--primary-gold);
+  font-family: var(--font-heading);
+  padding: 16px 14px;
+  text-align: left;
+  font-weight: 700;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.scheduleTable td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.scheduleTable tr:last-child td {
+  border-bottom: none;
+}
+
+.scheduleTable tr:hover {
+  background-color: var(--bg-primary); /* Dark hover effect on rows */
+}
+
+/* Textarea */
+.textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+/* Photo Upload Section */
+.photoUploadSection {
+  width: 100%;
+}
+
+.uploadArea {
+  position: relative;
+  width: 100%;
+  min-height: 200px;
+  border: 2px dashed var(--border-color);
+  border-radius: var(--border-radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-primary);
+  transition: var(--transition);
+}
+
+.uploadArea:hover {
+  border-color: var(--primary-gold);
+  background: var(--bg-secondary);
+}
+
+.fileInput {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.uploadPlaceholder {
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.uploadPlaceholder p {
+  margin: 5px 0;
+}
+
+.uploadHint {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+@media (max-width: 800px) {
+  .formGrid, .grid2 { grid-template-columns: 1fr; }
+  .fullWidth { grid-column: span 1; }
+  .tabsContainer { gap: 10px; }
+}
+
+@media (max-width: 768px) {
+  .layoutWrapper {
+    flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .sidebar {
+    display: none;
+  }
+
+  .rightSide {
+    height: auto;
+  }
+
+  .mainScrollArea {
+    height: auto;
+    overflow-y: visible;
+  }
+
+  .contentPadding {
+    padding: 20px;
+  }
+
+  .pageTitle {
+    font-size: 1.5rem;
+  }
+
+  .tabsContainer {
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .tabBtn {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+  }
+
+  .scheduleTable th,
+  .scheduleTable td {
+    padding: 10px 8px;
+    font-size: 0.85rem;
+  }
+
+  .tableInput,
+  .tableSelect {
+    padding: 6px;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .contentPadding {
+    padding: 15px;
+  }
+
+  .pageTitle {
+    font-size: 1.3rem;
+  }
+
+  .sectionHeading {
+    font-size: 1.1rem;
+  }
+
+  .tabsContainer {
+    gap: 6px;
+  }
+
+  .tabBtn {
+    padding: 5px 10px;
+    font-size: 0.8rem;
+  }
+
+  .card {
+    padding: 15px;
+  }
+
+  .scheduleTable {
+    font-size: 0.75rem;
+  }
+
+  .scheduleTable th,
+  .scheduleTable td {
+    padding: 8px 6px;
+  }
+
+  .tableInput,
+  .tableSelect {
+    padding: 5px;
+    font-size: 0.75rem;
+  }
+
+  .inputField,
+  .select {
+    padding: 10px 10px 10px 40px;
+    font-size: 0.9rem;
+  }
+
+  .inputIcon {
+    left: 12px;
+  }
+
+  .textarea {
+    font-size: 0.9rem;
+  }
+
+  .uploadArea {
+    min-height: 150px;
+  }
+
+  .uploadPlaceholder p {
+    font-size: 0.85rem;
+  }
+
+  .uploadHint {
+    font-size: 0.75rem;
+  }
+}

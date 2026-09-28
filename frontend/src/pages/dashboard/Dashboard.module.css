@@ -1,0 +1,286 @@
+.layoutWrapper {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  background-color: var(--bg-primary); /* Swapped light gray for dark primary background */
+}
+
+.rightSide {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.mainScrollArea {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.contentPadding {
+  padding: 30px;
+  flex: 1;
+}
+
+/* Scrollbar styling */
+.mainScrollArea::-webkit-scrollbar {
+  width: 8px;
+}
+
+.mainScrollArea::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+.mainScrollArea::-webkit-scrollbar-thumb {
+  background: var(--dark-gold); /* Refined scrollbar to match the gold theme */
+  border-radius: 10px;
+}
+
+.mainScrollArea::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-gold);
+}
+
+/* Dashboard Title */
+.dashboardTitle {
+  font-family: var(--font-heading); /* Upgraded to your heading font */
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 30px;
+  color: var(--primary-gold); /* Swapped dark gray for gold */
+  letter-spacing: 1px;
+}
+
+/* Analysis Grid */
+.analysisGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 25px;
+  margin-bottom: 40px;
+}
+
+.analysisCard {
+  background: var(--bg-card); /* White card replaced with dark card */
+  border-radius: var(--border-radius);
+  padding: 25px;
+  box-shadow: var(--shadow-dark); /* Replaced default shadow with theme shadow */
+  border: 1px solid var(--border-color); /* Added subtle gold border */
+  display: flex;
+  gap: 20px;
+  transition: var(--transition);
+}
+
+.analysisCard:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-gold); /* Glowing gold shadow on hover */
+  border-color: var(--primary-gold);
+}
+
+.cardIcon {
+  width: 60px;
+  height: 60px;
+  background: var(--gradient-gold); /* Swapped blue gradient for your gold gradient */
+  border-radius: var(--border-radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--bg-primary); /* Dark icons inside the gold box for maximum contrast */
+  flex-shrink: 0;
+  box-shadow: var(--shadow-dark);
+}
+
+.cardContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cardTitle {
+  font-family: var(--font-heading);
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-primary); /* Swapped #333 for your light primary text */
+  margin: 0;
+}
+
+.cardDescription {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: var(--text-muted); /* Swapped #666 for your muted text */
+  margin: 0;
+}
+
+.cardStats {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.statNumber {
+  font-family: var(--font-heading);
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--primary-gold); /* Swapped blue number for gold */
+}
+
+.statLabel {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* Quick Actions */
+.quickActions {
+  margin-top: 40px;
+}
+
+.sectionTitle {
+  font-family: var(--font-heading);
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+  color: var(--text-primary);
+}
+
+.actionButtons {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.actionBtn {
+  background: var(--bg-secondary); /* Elegant dark button */
+  color: var(--primary-gold); /* Gold text */
+  border: 1px solid var(--border-color); /* Subtle gold border */
+  font-family: var(--font-body);
+  padding: 12px 24px;
+  border-radius: var(--border-radius);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  letter-spacing: 0.5px;
+}
+
+.actionBtn:hover {
+  background: var(--gradient-gold);
+  color: var(--bg-primary);
+  border-color: transparent;
+  box-shadow: var(--shadow-gold);
+  transform: translateY(-2px);
+}
+
+/* Responsive Design */
+@media (max-width: 992px) {
+  .analysisGrid {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+  }
+
+  .dashboardTitle {
+    font-size: 1.8rem;
+  }
+
+  .contentPadding {
+    padding: 25px;
+  }
+}
+
+@media (max-width: 768px) {
+  .layoutWrapper {
+    flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .sidebar {
+    display: none;
+  }
+
+  .rightSide {
+    height: auto;
+  }
+
+  .mainScrollArea {
+    height: auto;
+    overflow-y: visible;
+  }
+
+  .contentPadding {
+    padding: 20px;
+  }
+
+  .dashboardTitle {
+    font-size: 1.6rem;
+    margin-bottom: 25px;
+  }
+
+  .analysisGrid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .analysisCard {
+    padding: 20px;
+    gap: 15px;
+  }
+
+  .cardIcon {
+    width: 50px;
+    height: 50px;
+  }
+
+  .cardTitle {
+    font-size: 1.1rem;
+  }
+
+  .statNumber {
+    font-size: 1.8rem;
+  }
+
+  .actionButtons {
+    flex-direction: column;
+  }
+
+  .actionBtn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .contentPadding {
+    padding: 15px;
+  }
+
+  .dashboardTitle {
+    font-size: 1.4rem;
+    margin-bottom: 20px;
+  }
+
+  .analysisCard {
+    padding: 15px;
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .cardIcon {
+    width: 45px;
+    height: 45px;
+    margin: 0 auto;
+  }
+
+  .cardStats {
+    justify-content: center;
+  }
+
+  .sectionTitle {
+    font-size: 1.2rem;
+  }
+
+  .actionBtn {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+  }
+}

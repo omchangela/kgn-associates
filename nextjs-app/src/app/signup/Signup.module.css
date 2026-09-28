@@ -1,0 +1,233 @@
+.pageWrapper {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-primary); 
+}
+
+.signupContainer {
+  display: flex;
+  width: 100%;
+  height: 100vh;
+  background: var(--bg-secondary);
+  overflow: hidden;
+}
+
+/* LEFT PANEL STYLES */
+.leftPanel {
+  flex: 1.2;
+  background: var(--bg-primary);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  padding: 40px;
+  text-align: center;
+}
+
+.bottomGlow {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 30%;
+  background: radial-gradient(circle at bottom, var(--border-hover) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.mainLogo {
+  width: 100%;
+  max-width: 400px;
+  height: auto;
+  margin-bottom: 30px;
+  filter: drop-shadow(var(--shadow-dark));
+}
+
+.welcomeText p {
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 2.2rem;
+  font-weight: 400;
+  margin-bottom: 0px;
+}
+
+.welcomeText h1 {
+  color: var(--primary-gold);
+  font-family: var(--font-heading);
+  font-size: 3.5rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  line-height: 1.1;
+}
+
+/* RIGHT PANEL STYLES */
+.rightPanel {
+  flex: 1;
+  background: var(--bg-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px;
+}
+
+.formContent {
+  width: 100%;
+  max-width: 420px;
+}
+
+.adminTitle {
+  color: var(--primary-gold);
+  font-family: var(--font-heading);
+  font-size: 3rem;
+  font-weight: 700;
+  margin-bottom: 50px;
+  text-align: center;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.inputGroup {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.inputIcon {
+  position: absolute;
+  left: 18px;
+  color: var(--text-muted);
+  transition: var(--transition);
+}
+
+.inputField {
+  width: 100%;
+  padding: 18px 20px 18px 55px;
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-card);
+  font-size: 1rem;
+  font-family: var(--font-body);
+  color: var(--text-primary);
+  outline: none;
+  transition: var(--transition);
+}
+
+.inputField::placeholder {
+  color: var(--text-muted);
+}
+
+.inputField:focus {
+  background-color: var(--bg-primary);
+  border-color: var(--primary-gold);
+  box-shadow: 0 0 0 1px var(--primary-gold);
+}
+
+.inputField:focus + .inputIcon,
+.inputField:focus ~ .inputIcon {
+  color: var(--primary-gold);
+}
+
+.eyeButton {
+  position: absolute;
+  right: 18px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 5px;
+  transition: var(--transition);
+}
+
+.eyeButton:hover {
+  color: var(--primary-gold);
+}
+
+.loginButton {
+  background: var(--gradient-gold);
+  color: var(--bg-primary);
+  padding: 12px 60px;
+  border: none;
+  border-radius: var(--border-radius);
+  font-size: 1.8rem;
+  font-weight: 700;
+  font-family: var(--font-heading);
+  cursor: pointer;
+  margin-top: 20px;
+  align-self: center;
+  transition: var(--transition);
+  box-shadow: var(--shadow-gold);
+}
+
+.loginButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 30px var(--border-hover);
+  filter: brightness(1.1);
+}
+
+.errorMessage {
+  color: var(--accent-copper);
+  background-color: var(--bg-primary);
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  text-align: center;
+  margin-top: -10px;
+  font-family: var(--font-body);
+  border: 1px solid var(--border-color);
+}
+
+.loginContainer {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.loginText {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  font-family: var(--font-body);
+}
+
+.loginLink {
+  color: var(--primary-gold);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.loginLink:hover {
+  text-decoration: underline;
+}
+
+/* RESPONSIVE DESIGN */
+@media (max-width: 1024px) {
+  .welcomeText h1 { font-size: 2.5rem; }
+  .welcomeText p { font-size: 1.8rem; }
+}
+
+@media (max-width: 850px) {
+  .signupContainer {
+    flex-direction: column;
+    height: auto;
+  }
+  
+  .leftPanel {
+    padding: 80px 20px;
+  }
+
+  .mainLogo {
+    width: 250px;
+  }
+
+  .rightPanel {
+    padding: 60px 20px;
+  }
+}

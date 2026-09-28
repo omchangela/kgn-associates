@@ -1,0 +1,177 @@
+.header {
+  height: 80px;
+  background: var(--bg-secondary);
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 0 40px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.menuButton {
+  display: none;
+  background: transparent;
+  border: none;
+  color: var(--primary-gold);
+  cursor: pointer;
+  padding: 8px;
+  transition: var(--transition);
+}
+
+.menuButton:hover {
+  color: var(--secondary-gold);
+}
+
+.userSection {
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+  color: var(--text-primary); /* Ensures the ChevronDown icon inherits the correct color */
+}
+
+.profileWrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 15px 6px 8px; 
+  background: var(--bg-card);
+  border-radius: 50px;
+  border: 1px solid var(--border-color);
+  transition: var(--transition);
+}
+
+.profileWrapper:hover {
+  border-color: var(--primary-gold);
+  box-shadow: 0 0 10px var(--border-hover); /* Subtle gold glow on hover */
+}
+
+/* Container for the User Icon */
+.iconCircle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--gradient-gold); /* Upgraded to your gold gradient */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-dark);
+}
+
+.userName {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+}
+
+.rotate {
+  transform: rotate(180deg);
+  transition: transform 0.3s ease;
+}
+
+.dropdown {
+  position: absolute;
+  top: 110%;
+  right: 0;
+  background: var(--bg-card);
+  width: 150px;
+  box-shadow: var(--shadow-dark);
+  border-radius: var(--border-radius);
+  display: flex;
+  flex-direction: column;
+  padding: 10px 0;
+  z-index: 100;
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+}
+
+.dropdown button {
+  background: none;
+  border: none;
+  padding: 10px 20px;
+  text-align: left; 
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: var(--transition);
+}
+
+.dropdown button:hover {
+  background: var(--bg-primary); /* Darker background on hover */
+  color: var(--primary-gold);
+  padding-left: 25px; /* Subtle slide effect */
+}
+
+.logout {
+  color: var(--accent-copper) !important; /* Replaced default red with your theme's copper */
+  border-top: 1px solid var(--border-color) !important;
+  margin-top: 5px;
+}
+
+.logout:hover {
+  color: var(--primary-gold) !important;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .header {
+    height: 70px;
+    padding: 0 20px;
+    justify-content: space-between;
+  }
+
+  .menuButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .userName {
+    font-size: 0.9rem;
+  }
+
+  .iconCircle {
+    width: 32px;
+    height: 32px;
+  }
+
+  .dropdown {
+    width: 140px;
+  }
+
+  .dropdown button {
+    font-size: 0.75rem;
+    padding: 8px 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header {
+    height: 60px;
+    padding: 0 15px;
+  }
+
+  .userName {
+    display: none;
+  }
+
+  .profileWrapper {
+    padding: 6px 10px 6px 6px;
+    gap: 8px;
+  }
+
+  .iconCircle {
+    width: 30px;
+    height: 30px;
+  }
+
+  .dropdown {
+    width: 130px;
+  }
+
+  .dropdown button {
+    font-size: 0.7rem;
+    padding: 8px 12px;
+  }
+}
