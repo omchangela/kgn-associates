@@ -6,7 +6,13 @@ let initialized = false;
 export function getPool() {
   if (!pool) {
     if (process.env.DATABASE_URL) {
-      pool = mysql.createPool(process.env.DATABASE_URL);
+      pool = mysql.createPool({
+        uri: process.env.DATABASE_URL,
+        waitForConnections: true,
+        connectionLimit: 10,
+        queueLimit: 0,
+        connectTimeout: 35000,
+      });
       return pool;
     }
 
