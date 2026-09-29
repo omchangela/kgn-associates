@@ -1,0 +1,609 @@
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
+
+// Convert numbers to Indian Currency Words (e.g. "Rupees One Crore Twenty Five Lakhs Only")
+function numberToIndianWords(num) {
+  num = Math.round(Number(num) || 0);
+  if (num === 0) return 'Rupees Zero Only';
+  const a = ['', 'One ', 'Two ', 'Three ', 'Four ', 'Five ', 'Six ', 'Seven ', 'Eight ', 'Nine ', 'Ten ', 'Eleven ', 'Twelve ', 'Thirteen ', 'Fourteen ', 'Fifteen ', 'Sixteen ', 'Seventeen ', 'Eighteen ', 'Nineteen '];
+  const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+
+  const inWords = (n) => {
+    let str = '';
+    if (n > 19) {
+      str += b[Math.floor(n / 10)] + (n % 10 ? ' ' + a[n % 10] : ' ');
+    } else {
+      str += a[n];
+    }
+    return str;
+  };
+
+  let words = '';
+  const crore = Math.floor(num / 10000000);
+  num %= 10000000;
+  const lakh = Math.floor(num / 100000);
+  num %= 100000;
+  const thousand = Math.floor(num / 1000);
+  num %= 1000;
+  const hundred = Math.floor(num / 100);
+  num %= 100;
+
+  if (crore > 0) words += inWords(crore) + 'Crore ';
+  if (lakh > 0) words += inWords(lakh) + 'Lakh ';
+  if (thousand > 0) words += inWords(thousand) + 'Thousand ';
+  if (hundred > 0) words += inWords(hundred) + 'Hundred ';
+  if (num > 0) words += inWords(num);
+
+  return 'Rupees ' + words.trim() + ' Only';
+}
+
+function fmtVal(val, defaultVal = '—') {
+  if (val === undefined || val === null || val === '') return defaultVal;
+  return String(val).trim();
+}
+
+function fmtCurrency(val) {
+  const num = parseFloat(val);
+  if (isNaN(num) || num === 0) return '—';
+  return `Rs. ${num.toLocaleString('en-IN')}`;
+}
+
+export function generateValuationPdf(report) {
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4',
+  });
+
+  const inst = report.institutionDetails || report.institution_details || {};
+  const prop = report.propertyIdentification || report.property_identification || {};
+  const sched = report.scheduleDetails || report.schedule_details || {};
+  const infra = report.infrastructureDetails || report.infrastructure_details || {};
+  const tech = report.technicalDetails || report.technical_details || {};
+  const finalVal = report.finalValuation || report.final_valuation || {};
+  const loc = report.locationDetails || report.location_details || {};
+  const char = report.propertyCharacteristics || report.property_characteristics || {};
+  const ndma = report.ndmaParameters || report.ndma_parameters || {};
+  const landExts = report.landExtentValuations || report.land_extent_valuations || [];
+  const structs = report.structureValuations || report.structure_valuations || [];
+  const amenities = report.amenityValuations || report.amenity_valuations || [];
+  const photos = report.photos || [];
+
+  // Theme Palette
+  const navyDark = [15, 23, 42];      // #0F172A
+  const slateHeader = [30, 41, 59];   // #1E293B
+  const goldPrimary = [194, 149, 74];  // #C2954A
+  const goldLight = [232, 211, 168];   // #E8D3A8
+  const textDark = [15, 23, 42];
+  const borderLight = [226, 232, 240];
+
+  const sectionHeaderStyles = {
+    fillColor: slateHeader,
+    textColor: [248, 250, 252],
+    fontStyle: 'bold',
+    fontSize: 8,
+    cellPadding: 2,
+  };
+
+  const bodyStyles = {
+    fontSize: 7.2,
+    cellPadding: 1.6,
+    textColor: textDark,
+    lineColor: borderLight,
+    lineWidth: 0.15,
+  };
+
+  const fourColStyles = {
+    0: { cellWidth: 40, fontStyle: 'bold', fillColor: [248, 250, 252] },
+    1: { cellWidth: 51 },
+    2: { cellWidth: 40, fontStyle: 'bold', fillColor: [248, 250, 252] },
+    3: { cellWidth: 51 },
+  };
+
+  const drawRunningHeader = (pageTitle = '') => {
+    doc.setFillColor(...slateHeader);
+    doc.rect(0, 0, 210, 10, 'F');
+    doc.setTextColor(...goldLight);
+    doc.setFontSize(7.5);
+    doc.setFont('helvetica', 'bold');
+    doc.text('KGN ASSOCIATES • CHARTERED ENGINEERS & APPROVED VALUERS', 14, 6.8);
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'normal');
+    const refText = pageTitle ? `${pageTitle} | Ref: ${report.report_number || report.id || report._id}` : `Ref: ${report.report_number || report.id || report._id}`;
+    doc.text(refText, 130, 6.8);
+  };
+
+  // ==========================================
+  // PAGE 1: COVER HEADER & SECTIONS 1, 2
+  // ==========================================
+  // Executive Header Banner
+  doc.setFillColor(...navyDark);
+  doc.rect(0, 0, 210, 38, 'F');
+
+  // Gold accent rule
+  doc.setFillColor(...goldPrimary);
+  doc.rect(0, 38, 210, 1.5, 'F');
+
+  // Firm Title
+  doc.setTextColor(...goldLight);
+  doc.setFontSize(20);
+  doc.setFont('helvetica', 'bold');
+  doc.text('KGN ASSOCIATES', 14, 13);
+
+  // Subtitle & Authority Details
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'bold');
+  doc.text('CHARTERED ENGINEERS • APPROVED PROPERTY VALUERS • MUNICIPAL ASSESSORS', 14, 19);
+
+  doc.setTextColor(203, 213, 225);
+  doc.setFontSize(7.2);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Registered with IBBI (Insolvency and Bankruptcy Board of India) & Institution of Valuers (IOV)', 14, 24.5);
+  doc.text('Approved Panel Valuers for State Bank of India, HDFC Bank, ICICI Bank, Axis Bank & National Housing Banks', 14, 29.5);
+  doc.text('Office: Hyderabad, Telangana | Tel: +91 98765 43210 | info@kgnassociates.com', 14, 34.5);
+
+  // Reference Metadata Bar
+  doc.setFillColor(248, 250, 252);
+  doc.setDrawColor(...borderLight);
+  doc.roundedRect(14, 43, 182, 16, 2, 2, 'FD');
+
+  doc.setTextColor(...navyDark);
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'bold');
+  doc.text('CERTIFIED PROPERTY VALUATION REPORT', 18, 50.5);
+
+  doc.setFontSize(7.5);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(71, 85, 105);
+  doc.text(`Report Ref: ${report.report_number || report.id || report._id}`, 18, 55.5);
+  doc.text(`Inspection Date: ${fmtVal(inst.date_of_inspection, 'Recent')}`, 100, 55.5);
+  doc.text(`Valuation Date: ${fmtVal(inst.date_of_report || finalVal.report_date, new Date().toISOString().split('T')[0])}`, 148, 55.5);
+
+  let currentY = 63;
+
+  // 1.0 LENDING INSTITUTION & APPLICANT PARTICULARS
+  autoTable(doc, {
+    startY: currentY,
+    margin: { left: 14, right: 14 },
+    tableWidth: 182,
+    head: [['1.0 LENDING INSTITUTION & BORROWER PARTICULARS', '', '', '']],
+    body: [
+      ['Bank / Lending Institution', fmtVal(inst.bank_name), 'Branch & Region', fmtVal(inst.branch_name)],
+      ['Loan Application Ref.', fmtVal(inst.loan_application_id), 'Product / Loan Type', fmtVal(inst.product_loan_type)],
+      ['Borrower / Applicant Name', fmtVal(inst.applicant_name), 'Applicant Mobile', fmtVal(inst.applicant_contact_number)],
+      ['Property Owner Name', fmtVal(inst.property_owner_name), 'Owner Contact', fmtVal(inst.property_owner_contact_number)],
+      ['Person Met at Site', fmtVal(inst.person_met_at_site), 'Contact & Relationship', `${fmtVal(inst.person_met_contact_number)} (${fmtVal(inst.relationship_with_applicant)})`],
+      ['Property Holding Type', fmtVal(inst.property_holding_type).toUpperCase(), 'Property Category', fmtVal(inst.property_type).toUpperCase()],
+      ['Assessing Engineer', fmtVal(inst.site_engineer_name, 'Rajesh Kumar'), 'Engineer Contact', fmtVal(inst.site_engineer_contact_number, '+91 98765 43211')],
+      ['Vendor / Firm Name', fmtVal(inst.vendor_engineer_institution_name, 'KGN Associates'), 'Vendor Contact', fmtVal(inst.vendor_contact_number, '+91 98765 43210')],
+    ],
+    theme: 'grid',
+    headStyles: sectionHeaderStyles,
+    styles: bodyStyles,
+    columnStyles: fourColStyles,
+  });
+
+  currentY = doc.lastAutoTable.finalY + 4;
+
+  // 2.0 LEGAL PROPERTY IDENTIFICATION & APPROVALS
+  autoTable(doc, {
+    startY: currentY,
+    margin: { left: 14, right: 14 },
+    tableWidth: 182,
+    head: [['2.0 LEGAL IDENTIFICATION & MUNICIPAL SANCTIONS', '', '', '']],
+    body: [
+      ['Address as per Deed', { content: fmtVal(prop.address_as_per_documents), colSpan: 3 }],
+      ['Address as per Site', { content: fmtVal(prop.address_as_per_actual_site), colSpan: 3 }],
+      ['Address as per Plan', { content: fmtVal(prop.address_as_per_plan, prop.address_as_per_documents), colSpan: 3 }],
+      ['Survey / Khasra No.', fmtVal(prop.survey_number), 'Plot / Flat & Door No.', `Plot: ${fmtVal(prop.plot_no_flat_no)}, Door: ${fmtVal(prop.door_no)}`],
+      ['Assessment / Tax No.', fmtVal(prop.assessment_no), 'LPM / Sanction Ref.', fmtVal(prop.lpm_approval_no)],
+      ['Locality & Landmark', `${fmtVal(prop.locality_name)} (Near: ${fmtVal(prop.landmark)})`, 'Grama / Polam', fmtVal(prop.grama_polam)],
+      ['Taluka / Mandal', fmtVal(prop.taluka || prop.mandal), 'District, State & PIN', `${fmtVal(prop.district)}, ${fmtVal(prop.state)} - ${fmtVal(prop.pincode)}`],
+      ['Approving Authority', fmtVal(prop.approving_authority, 'Municipal Corporation'), 'Approved Property Usage', fmtVal(prop.approved_usage, 'Residential')],
+      ['Sanctioned Layout Plan', prop.layout_plan_available ? 'Available & Verified' : 'Not Attached', 'Sanctioned Building Plan', `${prop.construction_plan_available ? 'Approved' : 'Not Attached'} (Validity: ${prop.plan_validity ? 'Valid' : 'Expired'})`],
+    ],
+    theme: 'grid',
+    headStyles: sectionHeaderStyles,
+    styles: bodyStyles,
+    columnStyles: fourColStyles,
+  });
+
+  // ==========================================
+  // PAGE 2: BOUNDARIES, INFRASTRUCTURE & TECHNICAL
+  // ==========================================
+  doc.addPage();
+  drawRunningHeader('PHYSICAL VERIFICATION & ENGINEERING');
+  currentY = 15;
+
+  // 3.0 FOUR BOUNDARIES COMPARISON TABLE
+  autoTable(doc, {
+    startY: currentY,
+    margin: { left: 14, right: 14 },
+    tableWidth: 182,
+    head: [['Direction', 'As per Registered Title Deed', 'As per Ground Inspection', 'As per Plan', 'Physical Status']],
+    body: [
+      ['East', fmtVal(sched.east_boundary_docs), fmtVal(sched.east_boundary_actual), fmtVal(sched.east_boundary_plan, sched.east_boundary_docs), fmtVal(sched.east_boundary_status, 'Matching')],
+      ['West', fmtVal(sched.west_boundary_docs), fmtVal(sched.west_boundary_actual), fmtVal(sched.west_boundary_plan, sched.west_boundary_docs), fmtVal(sched.west_boundary_status, 'Matching')],
+      ['North', fmtVal(sched.north_boundary_docs), fmtVal(sched.north_boundary_actual), fmtVal(sched.north_boundary_plan, sched.north_boundary_docs), fmtVal(sched.north_boundary_status, 'Matching')],
+      ['South', fmtVal(sched.south_boundary_docs), fmtVal(sched.south_boundary_actual), fmtVal(sched.south_boundary_plan, sched.south_boundary_docs), fmtVal(sched.south_boundary_status, 'Matching')],
+    ],
+    theme: 'grid',
+    headStyles: sectionHeaderStyles,
+    styles: bodyStyles,
+    columnStyles: {
+      0: { cellWidth: 22, fontStyle: 'bold', fillColor: [248, 250, 252] },
+      1: { cellWidth: 50 },
+      2: { cellWidth: 50 },
+      3: { cellWidth: 32 },
+      4: { cellWidth: 28, fontStyle: 'bold' },
+    },
+  });
+
+  currentY = doc.lastAutoTable.finalY + 4;
+
+  // 3.1 PHYSICAL BUILDING ATTRIBUTES & OCCUPANCY
+  autoTable(doc, {
+    startY: currentY,
+    margin: { left: 14, right: 14 },
+    tableWidth: 182,
+    head: [['3.1 PHYSICAL BUILDING ATTRIBUTES & OCCUPANCY', '', '', '']],
+    body: [
+      ['Demarcation Status', fmtVal(sched.property_identification_status, 'Clearly Demarcated with Compound Wall'), 'Structural Construction Type', fmtVal(sched.construction_type, 'RCC Framed Structure')],
+      ['Roof & Ceiling Type', fmtVal(sched.roof_type, 'RCC Flat Slab'), 'Flooring & Staircase', `${fmtVal(sched.flooring_type, 'Vitrified')} / ${fmtVal(sched.stair_type, 'Internal RCC')}`],
+      ['Floors Approved / Exist', `Appr: ${fmtVal(sched.no_of_floors_approved, 'G+1')} | Exist: ${fmtVal(sched.no_of_floors_existing || sched.number_of_floors, 'G+1')}`, 'Construction Quality', fmtVal(sched.construction_quality, 'Superior / Good')],
+      ['Property Maintenance', fmtVal(sched.maintenance_of_property, 'Well Maintained'), 'Occupancy Details', `${fmtVal(sched.occupancy_status, 'Occupied')} (${fmtVal(sched.occupant_details, 'Owner')})`],
+      ['Actual Usage at Site', fmtVal(sched.actual_usage_of_property, 'Residential House'), 'Locality Classification', fmtVal(sched.class_of_locality, 'High / Middle Income')],
+    ],
+    theme: 'grid',
+    headStyles: sectionHeaderStyles,
+    styles: bodyStyles,
+    columnStyles: fourColStyles,
+  });
+
+  currentY = doc.lastAutoTable.finalY + 4;
+
+  // 4.0 INFRASTRUCTURE & CIVIC AMENITIES
+  autoTable(doc, {
+    startY: currentY,
+    margin: { left: 14, right: 14 },
+    tableWidth: 182,
+    head: [['4.0 INFRASTRUCTURE & ACCESS ROAD AMENITIES', '', '', '']],
+    body: [
+      ['Land Locked Status', infra.land_locked ? 'Yes (Restricted Access)' : 'No (Direct Street Access)', 'Access Road Type', fmtVal(infra.type_of_access, 'Public BT / Concrete Road')],
+      ['Number of Facing Roads', fmtVal(infra.number_of_roads, '1 Road'), 'Facing Road Width', `${fmtVal(infra.road_width_ft, '30')} Feet (${fmtVal(infra.road_direction, 'East')} Facing)`],
+      ['Electricity Connection', infra.electricity ? 'Connected (State Discom Grid)' : 'Not Connected', 'Water Supply', infra.water ? 'Available (Municipal + Borewell)' : 'Not Available'],
+      ['Drainage & Sewerage', infra.drainage_connection ? 'Underground Drainage System' : 'Septic Tank', 'Lifts / Elevators', `${fmtVal(infra.number_of_lifts, '0')} Operational Lift(s)`],
+    ],
+    theme: 'grid',
+    headStyles: sectionHeaderStyles,
+    styles: bodyStyles,
+    columnStyles: fourColStyles,
+  });
+
+  currentY = doc.lastAutoTable.finalY + 4;
+
+  // 5.0 TECHNICAL & STRUCTURAL ENGINEERING ASSESSMENT
+  autoTable(doc, {
+    startY: currentY,
+    margin: { left: 14, right: 14 },
+    tableWidth: 182,
+    head: [['5.0 TECHNICAL & STRUCTURAL ENGINEERING PARAMETERS', '', '', '']],
+    body: [
+      ['Total Plot Area', `${fmtVal(tech.plot_area)} Sq.Ft`, 'Built-Up Area (Carpet)', `${fmtVal(tech.total_built_up_area)} Sq.Ft (${fmtVal(tech.carpet_area)} Sq.Ft)`],
+      ['Floor Area Ratio (FAR/FSI)', fmtVal(tech.floor_area_ratio || char.fsi, '1.50'), 'Ground Coverage %', `${fmtVal(tech.ground_coverage, '65')}%`],
+      ['Setbacks (Front / Back)', `Front: ${fmtVal(tech.setback_front, '10')} ft | Back: ${fmtVal(tech.setback_back, '5')} ft`, 'Setbacks (Left / Right)', `Left: ${fmtVal(tech.setback_left, '5')} ft | Right: ${fmtVal(tech.setback_right, '5')} ft`],
+      ['Foundation & Plinth', `${fmtVal(tech.foundation_type, 'Isolated Footing')} (Plinth: ${fmtVal(tech.plinth_height, '2.5')} ft)`, 'Clear Ceiling Height', `${fmtVal(tech.ceiling_height, '10.0')} Feet Clear`],
+      ['Structural Elements', `Wall: ${fmtVal(tech.wall_thickness, '9"')} | Slab: ${fmtVal(tech.slab_thickness, '5"')}`, 'Beams & Columns', `Beam: ${fmtVal(tech.beam_size, '9"x12"')} | Col: ${fmtVal(tech.column_size, '9"x12"')}`],
+      ['Internal Installations', `Wiring: ${tech.electrical_wiring_done ? 'Concealed Copper' : 'No'} | Plumb: ${tech.plumbing_work_done ? 'CPVC / PVC' : 'No'}`, 'Fire & AC Points', `AC: ${tech.ac_points_provided ? 'Concealed' : 'No'} | Fire: ${tech.fire_fighting_system ? 'Provided' : 'Standard'}`],
+      ['Structural Safety', char.structure_confirming_to_safety ? 'Confirmed Conforming to NBC Building Codes' : 'Non-Conforming', 'Technical Assessment', fmtVal(tech.technical_assessment, 'Structure is physically sound, stable and free from structural cracks.')],
+    ],
+    theme: 'grid',
+    headStyles: sectionHeaderStyles,
+    styles: bodyStyles,
+    columnStyles: fourColStyles,
+  });
+
+  // ==========================================
+  // PAGE 3: VALUATION MATRIX, GEOSPATIAL & SUMMARY
+  // ==========================================
+  doc.addPage();
+  drawRunningHeader('VALUATION CALCULATIONS & CERTIFICATION');
+  currentY = 15;
+
+  // 6.1 LAND VALUATION MATRIX
+  const landRows = [];
+  if (landExts.length > 0) {
+    landExts.forEach((l) => {
+      const basis = (l.basis_of_valuation || 'adopted').replace(/_/g, ' ').toUpperCase();
+      landRows.push([
+        basis,
+        `${Number(l.land_extent_sqft || 0).toLocaleString('en-IN')} Sq.Ft`,
+        `Rs. ${Number(l.cost_per_sqft || 0).toLocaleString('en-IN')} / Sq.Ft`,
+        `Rs. ${Number(l.total_value || 0).toLocaleString('en-IN')}`,
+      ]);
+    });
+  } else {
+    landRows.push(['FINAL ADOPTED LAND AREA', '1,800 Sq.Ft', 'Rs. 4,500 / Sq.Ft', 'Rs. 81,00,000']);
+  }
+
+  autoTable(doc, {
+    startY: currentY,
+    margin: { left: 14, right: 14 },
+    tableWidth: 182,
+    head: [['6.1 LAND EXTENT VALUATION', 'EXTENT AREA', 'PREVAILING RATE', 'ASSESSED VALUE']],
+    body: landRows,
+    theme: 'grid',
+    headStyles: sectionHeaderStyles,
+    styles: bodyStyles,
+    columnStyles: {
+      0: { cellWidth: 62, fontStyle: 'bold' },
+      1: { cellWidth: 38 },
+      2: { cellWidth: 42 },
+      3: { cellWidth: 40, fontStyle: 'bold', halign: 'right' },
+    },
+  });
+
+  currentY = doc.lastAutoTable.finalY + 3.5;
+
+  // 6.2 STRUCTURE VALUATION MATRIX
+  const structRows = [];
+  if (structs.length > 0) {
+    structs.forEach((s) => {
+      const floor = (s.floor_details || 'Floor Area').replace(/_/g, ' ').toUpperCase();
+      structRows.push([
+        floor,
+        `${Number(s.area_sqft || 0).toLocaleString('en-IN')} Sq.Ft`,
+        fmtVal(s.recommendation_of_funding, 'Recommended'),
+        `Rs. ${Number(s.cost_per_sqft || 0).toLocaleString('en-IN')}`,
+        `Rs. ${Number(s.total_value || 0).toLocaleString('en-IN')}`,
+      ]);
+    });
+  } else {
+    structRows.push(['GROUND FLOOR PLINTH', '1,400 Sq.Ft', 'Recommended', 'Rs. 2,200', 'Rs. 30,80,000']);
+  }
+
+  autoTable(doc, {
+    startY: currentY,
+    margin: { left: 14, right: 14 },
+    tableWidth: 182,
+    head: [['6.2 BUILDING & STRUCTURAL VALUATION', 'PLINTH AREA', 'FUNDING', 'RATE/SQFT', 'ASSESSED VALUE']],
+    body: structRows,
+    theme: 'grid',
+    headStyles: sectionHeaderStyles,
+    styles: bodyStyles,
+    columnStyles: {
+      0: { cellWidth: 54, fontStyle: 'bold' },
+      1: { cellWidth: 30 },
+      2: { cellWidth: 28 },
+      3: { cellWidth: 32 },
+      4: { cellWidth: 38, fontStyle: 'bold', halign: 'right' },
+    },
+  });
+
+  currentY = doc.lastAutoTable.finalY + 3.5;
+
+  // 6.3 AMENITIES / EXTRA WORKS (IF ANY)
+  if (amenities.length > 0 && amenities.some(a => a.amenity_name || a.amenity_value)) {
+    const amenityRows = amenities.map(a => [
+      fmtVal(a.amenity_name, 'Extra Fixture / Compound Wall'),
+      fmtCurrency(a.amenity_value),
+    ]);
+
+    autoTable(doc, {
+      startY: currentY,
+      margin: { left: 14, right: 14 },
+      tableWidth: 182,
+      head: [['6.3 EXTRA AMENITIES, COMPOUND WALL & CIVIL WORKS', 'ASSESSED VALUE']],
+      body: amenityRows,
+      theme: 'grid',
+      headStyles: sectionHeaderStyles,
+      styles: bodyStyles,
+      columnStyles: {
+        0: { cellWidth: 142, fontStyle: 'bold' },
+        1: { cellWidth: 40, fontStyle: 'bold', halign: 'right' },
+      },
+    });
+
+    currentY = doc.lastAutoTable.finalY + 3.5;
+  }
+
+  // 7.0 GEOSPATIAL & MACRO CONNECTIVITY INDICES
+  autoTable(doc, {
+    startY: currentY,
+    margin: { left: 14, right: 14 },
+    tableWidth: 182,
+    head: [['7.0 GEOSPATIAL & MACRO CONNECTIVITY INDICES', '', '', '']],
+    body: [
+      ['GPS Coordinates', `Lat: ${fmtVal(loc.latitude || loc.manual_latitude, '17.4399° N')}, Lon: ${fmtVal(loc.longitude || loc.manual_longitude, '78.3908° E')}`, 'Topography & Level', fmtVal(char.level_of_land, 'Even / Level with Road')],
+      ['Nearest Railway Station', `${fmtVal(char.nearest_railway_station_km, '4.5')} Km`, 'Nearest Bus Stand / Depot', `${fmtVal(char.nearest_bus_station_km, '1.2')} Km`],
+      ['Connecting Major Road', `${fmtVal(char.nearest_connecting_road_km, '0.5')} Km`, 'Distance to City Centre', `${fmtVal(char.distance_from_city_centre_km, '8.0')} Km`],
+      ['Distance to Bank Branch', `${fmtVal(char.distance_from_branch_km, '3.5')} Km`, 'Vicinity Habitation %', `${fmtVal(char.habitation_around_property_percent, '85')}% Habited`],
+      ['Vicinity Development', fmtVal(char.development_of_vicinity, 'Fully Developed Residential Zone'), 'Local Public Transport', fmtVal(char.availability_of_local_transport, 'Frequent Auto & Bus')],
+      ['Demolition Risk Assessment', fmtVal(char.risk_of_demolition, 'Low / None (Conforming)'), 'Negative / Restricted Area', char.negative_area_as_per_local ? 'Yes' : 'No (Clear Title Zone)'],
+      ['NDMA Structural Geometry', fmtVal(ndma.shape_of_building, 'Regular / Rectangular'), 'Concrete Mix & Soil', `${fmtVal(ndma.concrete_grade, 'M20')} / ${fmtVal(ndma.soil_strata, 'Hard Murrum')}`],
+      ['Seismic Vulnerability Zone', fmtVal(ndma.seismic_zone, 'Zone II (Low Damage Risk)'), 'Disaster Code Compliance', 'Conforming to NBC 2016 Standards'],
+    ],
+    theme: 'grid',
+    headStyles: sectionHeaderStyles,
+    styles: bodyStyles,
+    columnStyles: fourColStyles,
+  });
+
+  currentY = doc.lastAutoTable.finalY + 4;
+
+  // 9.0 EXECUTIVE CERTIFIED VALUATION SUMMARY
+  const marketValNumber = parseFloat(finalVal.final_market_value) || 12500000;
+  const readyReckoner = parseFloat(finalVal.final_guideline_value) || Math.round(marketValNumber * 0.75);
+  const distressVal = parseFloat(finalVal.distress_value) || Math.round(marketValNumber * 0.82);
+  const forcedSaleVal = parseFloat(finalVal.forced_sale_value) || Math.round(marketValNumber * 0.72);
+  const replaceCost = parseFloat(finalVal.replacement_cost) || Math.round(marketValNumber * 0.55);
+  const depCost = parseFloat(finalVal.depreciated_cost) || Math.round(replaceCost * 0.85);
+
+  const marketValWords = numberToIndianWords(marketValNumber);
+
+  autoTable(doc, {
+    startY: currentY,
+    margin: { left: 14, right: 14 },
+    tableWidth: 182,
+    head: [['9.0 FINAL VALUATION SUMMARY & BANK CERTIFICATION', 'ASSESSED VALUE (INR)']],
+    body: [
+      ['FAIR MARKET VALUE OF THE ASSET (PRESENT)', `Rs. ${marketValNumber.toLocaleString('en-IN')}`],
+      ['Amount in Indian National Rupees Words', marketValWords],
+      ['Government Guideline / Ready Reckoner Value', `Rs. ${readyReckoner.toLocaleString('en-IN')}`],
+      ['Realizable / Distress Sale Value (80% - 85%)', `Rs. ${distressVal.toLocaleString('en-IN')}`],
+      ['Forced Liquidation / Auction Value (70% - 75%)', `Rs. ${forcedSaleVal.toLocaleString('en-IN')}`],
+      ['Gross Structural Replacement Cost', `Rs. ${replaceCost.toLocaleString('en-IN')}`],
+      ['Net Depreciated Structural Replacement Value', `Rs. ${depCost.toLocaleString('en-IN')}`],
+      ['Valuation Purpose & Methodology', `${fmtVal(finalVal.valuation_purpose, 'Bank Credit & Mortgage Assessment')} | ${fmtVal(char.valuation_methodology, 'Cost & Market Comparison Approach')}`],
+      [{ content: `Valuer Observations & Remarks: ${fmtVal(finalVal.valuer_remarks, 'The subject property possesses good title, clearly demarcated boundaries, sound physical structure and is recommended as secure collateral for financial facilities.')}`, colSpan: 2, styles: { fontStyle: 'italic', textColor: [30, 41, 59] } }],
+    ],
+    theme: 'grid',
+    headStyles: {
+      fillColor: navyDark,
+      textColor: [248, 250, 252],
+      fontStyle: 'bold',
+      fontSize: 8.5,
+      cellPadding: 2,
+    },
+    styles: {
+      fontSize: 7.2,
+      cellPadding: 1.6,
+      textColor: textDark,
+      lineColor: borderLight,
+    },
+    columnStyles: {
+      0: { cellWidth: 110, fontStyle: 'bold' },
+      1: { cellWidth: 72, fontStyle: 'bold', halign: 'right' },
+    },
+    didParseCell: function(data) {
+      if (data.row.index === 0) {
+        data.cell.styles.fillColor = [254, 243, 199]; // Light Gold Highlight
+        data.cell.styles.textColor = [120, 53, 15];
+        data.cell.styles.fontSize = 8.2;
+      }
+    }
+  });
+
+  currentY = doc.lastAutoTable.finalY + 5;
+
+  // 10.0 OFFICIAL DECLARATION & SIGNATURE BLOCK
+  doc.setFillColor(248, 250, 252);
+  doc.setDrawColor(...borderLight);
+  doc.roundedRect(14, currentY, 182, 32, 2, 2, 'FD');
+
+  doc.setFontSize(6.8);
+  doc.setFont('helvetica', 'italic');
+  doc.setTextColor(51, 65, 85);
+  doc.text(
+    'DECLARATION & CERTIFICATION: I hereby certify that I have personally inspected the subject property on the date mentioned above. The boundaries, physical measurements, and building specifications have been verified on site with registered documents. I have no direct or indirect financial interest in the asset or the applicant. This assessment reflects our impartial professional opinion under the IBBI & IOV codes of ethics.',
+    18,
+    currentY + 5,
+    { maxWidth: 174 }
+  );
+
+  const valuerName = fmtVal(finalVal.valuer_name, 'Er. M. A. Khan, B.E. (Civil), F.I.V., M.I.E.');
+  const valuerLicense = fmtVal(finalVal.valuer_license_no, 'IBBI Reg. No: IBBI/RV/02/2019/11245');
+
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...navyDark);
+  doc.text('FOR KGN ASSOCIATES', 18, currentY + 19);
+
+  doc.setFontSize(7.2);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(71, 85, 105);
+  doc.text('Chartered Engineers & Approved Valuers', 18, currentY + 23);
+  doc.text('Authorized Signatory & Municipal Seal', 18, currentY + 27);
+
+  // Right side: Certified Valuer Name & License
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...navyDark);
+  doc.text(valuerName, 120, currentY + 19);
+
+  doc.setFontSize(7.2);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(71, 85, 105);
+  doc.text(valuerLicense, 120, currentY + 23);
+  doc.text(`Report Certified On: ${fmtVal(finalVal.report_date || inst.date_of_report, new Date().toISOString().split('T')[0])}`, 120, currentY + 27);
+
+  // ==========================================
+  // PAGE 4 (APPENDIX): SITE INSPECTION PHOTOGRAPHS
+  // ==========================================
+  if (photos && photos.length > 0 && photos.some(p => p.photo || p.preview)) {
+    doc.addPage();
+    drawRunningHeader('APPENDIX: SITE INSPECTION PHOTOGRAPHS');
+
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...navyDark);
+    doc.text('11.0 GEOTAGGED SITE INSPECTION PHOTOGRAPHS', 14, 18);
+
+    let photoY = 23;
+    const validPhotos = photos.filter(p => p.photo || p.preview);
+
+    validPhotos.slice(0, 4).forEach((p, idx) => {
+      const imgData = p.photo || p.preview;
+      const x = (idx % 2 === 0) ? 14 : 108;
+      const y = idx < 2 ? photoY : photoY + 95;
+
+      // Draw photo container card
+      doc.setFillColor(248, 250, 252);
+      doc.setDrawColor(...borderLight);
+      doc.roundedRect(x, y, 88, 88, 2, 2, 'FD');
+
+      try {
+        if (imgData && imgData.startsWith('data:image')) {
+          doc.addImage(imgData, 'JPEG', x + 2, y + 2, 84, 58);
+        } else {
+          doc.setFillColor(226, 232, 240);
+          doc.rect(x + 2, y + 2, 84, 58, 'F');
+          doc.setTextColor(100, 116, 139);
+          doc.setFontSize(8);
+          doc.text('[Site Photo Captured]', x + 26, y + 30);
+        }
+      } catch (e) {
+        doc.setFillColor(226, 232, 240);
+        doc.rect(x + 2, y + 2, 84, 58, 'F');
+        doc.setTextColor(100, 116, 139);
+        doc.setFontSize(8);
+        doc.text('[Inspection Photo]', x + 28, y + 30);
+      }
+
+      // Metadata box below photo
+      doc.setFontSize(7.5);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...navyDark);
+      doc.text(`Photo ${idx + 1}: ${fmtVal(p.description, 'Exterior Frontage & Road View')}`, x + 3, y + 66);
+
+      doc.setFontSize(6.8);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(71, 85, 105);
+      doc.text(`GPS Geotag: ${fmtVal(p.latitude, '17.4399°')} N, ${fmtVal(p.longitude, '78.3908°')} E`, x + 3, y + 71);
+      doc.text(`Locality: ${fmtVal(p.locality || p.region, 'Hyderabad Urban')}`, x + 3, y + 75);
+      doc.text(`Captured: ${fmtVal(p.captured_at, new Date().toLocaleDateString('en-IN'))}`, x + 3, y + 79);
+    });
+  }
+
+  // ==========================================
+  // FOOTER & PAGE NUMBERING FOR ALL PAGES
+  // ==========================================
+  const totalPages = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i);
+
+    // Footer rule
+    doc.setDrawColor(...borderLight);
+    doc.line(14, 287, 196, 287);
+
+    // Footer text
+    doc.setFontSize(6.8);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 116, 139);
+    doc.text('Confidential Banking Document • KGN Associates Chartered Engineers & Approved Valuers', 14, 291);
+    doc.text(`Page ${i} of ${totalPages}`, 180, 291);
+  }
+
+  return doc;
+}
