@@ -5,6 +5,19 @@ class MemoryStore {
   constructor() {
     this.users = [
       {
+        id: 'user_admin_root',
+        _id: 'user_admin_root',
+        username: 'admin_super',
+        email: 'admin@admin.com',
+        // password: "12345678"
+        password: '$2b$10$uRO6yzoFa7Wx2/l4L6XgMeb2U0CeQ5/2zIqh5LcdflFZGCPw3eteS',
+        first_name: 'Executive',
+        last_name: 'Admin',
+        phone_number: '+91 98765 43210',
+        role: 'admin',
+        status: 'active',
+      },
+      {
         id: 'user_1',
         _id: 'user_1',
         username: 'admin',
@@ -15,6 +28,31 @@ class MemoryStore {
         last_name: 'Admin',
         phone_number: '+91 98765 43210',
         role: 'admin',
+        status: 'active',
+      },
+      {
+        id: 'user_emp_1',
+        _id: 'user_emp_1',
+        username: 'rajesh_valuer',
+        email: 'rajesh@kgnassociates.com',
+        password: '$2b$10$uRO6yzoFa7Wx2/l4L6XgMeb2U0CeQ5/2zIqh5LcdflFZGCPw3eteS',
+        first_name: 'Rajesh',
+        last_name: 'Kumar',
+        phone_number: '+91 98765 43211',
+        role: 'valuer',
+        status: 'active',
+      },
+      {
+        id: 'user_emp_2',
+        _id: 'user_emp_2',
+        username: 'suresh_inspector',
+        email: 'suresh@kgnassociates.com',
+        password: '$2b$10$uRO6yzoFa7Wx2/l4L6XgMeb2U0CeQ5/2zIqh5LcdflFZGCPw3eteS',
+        first_name: 'Suresh',
+        last_name: 'Reddy',
+        phone_number: '+91 98480 54321',
+        role: 'inspector',
+        status: 'active',
       }
     ];
 
@@ -189,11 +227,72 @@ class MemoryStore {
     return this.users.map(({ password, ...u }) => u);
   }
 
-  deleteUser(id) {
-    const idx = this.users.findIndex(u => u.id === id || u._id === id);
-    if (idx === -1) return false;
-    this.users.splice(idx, 1);
+  updateUserStatus(id, status) {
+    const user = this.users.find(u => u.id === id || u._id === id);
+    if (!user) return false;
+    user.status = status;
     return true;
+  }
+
+  updateUser(id, updates) {
+    const user = this.users.find(u => u.id === id || u._id === id);
+    if (!user) return null;
+    Object.assign(user, updates);
+    return user;
+  }
+
+  updateValuationStatus(id, status) {
+    const val = this.valuations.find(v => v.id === id || v._id === id);
+    if (!val) return false;
+    val.status = status;
+    val.updatedAt = new Date().toISOString();
+    return true;
+  }
+
+  getAdminStats() {
+    const totalEmployees = this.users.length;
+    const activeEmployees = this.users.filter(u => u.status !== 'inactive').length;
+    const inactiveEmployees = this.users.filter(u => u.status === 'inactive').length;
+
+    const totalReports = this.valuations.length;
+    const approvedReports = this.valuations.filter(v => v.status === 'approved' || v.status === 'completed').length;
+    const rejectedReports = this.valuations.filter(v => v.status === 'rejected').length;
+    const draftReports = this.valuations.filter(v => v.status === 'draft' || v.status === 'in_progress').length;
+
+    const recentReports = [...this.valuations].reverse().slice(0, 8).map(v => ({
+      id: v.id || v._id,
+      report_number: v.report_number,
+      status: v.status || 'completed',
+      applicant_name: v.institutionDetails?.applicant_name || 'Client',
+      bank_name: v.institutionDetails?.bank_name || 'Bank',
+      locality_name: v.propertyIdentification?.locality_name || 'Location',
+      final_market_value: v.valuationSummary?.final_market_value || 12500000,
+      updated_at: v.updatedAt || v.createdAt || new Date().toISOString(),
+    }));
+
+    const recentEmployees = [...this.users].reverse().slice(0, 8).map(u => ({
+      id: u.id || u._id,
+      username: u.username,
+      email: u.email,
+      first_name: u.first_name || '',
+      last_name: u.last_name || '',
+      phone_number: u.phone_number || '',
+      role: u.role || 'valuer',
+      status: u.status || 'active',
+      created_at: u.createdAt || u.created_at || new Date().toISOString(),
+    }));
+
+    return {
+      totalEmployees,
+      activeEmployees,
+      inactiveEmployees,
+      totalReports,
+      approvedReports,
+      rejectedReports,
+      draftReports,
+      recentReports,
+      recentEmployees,
+    };
   }
 }
 

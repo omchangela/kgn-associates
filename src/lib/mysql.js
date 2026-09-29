@@ -52,9 +52,17 @@ async function ensureTables() {
         last_name VARCHAR(100) DEFAULT '',
         phone_number VARCHAR(50) DEFAULT '',
         role VARCHAR(50) DEFAULT 'admin',
+        status VARCHAR(20) DEFAULT 'active',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `);
+
+    // Ensure status column exists if table was created previously
+    try {
+      await p.query(`ALTER TABLE users ADD COLUMN status VARCHAR(20) DEFAULT 'active'`);
+    } catch (e) {
+      // Column already exists
+    }
 
     await p.query(`
       CREATE TABLE IF NOT EXISTS valuations (
@@ -75,7 +83,7 @@ async function ensureTables() {
     const [existing] = await p.query('SELECT COUNT(*) as count FROM users');
     if (existing[0]?.count === 0) {
       await p.query(`
-        INSERT INTO users (id, username, email, password, first_name, last_name, phone_number, role)
+        INSERT INTO users (id, username, email, password, first_name, last_name, phone_number, role, status)
         VALUES (
           'user_admin_1',
           'admin',
@@ -84,7 +92,27 @@ async function ensureTables() {
           'KGN',
           'Admin',
           '+91 98765 43210',
-          'admin'
+          'admin',
+          'active'
+        )
+      `);
+    }
+
+    // Seed admin@admin.com / 12345678 if not present
+    const [adminExists] = await p.query('SELECT id FROM users WHERE email = ?', ['admin@admin.com']);
+    if (!adminExists || adminExists.length === 0) {
+      await p.query(`
+        INSERT INTO users (id, username, email, password, first_name, last_name, phone_number, role, status)
+        VALUES (
+          'user_admin_root',
+          'admin_admin',
+          'admin@admin.com',
+          '$2b$10$uRO6yzoFa7Wx2/l4L6XgMeb2U0CeQ5/2zIqh5LcdflFZGCPw3eteS',
+          'Executive',
+          'Admin',
+          '+91 98765 43210',
+          'admin',
+          'active'
         )
       `);
     }
@@ -130,23 +158,52 @@ export async function findUserById(id) {
   }
 }
 
-export async function createUser({ id, username, email, password, first_name = '', last_name = '', phone_number = '', role = 'valuer' }) {
+export async function createUser({ id, username, email, password, first_name = '', last_name = '', phone_number = '', role = 'valuer', status = 'active' }) {
   const sql = `
-    INSERT INTO users (id, username, email, password, first_name, last_name, phone_number, role)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO users (id, username, email, password, first_name, last_name, phone_number, role, status)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
-  await query(sql, [id, username, email, password, first_name, last_name, phone_number, role]);
-  return { id, username, email, first_name, last_name, phone_number, role };
+  await query(sql, [id, username, email, password, first_name, last_name, phone_number, role, status]);
+  return { id, username, email, first_name, last_name, phone_number, role, status };
 }
 
 export async function getAllUsers() {
   try {
-    const sql = `SELECT id, username, email, first_name, last_name, phone_number, role, created_at FROM users ORDER BY created_at DESC`;
+    const sql = `SELECT id, username, email, first_name, last_name, phone_number, role, COALESCE(status, 'active') as status, created_at FROM users ORDER BY created_at DESC`;
     const rows = await query(sql);
     return rows || [];
   } catch (err) {
     console.error('Failed to get users from MySQL:', err);
     return [];
+  }
+}
+
+export async function updateUserStatus(id, status) {
+  try {
+    const sql = `UPDATE users SET status = ? WHERE id = ?`;
+    await query(sql, [status, id]);
+    return true;
+  } catch (err) {
+    console.error('Failed to update user status in MySQL:', err);
+    return false;
+  }
+}
+
+export async function updateUser(id, { first_name = '', last_name = '', email = '', phone_number = '', role = 'valuer', status = 'active', password = '' }) {
+  try {
+    let sql = `UPDATE users SET first_name = ?, last_name = ?, email = ?, phone_number = ?, role = ?, status = ?`;
+    const params = [first_name, last_name, email, phone_number, role, status];
+    if (password) {
+      sql += `, password = ?`;
+      params.push(password);
+    }
+    sql += ` WHERE id = ?`;
+    params.push(id);
+    await query(sql, params);
+    return true;
+  } catch (err) {
+    console.error('Failed to update user in MySQL:', err);
+    return false;
   }
 }
 
@@ -157,6 +214,88 @@ export async function deleteUser(id) {
     return true;
   } catch (err) {
     console.error('Failed to delete user from MySQL:', err);
+    return false;
+  }
+}
+
+export async function getAdminStats() {
+  try {
+    const userRows = await query(`
+      SELECT 
+        COUNT(*) as total_employees,
+        SUM(CASE WHEN status = 'active' OR status IS NULL OR status = '' THEN 1 ELSE 0 END) as active_employees,
+        SUM(CASE WHEN status = 'inactive' THEN 1 ELSE 0 END) as inactive_employees
+      FROM users
+    `);
+    const userStats = userRows[0] || {};
+
+    const reportRows = await query(`
+      SELECT 
+        COUNT(*) as total_reports,
+        SUM(CASE WHEN status = 'approved' OR status = 'completed' THEN 1 ELSE 0 END) as approved_reports,
+        SUM(CASE WHEN status = 'rejected' THEN 1 ELSE 0 END) as rejected_reports,
+        SUM(CASE WHEN status = 'draft' OR status = 'in_progress' OR status IS NULL THEN 1 ELSE 0 END) as draft_reports
+      FROM valuations
+    `);
+    const reportStats = reportRows[0] || {};
+
+    const recentReports = await query(`
+      SELECT id, report_number, status, applicant_name, bank_name, locality_name, final_market_value, updated_at
+      FROM valuations
+      ORDER BY updated_at DESC
+      LIMIT 8
+    `);
+
+    const recentEmployees = await query(`
+      SELECT id, username, email, first_name, last_name, phone_number, role, COALESCE(status, 'active') as status, created_at
+      FROM users
+      ORDER BY created_at DESC
+      LIMIT 8
+    `);
+
+    return {
+      totalEmployees: Number(userStats.total_employees || 0),
+      activeEmployees: Number(userStats.active_employees || 0),
+      inactiveEmployees: Number(userStats.inactive_employees || 0),
+      totalReports: Number(reportStats.total_reports || 0),
+      approvedReports: Number(reportStats.approved_reports || 0),
+      rejectedReports: Number(reportStats.rejected_reports || 0),
+      draftReports: Number(reportStats.draft_reports || 0),
+      recentReports: (recentReports || []).map(r => ({
+        id: r.id,
+        report_number: r.report_number,
+        status: r.status,
+        applicant_name: r.applicant_name,
+        bank_name: r.bank_name,
+        locality_name: r.locality_name,
+        final_market_value: r.final_market_value,
+        updated_at: r.updated_at,
+      })),
+      recentEmployees: (recentEmployees || []).map(e => ({
+        id: e.id,
+        username: e.username,
+        email: e.email,
+        first_name: e.first_name,
+        last_name: e.last_name,
+        phone_number: e.phone_number,
+        role: e.role,
+        status: e.status || 'active',
+        created_at: e.created_at,
+      })),
+    };
+  } catch (err) {
+    console.error('Failed to get admin stats from MySQL:', err);
+    return null;
+  }
+}
+
+export async function updateValuationStatus(id, status) {
+  try {
+    const sql = `UPDATE valuations SET status = ? WHERE id = ?`;
+    await query(sql, [status, id]);
+    return true;
+  } catch (err) {
+    console.error('Failed to update valuation status in MySQL:', err);
     return false;
   }
 }

@@ -7,37 +7,24 @@ import Footer from '@/components/footer/Footer';
 import styles from './Employees.module.css';
 import { 
   Users, 
-  UserPlus, 
-  Trash2, 
   ShieldCheck, 
   Mail, 
   Phone, 
-  X, 
   CheckCircle2, 
-  AlertCircle,
-  Briefcase
+  Briefcase,
+  Search,
+  ExternalLink
 } from 'lucide-react';
-import { KgnCrest, ApprovedValuerBadge, ArchitecturalGridSvg } from '@/components/common/SvgDecorations';
+import { ApprovedValuerBadge, ArchitecturalGridSvg } from '@/components/common/SvgDecorations';
+import Link from 'next/link';
 import gsap from 'gsap';
 
 export default function EmployeesPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [notification, setNotification] = useState({ text: '', type: '' });
-
-  // New employee form state
-  const [formData, setFormData] = useState({
-    username: '',
-    email: '',
-    password: '',
-    first_name: '',
-    last_name: '',
-    phone_number: '',
-    role: 'valuer',
-  });
-  const [submitting, setSubmitting] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterRole, setFilterRole] = useState('all');
 
   const containerRef = useRef(null);
   const tableRef = useRef(null);
@@ -66,82 +53,37 @@ export default function EmployeesPage() {
       const ctx = gsap.context(() => {
         gsap.fromTo(
           tableRef.current,
-          { opacity: 0, y: 20 },
-          { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }
+          { opacity: 0, y: 15 },
+          { opacity: 1, y: 0, duration: 0.45, ease: 'power2.out' }
         );
       }, containerRef);
       return () => ctx.revert();
     }
   }, [loading]);
 
-  const handleInputChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const filteredUsers = users.filter((u) => {
+    const q = searchQuery.toLowerCase();
+    const fullName = `${u.first_name || ''} ${u.last_name || ''}`.toLowerCase();
+    const matchesSearch = 
+      !q || 
+      fullName.includes(q) || 
+      (u.username && u.username.toLowerCase().includes(q)) || 
+      (u.email && u.email.toLowerCase().includes(q)) ||
+      (u.phone_number && u.phone_number.includes(q));
 
-  const showNotification = (text, type = 'success') => {
-    setNotification({ text, type });
-    setTimeout(() => setNotification({ text: '', type: '' }), 4000);
-  };
+    const matchesRole = 
+      filterRole === 'all' || 
+      (filterRole === 'admin' && u.role === 'admin') ||
+      (filterRole === 'valuer' && (u.role === 'valuer' || !u.role)) ||
+      (filterRole === 'inspector' && (u.role === 'inspector' || u.role === 'field_inspector'));
 
-  const handleCreateEmployee = async (e) => {
-    e.preventDefault();
-    setSubmitting(true);
-
-    try {
-      const res = await fetch('/api/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await res.json();
-      if (res.ok && data.success) {
-        showNotification(`Employee ${formData.username} registered successfully!`, 'success');
-        setIsModalOpen(false);
-        setFormData({
-          username: '',
-          email: '',
-          password: '',
-          first_name: '',
-          last_name: '',
-          phone_number: '',
-          role: 'valuer',
-        });
-        fetchUsers();
-      } else {
-        showNotification(data.error || 'Failed to create employee', 'error');
-      }
-    } catch (err) {
-      showNotification('Error creating employee. Please try again.', 'error');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleDeleteUser = async (id, username) => {
-    if (!confirm(`Are you sure you want to remove ${username}?`)) return;
-
-    try {
-      const res = await fetch(`/api/users?id=${encodeURIComponent(id)}`, {
-        method: 'DELETE',
-      });
-      const data = await res.json();
-
-      if (res.ok && data.success) {
-        showNotification(`Employee ${username} removed`, 'success');
-        setUsers(users.filter((u) => u.id !== id));
-      } else {
-        showNotification(data.error || 'Failed to remove employee', 'error');
-      }
-    } catch (err) {
-      showNotification('Failed to delete employee', 'error');
-    }
-  };
+    return matchesSearch && matchesRole;
+  });
 
   const getRoleBadge = (role) => {
     switch (role) {
       case 'admin':
-        return <span className={`${styles.roleBadge} ${styles.roleAdmin}`}><ShieldCheck size={14} /> Admin</span>;
+        return <span className={`${styles.roleBadge} ${styles.roleAdmin}`}><ShieldCheck size={14} /> Administrator</span>;
       case 'inspector':
       case 'field_inspector':
         return <span className={`${styles.roleBadge} ${styles.roleInspector}`}><Briefcase size={14} /> Field Inspector</span>;
@@ -160,51 +102,94 @@ export default function EmployeesPage() {
 
         <div className={styles.mainScrollArea}>
           <div className={styles.contentPadding}>
-            {/* Page Header */}
+            {/* Page Header - Read-Only for Employee Panel */}
             <div className={styles.pageHeader}>
               <div className={styles.headerLeft}>
                 <div className={styles.badgeRow}>
                   <span className={styles.portalBadge}>
-                    <ShieldCheck size={14} /> Admin Management
+                    <Users size={14} /> Team Directory
+                  </span>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                    • Employee Panel
                   </span>
                 </div>
                 <h1 className={styles.pageTitle}>Valuers &amp; Staff Directory</h1>
                 <p className={styles.pageSubtitle}>
-                  Manage authorized chartered engineers, approved valuers, and field assessment staff.
+                  View official chartered engineers, registered property valuers, and municipal assessors in your organization.
                 </p>
               </div>
 
+              {/* Admin Portal notice / direct access */}
               <div className={styles.headerActions}>
-                <button 
+                <Link 
+                  href="/admin/login" 
                   className={styles.addBtn}
-                  onClick={() => setIsModalOpen(true)}
+                  style={{ textDecoration: 'none', background: 'rgba(212, 175, 55, 0.1)', border: '1px solid rgba(212, 175, 55, 0.3)', color: 'var(--primary-gold)' }}
                 >
-                  <UserPlus size={18} />
-                  <span>Add New Employee</span>
-                </button>
+                  <ShieldCheck size={18} />
+                  <span>Admin Console</span>
+                  <ExternalLink size={14} style={{ opacity: 0.7 }} />
+                </Link>
               </div>
             </div>
 
-            {/* Notification alert */}
-            {notification.text && (
-              <div 
-                style={{
-                  padding: '12px 18px',
-                  borderRadius: '8px',
-                  marginBottom: '20px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px',
-                  fontSize: '0.92rem',
-                  background: notification.type === 'error' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)',
-                  border: `1px solid ${notification.type === 'error' ? '#ef4444' : '#10b981'}`,
-                  color: notification.type === 'error' ? '#fca5a5' : '#6ee7b7',
-                }}
-              >
-                {notification.type === 'error' ? <AlertCircle size={18} /> : <CheckCircle2 size={18} />}
-                <span>{notification.text}</span>
+            {/* Filter and Search Bar */}
+            <div style={{
+              display: 'flex',
+              gap: '12px',
+              flexWrap: 'wrap',
+              marginBottom: '20px',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}>
+              <div style={{
+                position: 'relative',
+                flex: '1',
+                minWidth: '240px',
+                maxWidth: '400px',
+              }}>
+                <Search size={16} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                <input
+                  type="text"
+                  placeholder="Search staff by name, email, username..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px 10px 38px',
+                    borderRadius: '8px',
+                    background: 'rgba(15, 23, 42, 0.6)',
+                    border: '1px solid var(--border-light)',
+                    color: 'var(--text-primary)',
+                    fontSize: '0.9rem',
+                    outline: 'none',
+                  }}
+                />
               </div>
-            )}
+
+              <div style={{ display: 'flex', gap: '8px' }}>
+                {['all', 'valuer', 'inspector', 'admin'].map((roleKey) => (
+                  <button
+                    key={roleKey}
+                    onClick={() => setFilterRole(roleKey)}
+                    style={{
+                      padding: '8px 14px',
+                      borderRadius: '6px',
+                      fontSize: '0.85rem',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      border: filterRole === roleKey ? '1px solid var(--primary-gold)' : '1px solid var(--border-light)',
+                      background: filterRole === roleKey ? 'rgba(212, 175, 55, 0.15)' : 'rgba(15, 23, 42, 0.4)',
+                      color: filterRole === roleKey ? 'var(--primary-gold)' : 'var(--text-muted)',
+                      textTransform: 'capitalize',
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    {roleKey === 'all' ? `All Staff (${users.length})` : roleKey}
+                  </button>
+                ))}
+              </div>
+            </div>
 
             {/* Employee Directory Card */}
             <div className={styles.card} ref={tableRef}>
@@ -216,8 +201,8 @@ export default function EmployeesPage() {
                       <th>Role &amp; Credentials</th>
                       <th>Email Address</th>
                       <th>Contact Phone</th>
+                      <th>Status</th>
                       <th>Registered On</th>
-                      <th style={{ textAlign: 'right' }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -227,17 +212,17 @@ export default function EmployeesPage() {
                           Loading staff directory...
                         </td>
                       </tr>
-                    ) : users.length === 0 ? (
+                    ) : filteredUsers.length === 0 ? (
                       <tr>
                         <td colSpan={6} className={styles.emptyState}>
-                          No employees found. Click "Add New Employee" above to register staff.
+                          No employees matched your search.
                         </td>
                       </tr>
                     ) : (
-                      users.map((u) => {
+                      filteredUsers.map((u) => {
                         const initials = (u.first_name ? u.first_name[0] : u.username[0] || 'V').toUpperCase();
                         const fullName = `${u.first_name || ''} ${u.last_name || ''}`.trim() || u.username;
-                        const isRootAdmin = u.id === 'user_admin_1' || u.id === 'user_1' || u.username === 'admin';
+                        const isActive = u.status !== 'inactive';
 
                         return (
                           <tr key={u.id}>
@@ -263,24 +248,34 @@ export default function EmployeesPage() {
                                 <span>{u.phone_number || '—'}</span>
                               </div>
                             </td>
+                            <td>
+                              <span style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                padding: '3px 8px',
+                                borderRadius: '12px',
+                                fontSize: '0.78rem',
+                                fontWeight: '600',
+                                background: isActive ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+                                color: isActive ? '#34d399' : '#f87171',
+                                border: `1px solid ${isActive ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
+                              }}>
+                                <span style={{
+                                  width: '6px',
+                                  height: '6px',
+                                  borderRadius: '50%',
+                                  background: isActive ? '#10b981' : '#ef4444',
+                                }} />
+                                {isActive ? 'Active' : 'Inactive'}
+                              </span>
+                            </td>
                             <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
                               {new Date(u.created_at).toLocaleDateString('en-IN', {
                                 day: 'numeric',
                                 month: 'short',
                                 year: 'numeric',
                               })}
-                            </td>
-                            <td style={{ textAlign: 'right' }}>
-                              {!isRootAdmin && (
-                                <button
-                                  className={styles.deleteBtn}
-                                  onClick={() => handleDeleteUser(u.id, u.username)}
-                                  title="Remove Employee"
-                                >
-                                  <Trash2 size={14} />
-                                  <span>Remove</span>
-                                </button>
-                              )}
                             </td>
                           </tr>
                         );
@@ -295,136 +290,6 @@ export default function EmployeesPage() {
           <Footer />
         </div>
       </div>
-
-      {/* Add Employee Modal */}
-      {isModalOpen && (
-        <div className={styles.modalOverlay} onClick={() => setIsModalOpen(false)}>
-          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.modalHeader}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <KgnCrest size={28} />
-                <h3 className={styles.modalTitle}>Add New Valuer / Employee</h3>
-              </div>
-              <button className={styles.closeBtn} onClick={() => setIsModalOpen(false)}>
-                <X size={20} />
-              </button>
-            </div>
-
-            <form onSubmit={handleCreateEmployee}>
-              <div className={styles.formGrid}>
-                <div className={styles.inputGroup}>
-                  <label className={styles.label}>First Name</label>
-                  <input
-                    type="text"
-                    name="first_name"
-                    className={styles.input}
-                    placeholder="e.g. Rahul"
-                    value={formData.first_name}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-
-                <div className={styles.inputGroup}>
-                  <label className={styles.label}>Last Name</label>
-                  <input
-                    type="text"
-                    name="last_name"
-                    className={styles.input}
-                    placeholder="e.g. Sharma"
-                    value={formData.last_name}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-
-                <div className={styles.inputGroup}>
-                  <label className={styles.label}>Username</label>
-                  <input
-                    type="text"
-                    name="username"
-                    className={styles.input}
-                    placeholder="e.g. rahul_valuer"
-                    value={formData.username}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-
-                <div className={styles.inputGroup}>
-                  <label className={styles.label}>Designation / Role</label>
-                  <select
-                    name="role"
-                    className={styles.select}
-                    value={formData.role}
-                    onChange={handleInputChange}
-                  >
-                    <option value="valuer">Approved Valuer</option>
-                    <option value="field_inspector">Field Inspector / Assessor</option>
-                    <option value="admin">Administrator</option>
-                  </select>
-                </div>
-
-                <div className={`${styles.inputGroup} ${styles.fullWidth}`}>
-                  <label className={styles.label}>Official Email</label>
-                  <input
-                    type="email"
-                    name="email"
-                    className={styles.input}
-                    placeholder="rahul@kgnassociates.com"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-
-                <div className={styles.inputGroup}>
-                  <label className={styles.label}>Mobile Contact</label>
-                  <input
-                    type="tel"
-                    name="phone_number"
-                    className={styles.input}
-                    placeholder="+91 98765 43210"
-                    value={formData.phone_number}
-                    onChange={handleInputChange}
-                  />
-                </div>
-
-                <div className={styles.inputGroup}>
-                  <label className={styles.label}>Initial Password</label>
-                  <input
-                    type="password"
-                    name="password"
-                    className={styles.input}
-                    placeholder="Minimum 6 characters"
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    required
-                    minLength={6}
-                  />
-                </div>
-              </div>
-
-              <div className={styles.modalFooter}>
-                <button
-                  type="button"
-                  className={styles.cancelBtn}
-                  onClick={() => setIsModalOpen(false)}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className={styles.submitBtn}
-                  disabled={submitting}
-                >
-                  {submitting ? 'Creating Employee...' : 'Create Employee Account'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

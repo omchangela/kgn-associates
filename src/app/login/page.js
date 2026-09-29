@@ -154,16 +154,16 @@ const Login = () => {
         {/* Right Side: Form */}
         <div className={styles.rightPanel}>
           <div className={styles.formContent} ref={formBoxRef}>
-            <h2 className={styles.adminTitle}>Valuer Sign In</h2>
-            <p className={styles.portalSubtitle}>Access the Chartered Valuation Console</p>
+            <h2 className={styles.adminTitle}>Employee &amp; Valuer Sign In</h2>
+            <p className={styles.portalSubtitle}>Access the Field Valuation &amp; Reporting Console</p>
 
             {/* Demo Quick-fill Pill */}
             <div className={styles.demoBox}>
               <div className={styles.demoText}>
-                Demo: <strong>admin</strong> / <strong>admin</strong>
+                Staff Demo: <strong>admin</strong> / <strong>admin</strong>
               </div>
               <button type="button" onClick={handleFillDemo} className={styles.demoButton}>
-                Quick Fill
+                Fill Demo
               </button>
             </div>
 
@@ -230,6 +230,23 @@ const Login = () => {
                     Register New Valuer
                   </Link>
                 </p>
+                <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+                  <Link 
+                    href="/admin/login" 
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      color: 'var(--primary-gold)',
+                      fontSize: '0.86rem',
+                      fontWeight: '600',
+                      textDecoration: 'none',
+                    }}
+                  >
+                    <ShieldCheck size={15} />
+                    <span>Administrator Access &bull; Admin Console &rarr;</span>
+                  </Link>
+                </div>
               </div>
             </form>
           </div>
