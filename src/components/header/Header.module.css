@@ -1,0 +1,214 @@
+.header {
+  height: 74px;
+  background: rgba(17, 22, 36, 0.85);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 32px;
+  border-bottom: 1px solid var(--border-color);
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
+.leftControls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.menuButton {
+  display: none;
+  background: rgba(212, 176, 122, 0.1);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  color: var(--primary-gold);
+  cursor: pointer;
+  padding: 8px;
+  transition: var(--transition);
+}
+
+.menuButton:hover {
+  background: rgba(212, 176, 122, 0.2);
+  color: var(--secondary-gold);
+}
+
+.statusPill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #10B981;
+}
+
+.rightControls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.userSection {
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+}
+
+.profileWrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 16px 6px 8px;
+  background: var(--bg-card);
+  border-radius: 50px;
+  border: 1px solid var(--border-color);
+  transition: all 0.25s ease;
+}
+
+.profileWrapper:hover {
+  border-color: var(--primary-gold);
+  box-shadow: 0 0 16px rgba(212, 176, 122, 0.3);
+  transform: translateY(-1px);
+}
+
+.iconCircle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--gradient-gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--bg-primary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.userMeta {
+  display: flex;
+  flex-direction: column;
+}
+
+.userName {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  line-height: 1.2;
+}
+
+.userRole {
+  font-size: 0.7rem;
+  color: var(--primary-gold);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.rotate {
+  transform: rotate(180deg);
+  transition: transform 0.25s ease;
+}
+
+.dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  background: var(--bg-card);
+  width: 240px;
+  box-shadow: var(--shadow-dark), 0 8px 30px rgba(0, 0, 0, 0.6);
+  border-radius: var(--border-radius);
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  z-index: 100;
+  border: 1px solid var(--border-color);
+  animation: dropdownAppear 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes dropdownAppear {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.dropdownHeader {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(212, 176, 122, 0.15);
+  margin-bottom: 6px;
+}
+
+.dropdownHeaderName {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--primary-gold);
+}
+
+.dropdownHeaderEmail {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  word-break: break-all;
+}
+
+.dropdownItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: none;
+  border: none;
+  padding: 10px 12px;
+  text-align: left;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-family: var(--font-body);
+  border-radius: var(--border-radius-sm);
+  transition: var(--transition);
+}
+
+.dropdownItem:hover {
+  background: rgba(212, 176, 122, 0.12);
+  color: var(--primary-gold);
+}
+
+.logout {
+  color: #F87171 !important;
+  border-top: 1px solid rgba(239, 68, 68, 0.2) !important;
+  margin-top: 4px;
+}
+
+.logout:hover {
+  background: rgba(239, 68, 68, 0.15) !important;
+  color: #FFAAAA !important;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .header {
+    height: 64px;
+    padding: 0 16px;
+  }
+
+  .menuButton {
+    display: flex;
+  }
+
+  .userMeta {
+    display: none;
+  }
+
+  .statusPill {
+    display: none;
+  }
+}

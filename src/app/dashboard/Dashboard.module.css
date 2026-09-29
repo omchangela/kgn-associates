@@ -1,0 +1,408 @@
+.layoutWrapper {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  background-color: var(--bg-primary);
+}
+
+.rightSide {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  min-width: 0;
+}
+
+.mainScrollArea {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  background: radial-gradient(circle at 50% 0%, #161D2E 0%, #0A0D14 60%);
+}
+
+.contentPadding {
+  padding: 36px 40px;
+  flex: 1;
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* Dashboard Header Banner */
+.heroBanner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 36px;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.dashboardTitle {
+  font-family: var(--font-heading);
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: 0.5px;
+  margin: 0 0 6px 0;
+}
+
+.heroSubtitle {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.primaryCta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--gradient-gold);
+  color: var(--bg-primary);
+  padding: 13px 26px;
+  border-radius: var(--border-radius);
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-decoration: none;
+  box-shadow: var(--shadow-gold);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.primaryCta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(212, 176, 122, 0.4);
+}
+
+/* Metric Cards Grid */
+.analysisGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-bottom: 36px;
+}
+
+.analysisCard {
+  background: rgba(24, 32, 51, 0.7);
+  border-radius: var(--border-radius);
+  padding: 24px;
+  box-shadow: var(--shadow-dark);
+  border: 1px solid var(--border-color);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 20px;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.analysisCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.7), 0 0 25px rgba(212, 176, 122, 0.2);
+  border-color: var(--primary-gold);
+}
+
+.cardTopRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cardIcon {
+  width: 52px;
+  height: 52px;
+  background: rgba(212, 176, 122, 0.12);
+  border: 1px solid rgba(212, 176, 122, 0.3);
+  border-radius: var(--border-radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-gold);
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+}
+
+.analysisCard:hover .cardIcon {
+  transform: scale(1.08) rotate(3deg);
+  background: var(--gradient-gold);
+  color: var(--bg-primary);
+}
+
+.cardContent {
+  display: flex;
+  flex-direction: column;
+}
+
+.cardTitle {
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 4px 0;
+}
+
+.cardDescription {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.cardStats {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.statNumber {
+  font-family: var(--font-heading);
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: var(--primary-gold);
+  line-height: 1;
+}
+
+.statLabel {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+/* Two-column Section: Trend Chart & Quick Actions */
+.analyticsMiddleSection {
+  display: grid;
+  grid-template-columns: 1.8fr 1fr;
+  gap: 24px;
+  margin-bottom: 36px;
+}
+
+.chartCard {
+  background: rgba(24, 32, 51, 0.7);
+  border-radius: var(--border-radius);
+  padding: 24px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-dark);
+  backdrop-filter: blur(12px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.chartHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.chartTitle {
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.chartBadge {
+  font-size: 0.75rem;
+  color: var(--primary-gold);
+  background: rgba(212, 176, 122, 0.1);
+  border: 1px solid rgba(212, 176, 122, 0.3);
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-weight: 600;
+}
+
+/* Quick Actions Tile Panel */
+.quickActionsCard {
+  background: rgba(24, 32, 51, 0.7);
+  border-radius: var(--border-radius);
+  padding: 24px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-dark);
+  backdrop-filter: blur(12px);
+}
+
+.actionGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.actionTile {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: rgba(17, 22, 36, 0.8);
+  border: 1px solid rgba(212, 176, 122, 0.18);
+  border-radius: var(--border-radius-sm);
+  text-decoration: none;
+  color: var(--text-primary);
+  transition: all 0.25s ease;
+}
+
+.actionTile:hover {
+  border-color: var(--primary-gold);
+  background: rgba(212, 176, 122, 0.12);
+  transform: translateX(4px);
+  color: var(--primary-gold);
+}
+
+.actionTileLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.actionTileTitle {
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+.actionTileSub {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* Recent Valuations Panel */
+.recentPanel {
+  background: rgba(24, 32, 51, 0.7);
+  border-radius: var(--border-radius);
+  padding: 26px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-dark);
+  backdrop-filter: blur(12px);
+}
+
+.recentPanelHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.recentTitle {
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--primary-gold);
+  margin: 0;
+}
+
+.viewAllLink {
+  color: var(--secondary-gold);
+  font-size: 0.88rem;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  transition: var(--transition);
+}
+
+.viewAllLink:hover {
+  color: var(--primary-gold);
+  transform: translateX(2px);
+}
+
+.reportItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 20px;
+  background: rgba(17, 22, 36, 0.9);
+  border: 1px solid rgba(212, 176, 122, 0.18);
+  border-radius: var(--border-radius-sm);
+  transition: all 0.25s ease;
+  margin-bottom: 12px;
+}
+
+.reportItem:hover {
+  border-color: var(--primary-gold);
+  transform: translateX(4px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.reportMainInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.reportApplicant {
+  font-weight: 700;
+  color: var(--text-primary);
+  font-size: 1.05rem;
+}
+
+.reportMetaRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  flex-wrap: wrap;
+}
+
+.bankBadge {
+  background: rgba(212, 176, 122, 0.12);
+  color: var(--primary-gold);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.pdfButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--primary-gold);
+  font-weight: 600;
+  text-decoration: none;
+  padding: 9px 16px;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--border-color);
+  background: rgba(212, 176, 122, 0.08);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.pdfButton:hover {
+  background: var(--gradient-gold);
+  color: var(--bg-primary);
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(212, 176, 122, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 1100px) {
+  .analysisGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .analyticsMiddleSection {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .analysisGrid {
+    grid-template-columns: 1fr;
+  }
+  .contentPadding {
+    padding: 20px 16px;
+  }
+  .reportItem {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .pdfButton {
+    width: 100%;
+    justify-content: center;
+  }
+}
