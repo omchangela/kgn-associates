@@ -71,24 +71,41 @@ export async function POST(req) {
     const resolvedFirst = first_name || (name ? name.split(' ')[0] : '');
     const resolvedLast = last_name || (name ? name.split(' ').slice(1).join(' ') : '');
 
-    if (!username || !email || !password) {
+    if (!email || !password) {
       return NextResponse.json(
-        { error: 'Username, email, and password are required' },
+        { error: 'Email and password are required' },
         { status: 400 }
       );
     }
 
     const cleanEmail = email.trim().toLowerCase();
-    const cleanUsername = username.trim();
 
-    // Check if user already exists
+    // Check if an employee/user with this email already exists
     try {
-      const existing = (await findUser(cleanEmail)) || (await findUser(cleanUsername));
-      if (existing) {
+      const existingUserWithEmail = await findUser(cleanEmail);
+      if (existingUserWithEmail && (existingUserWithEmail.email?.toLowerCase() === cleanEmail)) {
         return NextResponse.json(
-          { error: 'User with this email or username already exists' },
+          { error: `An employee with email "${cleanEmail}" already exists. Please use a different email.` },
           { status: 409 }
         );
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    // Ensure username is always unique and never triggers a collision conflict
+    let cleanUsername = (username || resolvedFirst || 'emp')
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, '.')
+      .replace(/[^a-z0-9.]/g, '');
+    if (!cleanUsername) cleanUsername = 'emp';
+
+    // Disambiguate username if already taken
+    try {
+      const existingUserWithUsername = await findUser(cleanUsername);
+      if (existingUserWithUsername) {
+        cleanUsername = `${cleanUsername}.${Math.floor(1000 + Math.random() * 9000)}`;
       }
     } catch (e) {
       // ignore
@@ -112,18 +129,48 @@ export async function POST(req) {
         status: status || 'active',
       });
     } catch (err) {
-      console.warn('[MySQL Create User Notice] Using memory fallback:', err.message);
-      newUser = memoryStore.createUser({
-        username: cleanUsername,
-        email: cleanEmail,
-        password: hashedPassword,
-        first_name: resolvedFirst.trim(),
-        last_name: resolvedLast.trim(),
-        phone_number: phone_number.trim(),
-        city: city.trim(),
-        role: role || 'valuer',
-        status: status || 'active',
-      });
+      const isDup = err.code === 'ER_DUP_ENTRY' || err.message?.includes('Duplicate entry');
+      if (isDup) {
+        if (err.message?.toLowerCase().includes('email') || err.message?.toLowerCase().includes(cleanEmail)) {
+          return NextResponse.json(
+            { error: `An employee with email "${cleanEmail}" already exists. Please use a different email.` },
+            { status: 409 }
+          );
+        }
+        // If it was a duplicate username, retry with timestamp suffix
+        try {
+          cleanUsername = `${cleanUsername.split('.')[0]}.${Date.now().toString().slice(-6)}`;
+          newUser = await createUser({
+            id: userId,
+            username: cleanUsername,
+            email: cleanEmail,
+            password: hashedPassword,
+            first_name: resolvedFirst.trim(),
+            last_name: resolvedLast.trim(),
+            phone_number: phone_number.trim(),
+            city: city.trim(),
+            role: role || 'valuer',
+            status: status || 'active',
+          });
+        } catch (retryErr) {
+          console.warn('[MySQL Retry Duplicate Notice]:', retryErr.message);
+        }
+      }
+
+      if (!newUser) {
+        console.warn('[MySQL Create User Notice] Using memory fallback:', err.message);
+        newUser = memoryStore.createUser({
+          username: cleanUsername,
+          email: cleanEmail,
+          password: hashedPassword,
+          first_name: resolvedFirst.trim(),
+          last_name: resolvedLast.trim(),
+          phone_number: phone_number.trim(),
+          city: city.trim(),
+          role: role || 'valuer',
+          status: status || 'active',
+        });
+      }
     }
 
     return NextResponse.json(

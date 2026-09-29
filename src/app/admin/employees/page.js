@@ -74,8 +74,11 @@ function AdminEmployeesContent() {
     setTimeout(() => setNotification({ text: '', type: '' }), 5000);
   };
 
-  const generateUsername = (name) =>
-    name.toLowerCase().replace(/\s+/g, '.').replace(/[^a-z0-9.]/g, '') || `emp${Date.now()}`;
+  const generateUsername = (name) => {
+    const base = name.toLowerCase().replace(/\s+/g, '.').replace(/[^a-z0-9.]/g, '') || 'emp';
+    const suffix = Date.now().toString().slice(-6);
+    return `${base}.${suffix}`;
+  };
 
   const handleCreateEmployee = async (e) => {
     e.preventDefault();
