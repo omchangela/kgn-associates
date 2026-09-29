@@ -11,7 +11,7 @@ import { KgnCrest, ApprovedValuerBadge, ArchitecturalGridSvg } from '@/component
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState({ email: 'admin', password: 'admin' });
+  const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -56,10 +56,6 @@ const Login = () => {
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     if (error) setError('');
-  };
-
-  const handleFillDemo = () => {
-    setFormData({ email: 'admin', password: 'admin' });
   };
 
   const handleLogin = async (e) => {
@@ -157,23 +153,13 @@ const Login = () => {
             <h2 className={styles.adminTitle}>Employee &amp; Valuer Sign In</h2>
             <p className={styles.portalSubtitle}>Access the Field Valuation &amp; Reporting Console</p>
 
-            {/* Demo Quick-fill Pill */}
-            <div className={styles.demoBox}>
-              <div className={styles.demoText}>
-                Staff Demo: <strong>admin</strong> / <strong>admin</strong>
-              </div>
-              <button type="button" onClick={handleFillDemo} className={styles.demoButton}>
-                Fill Demo
-              </button>
-            </div>
-
-            <form className={styles.form} onSubmit={handleLogin}>
+            <form className={styles.form} onSubmit={handleLogin} style={{ marginTop: '16px' }}>
               <div className={styles.inputGroup}>
                 <Mail className={styles.inputIcon} size={20} />
                 <input
                   type="text"
                   name="email"
-                  placeholder="Username or Email"
+                  placeholder="Username or email address"
                   className={styles.inputField}
                   value={formData.email}
                   onChange={handleChange}
@@ -230,23 +216,6 @@ const Login = () => {
                     Register New Valuer
                   </Link>
                 </p>
-                <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-                  <Link 
-                    href="/admin/login" 
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      color: 'var(--primary-gold)',
-                      fontSize: '0.86rem',
-                      fontWeight: '600',
-                      textDecoration: 'none',
-                    }}
-                  >
-                    <ShieldCheck size={15} />
-                    <span>Administrator Access &bull; Admin Console &rarr;</span>
-                  </Link>
-                </div>
               </div>
             </form>
           </div>

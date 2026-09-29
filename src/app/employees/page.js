@@ -5,12 +5,12 @@ import Header from '@/components/header/Header';
 import Sidebar from '@/components/sidebar/Sidebar';
 import Footer from '@/components/footer/Footer';
 import styles from './Employees.module.css';
-import { 
-  Users, 
-  ShieldCheck, 
-  Mail, 
-  Phone, 
-  CheckCircle2, 
+import {
+  Users,
+  ShieldCheck,
+  Mail,
+  Phone,
+  CheckCircle2,
   Briefcase,
   Search,
   ExternalLink
@@ -64,15 +64,15 @@ export default function EmployeesPage() {
   const filteredUsers = users.filter((u) => {
     const q = searchQuery.toLowerCase();
     const fullName = `${u.first_name || ''} ${u.last_name || ''}`.toLowerCase();
-    const matchesSearch = 
-      !q || 
-      fullName.includes(q) || 
-      (u.username && u.username.toLowerCase().includes(q)) || 
+    const matchesSearch =
+      !q ||
+      fullName.includes(q) ||
+      (u.username && u.username.toLowerCase().includes(q)) ||
       (u.email && u.email.toLowerCase().includes(q)) ||
       (u.phone_number && u.phone_number.includes(q));
 
-    const matchesRole = 
-      filterRole === 'all' || 
+    const matchesRole =
+      filterRole === 'all' ||
       (filterRole === 'admin' && u.role === 'admin') ||
       (filterRole === 'valuer' && (u.role === 'valuer' || !u.role)) ||
       (filterRole === 'inspector' && (u.role === 'inspector' || u.role === 'field_inspector'));
@@ -117,19 +117,6 @@ export default function EmployeesPage() {
                 <p className={styles.pageSubtitle}>
                   View official chartered engineers, registered property valuers, and municipal assessors in your organization.
                 </p>
-              </div>
-
-              {/* Admin Portal notice / direct access */}
-              <div className={styles.headerActions}>
-                <Link 
-                  href="/admin/login" 
-                  className={styles.addBtn}
-                  style={{ textDecoration: 'none', background: 'rgba(212, 175, 55, 0.1)', border: '1px solid rgba(212, 175, 55, 0.3)', color: 'var(--primary-gold)' }}
-                >
-                  <ShieldCheck size={18} />
-                  <span>Admin Console</span>
-                  <ExternalLink size={14} style={{ opacity: 0.7 }} />
-                </Link>
               </div>
             </div>
 

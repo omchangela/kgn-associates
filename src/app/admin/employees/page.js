@@ -23,7 +23,9 @@ import {
   UserCheck,
   UserX,
   Edit,
-  Lock
+  Lock,
+  User,
+  AtSign
 } from 'lucide-react';
 import { KgnCrest, ApprovedValuerBadge, ArchitecturalGridSvg } from '@/components/common/SvgDecorations';
 import gsap from 'gsap';
@@ -559,139 +561,235 @@ function AdminEmployeesContent() {
         <div className={styles.modalOverlay} onClick={() => setIsModalOpen(false)}>
           <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <KgnCrest size={28} />
-                <h3 className={styles.modalTitle}>Create New Employee Account</h3>
+              <div className={styles.modalHeaderLeft}>
+                <KgnCrest size={40} className={styles.modalIconCrest} />
+                <div>
+                  <div className={styles.modalTagPill}>
+                    <ShieldCheck size={12} />
+                    <span>Staff Provisioning &bull; Access Control</span>
+                  </div>
+                  <h3 className={styles.modalTitle}>Create New Employee Account</h3>
+                  <p className={styles.modalSubtitle}>
+                    Provision credentials for field assessment and valuation authorization.
+                  </p>
+                </div>
               </div>
-              <button className={styles.closeBtn} onClick={() => setIsModalOpen(false)}>
+              <button className={styles.closeBtn} onClick={() => setIsModalOpen(false)} aria-label="Close modal">
                 <X size={20} />
               </button>
             </div>
 
             <form onSubmit={handleCreateEmployee}>
-              <div className={styles.formGrid}>
-                <div className={styles.inputGroup}>
-                  <label className={styles.label}>First Name</label>
-                  <input
-                    type="text"
-                    name="first_name"
-                    className={styles.input}
-                    placeholder="e.g. Rahul"
-                    value={formData.first_name}
-                    onChange={handleInputChange}
-                    required
-                  />
+              <div className={styles.modalBodyScroll}>
+                {/* Section 1: Personal Details */}
+                <div className={styles.formSectionHeading}>
+                  <User size={14} />
+                  <span>1. Personal &amp; Contact Details</span>
                 </div>
 
-                <div className={styles.inputGroup}>
-                  <label className={styles.label}>Last Name</label>
-                  <input
-                    type="text"
-                    name="last_name"
-                    className={styles.input}
-                    placeholder="e.g. Sharma"
-                    value={formData.last_name}
-                    onChange={handleInputChange}
-                    required
-                  />
+                <div className={styles.formGrid}>
+                  <div className={styles.inputGroup}>
+                    <div className={styles.labelRow}>
+                      <label className={styles.label}>
+                        First Name <span className={styles.requiredStar}>*</span>
+                      </label>
+                    </div>
+                    <div className={styles.inputWrapper}>
+                      <User className={styles.fieldIcon} size={16} />
+                      <input
+                        type="text"
+                        name="first_name"
+                        className={styles.inputField}
+                        placeholder="e.g. Rahul"
+                        value={formData.first_name}
+                        onChange={handleInputChange}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className={styles.inputGroup}>
+                    <div className={styles.labelRow}>
+                      <label className={styles.label}>
+                        Last Name <span className={styles.requiredStar}>*</span>
+                      </label>
+                    </div>
+                    <div className={styles.inputWrapper}>
+                      <User className={styles.fieldIcon} size={16} />
+                      <input
+                        type="text"
+                        name="last_name"
+                        className={styles.inputField}
+                        placeholder="e.g. Sharma"
+                        value={formData.last_name}
+                        onChange={handleInputChange}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className={`${styles.inputGroup} ${styles.fullWidth}`}>
+                    <div className={styles.labelRow}>
+                      <label className={styles.label}>Mobile Contact Number</label>
+                      <span className={styles.labelHint}>Optional</span>
+                    </div>
+                    <div className={styles.inputWrapper}>
+                      <Phone className={styles.fieldIcon} size={16} />
+                      <input
+                        type="tel"
+                        name="phone_number"
+                        className={styles.inputField}
+                        placeholder="+91 98765 43210"
+                        value={formData.phone_number}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                  </div>
                 </div>
 
-                <div className={styles.inputGroup}>
-                  <label className={styles.label}>Username (Login ID)</label>
-                  <input
-                    type="text"
-                    name="username"
-                    className={styles.input}
-                    placeholder="e.g. rahul_valuer"
-                    value={formData.username}
-                    onChange={handleInputChange}
-                    required
-                  />
+                {/* Section 2: Portal Login Credentials */}
+                <div className={styles.formSectionHeading} style={{ marginTop: '8px' }}>
+                  <ShieldCheck size={14} />
+                  <span>2. Portal Login Credentials</span>
                 </div>
 
-                <div className={styles.inputGroup}>
-                  <label className={styles.label}>Designation / Role</label>
-                  <select
-                    name="role"
-                    className={styles.select}
-                    value={formData.role}
-                    onChange={handleInputChange}
-                  >
-                    <option value="valuer">Approved Valuer</option>
-                    <option value="field_inspector">Field Inspector / Assessor</option>
-                    <option value="engineer">Chartered Engineer</option>
-                    <option value="admin">Administrator</option>
-                  </select>
+                <div className={styles.formGrid}>
+                  <div className={styles.inputGroup}>
+                    <div className={styles.labelRow}>
+                      <label className={styles.label}>
+                        Username / Login ID <span className={styles.requiredStar}>*</span>
+                      </label>
+                    </div>
+                    <div className={styles.inputWrapper}>
+                      <AtSign className={styles.fieldIcon} size={16} />
+                      <input
+                        type="text"
+                        name="username"
+                        className={styles.inputField}
+                        placeholder="e.g. rahul_valuer"
+                        value={formData.username}
+                        onChange={handleInputChange}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className={styles.inputGroup}>
+                    <div className={styles.labelRow}>
+                      <label className={styles.label}>
+                        Initial Password <span className={styles.requiredStar}>*</span>
+                      </label>
+                    </div>
+                    <div className={styles.inputWrapper}>
+                      <Lock className={styles.fieldIcon} size={16} />
+                      <input
+                        type="password"
+                        name="password"
+                        className={styles.inputField}
+                        placeholder="Min 6 characters"
+                        value={formData.password}
+                        onChange={handleInputChange}
+                        required
+                        minLength={6}
+                      />
+                    </div>
+                  </div>
+
+                  <div className={`${styles.inputGroup} ${styles.fullWidth}`}>
+                    <div className={styles.labelRow}>
+                      <label className={styles.label}>
+                        Official Email Address <span className={styles.requiredStar}>*</span>
+                      </label>
+                    </div>
+                    <div className={styles.inputWrapper}>
+                      <Mail className={styles.fieldIcon} size={16} />
+                      <input
+                        type="email"
+                        name="email"
+                        className={styles.inputField}
+                        placeholder="rahul@kgnassociates.com"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        required
+                      />
+                    </div>
+                  </div>
                 </div>
 
-                <div className={`${styles.inputGroup} ${styles.fullWidth}`}>
-                  <label className={styles.label}>Official Email (Login Email)</label>
-                  <input
-                    type="email"
-                    name="email"
-                    className={styles.input}
-                    placeholder="rahul@kgnassociates.com"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    required
-                  />
+                {/* Section 3: Role & Governance */}
+                <div className={styles.formSectionHeading} style={{ marginTop: '8px' }}>
+                  <Briefcase size={14} />
+                  <span>3. Role &amp; Access Governance</span>
                 </div>
 
-                <div className={styles.inputGroup}>
-                  <label className={styles.label}>Mobile Contact</label>
-                  <input
-                    type="tel"
-                    name="phone_number"
-                    className={styles.input}
-                    placeholder="+91 98765 43210"
-                    value={formData.phone_number}
-                    onChange={handleInputChange}
-                  />
-                </div>
+                <div className={styles.formGrid}>
+                  <div className={styles.inputGroup}>
+                    <div className={styles.labelRow}>
+                      <label className={styles.label}>
+                        Designation / Role <span className={styles.requiredStar}>*</span>
+                      </label>
+                    </div>
+                    <div className={styles.selectWrapper}>
+                      <Briefcase className={styles.fieldIcon} size={16} />
+                      <select
+                        name="role"
+                        className={styles.selectField}
+                        value={formData.role}
+                        onChange={handleInputChange}
+                      >
+                        <option value="valuer">Approved Valuer</option>
+                        <option value="field_inspector">Field Inspector / Assessor</option>
+                        <option value="engineer">Chartered Engineer</option>
+                        <option value="admin">Administrator</option>
+                      </select>
+                    </div>
+                  </div>
 
-                <div className={styles.inputGroup}>
-                  <label className={styles.label}>Initial Password</label>
-                  <input
-                    type="password"
-                    name="password"
-                    className={styles.input}
-                    placeholder="Minimum 6 characters"
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    required
-                    minLength={6}
-                  />
-                </div>
-
-                <div className={`${styles.inputGroup} ${styles.fullWidth}`}>
-                  <label className={styles.label}>Account Status</label>
-                  <select
-                    name="status"
-                    className={styles.select}
-                    value={formData.status}
-                    onChange={handleInputChange}
-                  >
-                    <option value="active">Active (Can log in immediately to Employee Portal)</option>
-                    <option value="inactive">Inactive (Deactivated account)</option>
-                  </select>
+                  <div className={styles.inputGroup}>
+                    <div className={styles.labelRow}>
+                      <label className={styles.label}>
+                        Account Status <span className={styles.requiredStar}>*</span>
+                      </label>
+                    </div>
+                    <div className={styles.selectWrapper}>
+                      <CheckCircle2 className={styles.fieldIcon} size={16} />
+                      <select
+                        name="status"
+                        className={styles.selectField}
+                        value={formData.status}
+                        onChange={handleInputChange}
+                      >
+                        <option value="active">Active (Permit Portal Access)</option>
+                        <option value="inactive">Inactive (Suspended Account)</option>
+                      </select>
+                    </div>
+                  </div>
                 </div>
               </div>
 
               <div className={styles.modalFooter}>
-                <button
-                  type="button"
-                  className={styles.cancelBtn}
-                  onClick={() => setIsModalOpen(false)}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className={styles.submitBtn}
-                  disabled={submitting}
-                >
-                  {submitting ? 'Creating Employee...' : 'Create Employee Account'}
-                </button>
+                <div className={styles.securityNote}>
+                  <ShieldCheck size={15} style={{ color: 'var(--primary-gold)' }} />
+                  <span>Instant Employee Portal Authentication</span>
+                </div>
+
+                <div className={styles.footerButtons}>
+                  <button
+                    type="button"
+                    className={styles.cancelBtn}
+                    onClick={() => setIsModalOpen(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className={styles.submitBtn}
+                    disabled={submitting}
+                  >
+                    <UserPlus size={16} />
+                    <span>{submitting ? 'Creating Employee...' : 'Create Employee Account'}</span>
+                  </button>
+                </div>
               </div>
             </form>
           </div>
@@ -703,119 +801,200 @@ function AdminEmployeesContent() {
         <div className={styles.modalOverlay} onClick={() => setIsEditModalOpen(false)}>
           <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Edit size={24} style={{ color: 'var(--primary-gold)' }} />
-                <h3 className={styles.modalTitle}>Edit Employee: @{editFormData.username}</h3>
+              <div className={styles.modalHeaderLeft}>
+                <div style={{
+                  width: '38px',
+                  height: '38px',
+                  borderRadius: '10px',
+                  background: 'rgba(212, 175, 55, 0.15)',
+                  border: '1px solid rgba(212, 175, 55, 0.35)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--primary-gold)',
+                  flexShrink: 0
+                }}>
+                  <Edit size={20} />
+                </div>
+                <div>
+                  <div className={styles.modalTagPill}>
+                    <ShieldCheck size={12} />
+                    <span>Credential Management</span>
+                  </div>
+                  <h3 className={styles.modalTitle}>Edit Employee: @{editFormData.username}</h3>
+                  <p className={styles.modalSubtitle}>
+                    Modify contact parameters, designation, or access status.
+                  </p>
+                </div>
               </div>
-              <button className={styles.closeBtn} onClick={() => setIsEditModalOpen(false)}>
+              <button className={styles.closeBtn} onClick={() => setIsEditModalOpen(false)} aria-label="Close modal">
                 <X size={20} />
               </button>
             </div>
 
             <form onSubmit={handleUpdateEmployee}>
-              <div className={styles.formGrid}>
-                <div className={styles.inputGroup}>
-                  <label className={styles.label}>First Name</label>
-                  <input
-                    type="text"
-                    name="first_name"
-                    className={styles.input}
-                    value={editFormData.first_name}
-                    onChange={handleEditInputChange}
-                    required
-                  />
+              <div className={styles.modalBodyScroll}>
+                {/* Personal Information */}
+                <div className={styles.formSectionHeading}>
+                  <User size={14} />
+                  <span>Personal Details</span>
                 </div>
 
-                <div className={styles.inputGroup}>
-                  <label className={styles.label}>Last Name</label>
-                  <input
-                    type="text"
-                    name="last_name"
-                    className={styles.input}
-                    value={editFormData.last_name}
-                    onChange={handleEditInputChange}
-                  />
+                <div className={styles.formGrid}>
+                  <div className={styles.inputGroup}>
+                    <div className={styles.labelRow}>
+                      <label className={styles.label}>First Name</label>
+                    </div>
+                    <div className={styles.inputWrapper}>
+                      <User className={styles.fieldIcon} size={16} />
+                      <input
+                        type="text"
+                        name="first_name"
+                        className={styles.inputField}
+                        value={editFormData.first_name}
+                        onChange={handleEditInputChange}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className={styles.inputGroup}>
+                    <div className={styles.labelRow}>
+                      <label className={styles.label}>Last Name</label>
+                    </div>
+                    <div className={styles.inputWrapper}>
+                      <User className={styles.fieldIcon} size={16} />
+                      <input
+                        type="text"
+                        name="last_name"
+                        className={styles.inputField}
+                        value={editFormData.last_name}
+                        onChange={handleEditInputChange}
+                      />
+                    </div>
+                  </div>
+
+                  <div className={styles.inputGroup}>
+                    <div className={styles.labelRow}>
+                      <label className={styles.label}>Official Email</label>
+                    </div>
+                    <div className={styles.inputWrapper}>
+                      <Mail className={styles.fieldIcon} size={16} />
+                      <input
+                        type="email"
+                        name="email"
+                        className={styles.inputField}
+                        value={editFormData.email}
+                        onChange={handleEditInputChange}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className={styles.inputGroup}>
+                    <div className={styles.labelRow}>
+                      <label className={styles.label}>Contact Phone</label>
+                    </div>
+                    <div className={styles.inputWrapper}>
+                      <Phone className={styles.fieldIcon} size={16} />
+                      <input
+                        type="tel"
+                        name="phone_number"
+                        className={styles.inputField}
+                        value={editFormData.phone_number}
+                        onChange={handleEditInputChange}
+                      />
+                    </div>
+                  </div>
                 </div>
 
-                <div className={styles.inputGroup}>
-                  <label className={styles.label}>Role / Designation</label>
-                  <select
-                    name="role"
-                    className={styles.select}
-                    value={editFormData.role}
-                    onChange={handleEditInputChange}
-                  >
-                    <option value="valuer">Approved Valuer</option>
-                    <option value="field_inspector">Field Inspector / Assessor</option>
-                    <option value="engineer">Chartered Engineer</option>
-                    <option value="admin">Administrator</option>
-                  </select>
+                {/* Role & Status */}
+                <div className={styles.formSectionHeading} style={{ marginTop: '8px' }}>
+                  <Briefcase size={14} />
+                  <span>Role &amp; Status Governance</span>
                 </div>
 
-                <div className={styles.inputGroup}>
-                  <label className={styles.label}>Account Status</label>
-                  <select
-                    name="status"
-                    className={styles.select}
-                    value={editFormData.status}
-                    onChange={handleEditInputChange}
-                  >
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                  </select>
-                </div>
+                <div className={styles.formGrid}>
+                  <div className={styles.inputGroup}>
+                    <div className={styles.labelRow}>
+                      <label className={styles.label}>Role / Designation</label>
+                    </div>
+                    <div className={styles.selectWrapper}>
+                      <Briefcase className={styles.fieldIcon} size={16} />
+                      <select
+                        name="role"
+                        className={styles.selectField}
+                        value={editFormData.role}
+                        onChange={handleEditInputChange}
+                      >
+                        <option value="valuer">Approved Valuer</option>
+                        <option value="field_inspector">Field Inspector / Assessor</option>
+                        <option value="engineer">Chartered Engineer</option>
+                        <option value="admin">Administrator</option>
+                      </select>
+                    </div>
+                  </div>
 
-                <div className={`${styles.inputGroup} ${styles.fullWidth}`}>
-                  <label className={styles.label}>Official Email</label>
-                  <input
-                    type="email"
-                    name="email"
-                    className={styles.input}
-                    value={editFormData.email}
-                    onChange={handleEditInputChange}
-                    required
-                  />
-                </div>
+                  <div className={styles.inputGroup}>
+                    <div className={styles.labelRow}>
+                      <label className={styles.label}>Account Status</label>
+                    </div>
+                    <div className={styles.selectWrapper}>
+                      <CheckCircle2 className={styles.fieldIcon} size={16} />
+                      <select
+                        name="status"
+                        className={styles.selectField}
+                        value={editFormData.status}
+                        onChange={handleEditInputChange}
+                      >
+                        <option value="active">Active (Access Allowed)</option>
+                        <option value="inactive">Inactive (Access Suspended)</option>
+                      </select>
+                    </div>
+                  </div>
 
-                <div className={styles.inputGroup}>
-                  <label className={styles.label}>Mobile Phone</label>
-                  <input
-                    type="tel"
-                    name="phone_number"
-                    className={styles.input}
-                    value={editFormData.phone_number}
-                    onChange={handleEditInputChange}
-                  />
-                </div>
-
-                <div className={styles.inputGroup}>
-                  <label className={styles.label}>Reset Password (leave empty to keep current)</label>
-                  <input
-                    type="password"
-                    name="password"
-                    className={styles.input}
-                    placeholder="New password (optional)"
-                    value={editFormData.password}
-                    onChange={handleEditInputChange}
-                  />
+                  <div className={`${styles.inputGroup} ${styles.fullWidth}`}>
+                    <div className={styles.labelRow}>
+                      <label className={styles.label}>Reset Password</label>
+                      <span className={styles.labelHint}>Leave empty to keep current password</span>
+                    </div>
+                    <div className={styles.inputWrapper}>
+                      <Lock className={styles.fieldIcon} size={16} />
+                      <input
+                        type="password"
+                        name="password"
+                        className={styles.inputField}
+                        placeholder="Enter new password (optional)"
+                        value={editFormData.password}
+                        onChange={handleEditInputChange}
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
 
               <div className={styles.modalFooter}>
-                <button
-                  type="button"
-                  className={styles.cancelBtn}
-                  onClick={() => setIsEditModalOpen(false)}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className={styles.submitBtn}
-                  disabled={submitting}
-                >
-                  {submitting ? 'Saving Changes...' : 'Save Employee Details'}
-                </button>
+                <div className={styles.securityNote}>
+                  <ShieldCheck size={15} style={{ color: 'var(--primary-gold)' }} />
+                  <span>Instant Real-Time Synchronization</span>
+                </div>
+
+                <div className={styles.footerButtons}>
+                  <button
+                    type="button"
+                    className={styles.cancelBtn}
+                    onClick={() => setIsEditModalOpen(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className={styles.submitBtn}
+                    disabled={submitting}
+                  >
+                    <span>{submitting ? 'Saving Changes...' : 'Save Employee Details'}</span>
+                  </button>
+                </div>
               </div>
             </form>
           </div>

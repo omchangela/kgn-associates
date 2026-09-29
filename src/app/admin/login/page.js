@@ -22,8 +22,8 @@ import gsap from 'gsap';
 
 export default function AdminLoginPage() {
   const [formData, setFormData] = useState({
-    email: 'admin@admin.com',
-    password: 'admin',
+    email: '',
+    password: '',
   });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -47,13 +47,6 @@ export default function AdminLoginPage() {
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     if (error) setError('');
-  };
-
-  const handleFillAdmin = () => {
-    setFormData({
-      email: 'admin@admin.com',
-      password: 'admin',
-    });
   };
 
   const handleAdminLogin = async (e) => {
@@ -169,20 +162,6 @@ export default function AdminLoginPage() {
           <p className={styles.portalSubtitle}>
             Enter administrator credentials to manage the platform
           </p>
-
-          {/* Quick-fill button */}
-          <div className={styles.demoBox}>
-            <div className={styles.demoText}>
-              Admin: <strong>admin@admin.com</strong> / <strong>admin</strong>
-            </div>
-            <button 
-              type="button" 
-              onClick={handleFillAdmin} 
-              className={styles.demoBtn}
-            >
-              Fill Credentials
-            </button>
-          </div>
 
           {error && (
             <div className={styles.errorBanner}>
