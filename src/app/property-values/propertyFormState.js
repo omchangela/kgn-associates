@@ -20,6 +20,11 @@ export const initialFormData = {
     property_sub_type: '',
     date_of_inspection: '',
     date_of_report: '',
+    document_number: '',
+    execution_date: '',
+    expiry_date: '',
+    in_favour_of: '',
+    approval_authority: '',
   },
   propertyIdentification: {
     address_as_per_documents: '',
@@ -242,6 +247,11 @@ export const getSampleFormData = () => {
       property_sub_type: 'Apartment',
       date_of_inspection: inspectionDate,
       date_of_report: today,
+      document_number: 'DOC-2024-8891',
+      execution_date: '2024-01-15',
+      expiry_date: '2034-01-15',
+      in_favour_of: 'John Doe',
+      approval_authority: 'Municipal Corporation / CMDA',
     },
     propertyIdentification: {
       address_as_per_documents: '123 Main Street, T. Nagar, Chennai, Tamil Nadu',

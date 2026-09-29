@@ -322,17 +322,11 @@ const PropertyValues = () => {
                         <input type="file" multiple style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }} />
                       </div>
                     </div>
-                    <InputGroup label="Document Number" placeholder="Bank Name" />
-                    <InputGroup label="Execution Date" placeholder="Execution Date" isDate />
-                    <InputGroup label="Expiry Date" placeholder="Expiry Date" isDate />
-                    <InputGroup label="In Favour Of" placeholder="In Favour Of" />
-                    <div className={styles.inputStack}>
-                      <label className={styles.label}>Approval Authority</label>
-                      <div className={styles.selectWrapper}>
-                        <select className={styles.select}><option>Select Authority</option></select>
-                        <ChevronDown className={styles.selectIcon} size={16} />
-                      </div>
-                    </div>
+                    <InputGroup label="Document Number" placeholder="Enter Document Number" section="institutionDetails" field="document_number" />
+                    <InputGroup label="Execution Date" placeholder="Execution Date" isDate section="institutionDetails" field="execution_date" />
+                    <InputGroup label="Expiry Date" placeholder="Expiry Date" isDate section="institutionDetails" field="expiry_date" />
+                    <InputGroup label="In Favour Of" placeholder="In Favour Of" section="institutionDetails" field="in_favour_of" />
+                    <InputGroup label="Approval Authority" placeholder="Enter Approval Authority" section="institutionDetails" field="approval_authority" />
                   </div>
                 </div>
 
@@ -1265,7 +1259,9 @@ const PropertyValues = () => {
 --------------------------------------------------- */
 const InputGroup = ({ label, placeholder, isDate, fullWidth, type = "text", section, field }) => {
   const { formData, updateField } = useFormContext();
-  const value = section && field ? (formData[section]?.[field] ?? '') : '';
+  const [internalVal, setInternalVal] = useState('');
+  const hasBinding = Boolean(section && field);
+  const value = hasBinding ? (formData[section]?.[field] ?? '') : internalVal;
 
   return (
     <div className={`${styles.inputStack} ${fullWidth ? styles.fullWidth : ''}`}>
@@ -1277,9 +1273,12 @@ const InputGroup = ({ label, placeholder, isDate, fullWidth, type = "text", sect
           className={styles.inputField}
           value={value}
           onChange={(e) => {
-            if (section && field) updateField(section, field, e.target.value);
+            if (hasBinding) {
+              updateField(section, field, e.target.value);
+            } else {
+              setInternalVal(e.target.value);
+            }
           }}
-          readOnly={!section || !field}
         />
       </div>
     </div>
