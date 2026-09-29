@@ -1,26 +1,90 @@
 import mysql from 'mysql2/promise';
 
 let pool = null;
+let initialized = false;
 
 export function getPool() {
   if (!pool) {
+    const host = process.env.MYSQL_HOST || '127.0.0.1';
+    const isCloud = host.includes('tidbcloud.com') || process.env.MYSQL_SSL === 'true';
+
     pool = mysql.createPool({
-      host: process.env.MYSQL_HOST || '127.0.0.1',
-      port: parseInt(process.env.MYSQL_PORT || '3306', 10),
+      host,
+      port: parseInt(process.env.MYSQL_PORT || (isCloud ? '4000' : '3306'), 10),
       user: process.env.MYSQL_USER || 'root',
       password: process.env.MYSQL_PASSWORD || '123456',
-      database: process.env.MYSQL_DATABASE || 'kgn_associates',
+      database: process.env.MYSQL_DATABASE || (isCloud ? 'test' : 'kgn_associates'),
       waitForConnections: true,
-      connectionLimit: 20,
+      connectionLimit: 10,
       queueLimit: 0,
-      connectTimeout: 1000, // 1 second timeout max to prevent any UI blocking
+      connectTimeout: 5000,
+      ssl: isCloud ? { minVersion: 'TLSv1.2', rejectUnauthorized: true } : undefined,
     });
   }
   return pool;
 }
 
+// Auto-create tables on first query so TiDB Cloud works out-of-the-box
+async function ensureTables() {
+  if (initialized) return;
+  initialized = true;
+
+  try {
+    const p = getPool();
+    await p.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id VARCHAR(64) PRIMARY KEY,
+        username VARCHAR(100) NOT NULL UNIQUE,
+        email VARCHAR(255) NOT NULL UNIQUE,
+        password VARCHAR(255) NOT NULL,
+        first_name VARCHAR(100) DEFAULT '',
+        last_name VARCHAR(100) DEFAULT '',
+        phone_number VARCHAR(50) DEFAULT '',
+        role VARCHAR(50) DEFAULT 'admin',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+
+    await p.query(`
+      CREATE TABLE IF NOT EXISTS valuations (
+        id VARCHAR(64) PRIMARY KEY,
+        report_number VARCHAR(100) DEFAULT '',
+        status VARCHAR(50) DEFAULT 'draft',
+        applicant_name VARCHAR(255) DEFAULT '',
+        bank_name VARCHAR(255) DEFAULT '',
+        locality_name VARCHAR(255) DEFAULT '',
+        final_market_value DECIMAL(15,2) DEFAULT 0,
+        data LONGTEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+
+    // Seed default admin if user table is empty
+    const [existing] = await p.query('SELECT COUNT(*) as count FROM users');
+    if (existing[0]?.count === 0) {
+      await p.query(`
+        INSERT INTO users (id, username, email, password, first_name, last_name, phone_number, role)
+        VALUES (
+          'user_admin_1',
+          'admin',
+          'admin@kgnassociates.com',
+          '$2b$10$XLDQ/VqWTyFbz59OHSx/Ru2ZeNHrFyXW4g0qCDL98sjxwuhIPxtny',
+          'KGN',
+          'Admin',
+          '+91 98765 43210',
+          'admin'
+        )
+      `);
+    }
+  } catch (err) {
+    console.warn('[MySQL Initialization Note]:', err.message);
+  }
+}
+
 export async function query(sql, params = []) {
   try {
+    await ensureTables();
     const p = getPool();
     const [results] = await p.execute(sql, params);
     return results;
