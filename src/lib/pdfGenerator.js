@@ -1,5 +1,24 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import fs from 'fs';
+import path from 'path';
+
+// Cached logo base64 for fast PDF generation
+let cachedLogoBase64 = null;
+function getLogoBase64() {
+  if (cachedLogoBase64) return cachedLogoBase64;
+  try {
+    const logoPath = path.join(process.cwd(), 'public', 'logo.png');
+    if (fs.existsSync(logoPath)) {
+      const buf = fs.readFileSync(logoPath);
+      cachedLogoBase64 = `data:image/png;base64,${buf.toString('base64')}`;
+      return cachedLogoBase64;
+    }
+  } catch (err) {
+    console.warn('[PDF Logo Notice]:', err.message);
+  }
+  return null;
+}
 
 // Convert numbers to Indian Currency Words (e.g. "Rupees One Crore Twenty Five Lakhs Only")
 function numberToIndianWords(num) {
@@ -55,6 +74,8 @@ export function generateValuationPdf(report) {
     format: 'a4',
   });
 
+  const logoBase64 = getLogoBase64();
+
   const inst = report.institutionDetails || report.institution_details || {};
   const prop = report.propertyIdentification || report.property_identification || {};
   const sched = report.scheduleDetails || report.schedule_details || {};
@@ -107,10 +128,20 @@ export function generateValuationPdf(report) {
     doc.setFontSize(7.5);
     doc.setFont('helvetica', 'bold');
     doc.text('KGN ASSOCIATES • CHARTERED ENGINEERS & APPROVED VALUERS', 14, 6.8);
+    
     doc.setTextColor(255, 255, 255);
+    doc.setFontSize(7);
     doc.setFont('helvetica', 'normal');
     const refText = pageTitle ? `${pageTitle} | Ref: ${report.report_number || report.id || report._id}` : `Ref: ${report.report_number || report.id || report._id}`;
-    doc.text(refText, 130, 6.8);
+
+    if (logoBase64) {
+      doc.text(refText, 193, 6.8, { align: 'right' });
+      try {
+        doc.addImage(logoBase64, 'PNG', 195, 1.2, 9, 7.5);
+      } catch (e) {}
+    } else {
+      doc.text(refText, 196, 6.8, { align: 'right' });
+    }
   };
 
   // ==========================================
@@ -142,6 +173,15 @@ export function generateValuationPdf(report) {
   doc.text('Registered with IBBI (Insolvency and Bankruptcy Board of India) & Institution of Valuers (IOV)', 14, 24.5);
   doc.text('Approved Panel Valuers for State Bank of India, HDFC Bank, ICICI Bank, Axis Bank & National Housing Banks', 14, 29.5);
   doc.text('Office: Hyderabad, Telangana | Tel: +91 98765 43210 | info@kgnassociates.com', 14, 34.5);
+
+  // Official Logo on the ending side (top right of header banner)
+  if (logoBase64) {
+    try {
+      doc.addImage(logoBase64, 'PNG', 160, 4, 36, 30);
+    } catch (e) {
+      console.warn('Could not add logo to PDF header:', e.message);
+    }
+  }
 
   // Reference Metadata Bar
   doc.setFillColor(248, 250, 252);
@@ -515,6 +555,13 @@ export function generateValuationPdf(report) {
   doc.setTextColor(71, 85, 105);
   doc.text('Chartered Engineers & Approved Valuers', 18, currentY + 23);
   doc.text('Authorized Signatory & Municipal Seal', 18, currentY + 27);
+
+  // Official Stamp / Logo Seal in the center of signature block
+  if (logoBase64) {
+    try {
+      doc.addImage(logoBase64, 'PNG', 84, currentY + 13, 22, 18);
+    } catch (e) {}
+  }
 
   // Right side: Certified Valuer Name & License
   doc.setFontSize(8);
