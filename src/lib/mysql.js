@@ -139,6 +139,28 @@ export async function createUser({ id, username, email, password, first_name = '
   return { id, username, email, first_name, last_name, phone_number, role };
 }
 
+export async function getAllUsers() {
+  try {
+    const sql = `SELECT id, username, email, first_name, last_name, phone_number, role, created_at FROM users ORDER BY created_at DESC`;
+    const rows = await query(sql);
+    return rows || [];
+  } catch (err) {
+    console.error('Failed to get users from MySQL:', err);
+    return [];
+  }
+}
+
+export async function deleteUser(id) {
+  try {
+    const sql = `DELETE FROM users WHERE id = ?`;
+    await query(sql, [id]);
+    return true;
+  } catch (err) {
+    console.error('Failed to delete user from MySQL:', err);
+    return false;
+  }
+}
+
 // Valuation repository methods
 export async function getAllValuations({ search = '', limit = 50 } = {}) {
   try {
@@ -256,6 +278,8 @@ const mysqlDb = {
   findUser,
   findUserById,
   createUser,
+  getAllUsers,
+  deleteUser,
   getAllValuations,
   getValuationById,
   upsertValuation,

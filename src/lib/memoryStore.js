@@ -184,6 +184,17 @@ class MemoryStore {
     this.users.push(newUser);
     return newUser;
   }
+
+  getAllUsers() {
+    return this.users.map(({ password, ...u }) => u);
+  }
+
+  deleteUser(id) {
+    const idx = this.users.findIndex(u => u.id === id || u._id === id);
+    if (idx === -1) return false;
+    this.users.splice(idx, 1);
+    return true;
+  }
 }
 
 // Global singleton
