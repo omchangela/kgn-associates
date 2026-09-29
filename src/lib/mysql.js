@@ -5,6 +5,11 @@ let initialized = false;
 
 export function getPool() {
   if (!pool) {
+    if (process.env.DATABASE_URL) {
+      pool = mysql.createPool(process.env.DATABASE_URL);
+      return pool;
+    }
+
     const host = process.env.MYSQL_HOST || '127.0.0.1';
     const isCloud = host.includes('tidbcloud.com') || process.env.MYSQL_SSL === 'true';
 
