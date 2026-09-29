@@ -401,7 +401,7 @@ const PropertyValues = () => {
                       <RadioYesNo label="Construction Plan Available?" section="propertyIdentification" field="construction_plan_available" />
                       <RadioYesNo label="Plan Validity" section="propertyIdentification" field="plan_validity" />
                       <InputGroup label="Approving Authority" placeholder="Enter authority" section="propertyIdentification" field="approving_authority" />
-                      <InputGroup label="Approved Usage" placeholder="Enter usage" section="propertyIdentification" field="approved_usage" />
+
                     </div>
                   </div>
 
@@ -438,10 +438,8 @@ const PropertyValues = () => {
                   <div className={styles.formGrid}>
                     <SelectField label="Occupancy Status" section="scheduleDetails" field="occupancy_status" options={[{ value: '', label: 'Select' }, { value: 'occupied', label: 'Occupied' }, { value: 'vacant', label: 'Vacant' }]} />
                     <InputGroup label="Occupant Details" placeholder="Input / Textarea" section="scheduleDetails" field="occupant_details" />
-                    <SelectField label="Actual Usage of Property" section="scheduleDetails" field="actual_usage_of_property" options={[{ value: '', label: 'Select' }, { value: 'residential', label: 'Residential' }, { value: 'commercial', label: 'Commercial' }]} />
-                    <SelectField label="Approved Usage of Property" section="scheduleDetails" field="approved_usage_of_property" options={[{ value: '', label: 'Select' }, { value: 'residential', label: 'Residential' }, { value: 'commercial', label: 'Commercial' }]} />
-                    <SelectField label="Class of Locality" section="scheduleDetails" field="class_of_locality" options={[{ value: '', label: 'Select' }, { value: 'prime', label: 'Prime' }, { value: 'good', label: 'Good' }]} />
-                    <InputGroup label="Number of Floors" placeholder="Enter" type="number" section="scheduleDetails" field="number_of_floors" />
+                    <InputGroup label="Class of Locality" placeholder="e.g. Prime / High Income / Middle Income" section="scheduleDetails" field="class_of_locality" />
+                    <InputGroup label="Number of Floors Valued" placeholder="Enter" type="number" section="scheduleDetails" field="number_of_floors" />
                   </div>
                 </div>
 
