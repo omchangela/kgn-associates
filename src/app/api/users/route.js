@@ -26,6 +26,7 @@ export async function GET() {
         first_name: u.first_name || '',
         last_name: u.last_name || '',
         phone_number: u.phone_number || '',
+        city: u.city || '',
         role: u.role || 'valuer',
         status: u.status || 'active',
         created_at: u.created_at || u.createdAt || new Date().toISOString(),
@@ -48,12 +49,27 @@ export async function POST(req) {
       username,
       email,
       password,
+      confirm_password,
       first_name = '',
       last_name = '',
+      name = '',
       phone_number = '',
+      city = '',
       role = 'valuer',
       status = 'active',
     } = body;
+
+    // If confirm_password provided, validate match
+    if (confirm_password !== undefined && password !== confirm_password) {
+      return NextResponse.json(
+        { error: 'Passwords do not match' },
+        { status: 400 }
+      );
+    }
+
+    // Support single 'name' field split into first_name / last_name
+    const resolvedFirst = first_name || (name ? name.split(' ')[0] : '');
+    const resolvedLast = last_name || (name ? name.split(' ').slice(1).join(' ') : '');
 
     if (!username || !email || !password) {
       return NextResponse.json(
@@ -88,9 +104,10 @@ export async function POST(req) {
         username: cleanUsername,
         email: cleanEmail,
         password: hashedPassword,
-        first_name: first_name.trim(),
-        last_name: last_name.trim(),
+        first_name: resolvedFirst.trim(),
+        last_name: resolvedLast.trim(),
         phone_number: phone_number.trim(),
+        city: city.trim(),
         role: role || 'valuer',
         status: status || 'active',
       });
@@ -100,9 +117,10 @@ export async function POST(req) {
         username: cleanUsername,
         email: cleanEmail,
         password: hashedPassword,
-        first_name: first_name.trim(),
-        last_name: last_name.trim(),
+        first_name: resolvedFirst.trim(),
+        last_name: resolvedLast.trim(),
         phone_number: phone_number.trim(),
+        city: city.trim(),
         role: role || 'valuer',
         status: status || 'active',
       });
@@ -177,7 +195,7 @@ export async function PATCH(req) {
 export async function PUT(req) {
   try {
     const body = await req.json();
-    const { id, first_name, last_name, email, phone_number, role, status, password } = body;
+    const { id, first_name, last_name, email, phone_number, city = '', role, status, password } = body;
 
     if (!id) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
@@ -194,6 +212,7 @@ export async function PUT(req) {
         last_name: last_name?.trim() || '',
         email: email?.trim().toLowerCase() || '',
         phone_number: phone_number?.trim() || '',
+        city: city?.trim() || '',
         role: role || 'valuer',
         status: status || 'active',
         password: hashedPassword,
@@ -208,6 +227,7 @@ export async function PUT(req) {
         last_name: last_name?.trim() || '',
         email: email?.trim().toLowerCase() || '',
         phone_number: phone_number?.trim() || '',
+        city: city?.trim() || '',
         role: role || 'valuer',
         status: status || 'active',
       };

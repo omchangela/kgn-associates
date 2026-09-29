@@ -45,10 +45,14 @@ export async function GET(req, { params }) {
   if (cleanAction === 'generate-pdf') {
     const doc = generateValuationPdf(report);
     const pdfArrayBuffer = doc.output('arraybuffer');
+    const { searchParams } = new URL(req.url);
+    const isDownload = searchParams.get('download') === '1';
+    const disposition = isDownload ? 'attachment' : 'inline';
+
     return new NextResponse(pdfArrayBuffer, {
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="property_valuation_${id}.pdf"`,
+        'Content-Disposition': `${disposition}; filename="property_valuation_${id}.pdf"`,
       },
     });
   }

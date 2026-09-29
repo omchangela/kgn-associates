@@ -37,6 +37,8 @@ export async function GET(req) {
         created_at: r.created_at || r.createdAt || new Date().toISOString(),
         updated_at: r.updated_at || r.updatedAt || new Date().toISOString(),
         status: r.status || 'completed',
+        createdBy: r.createdBy || r.created_by || '',
+        customer_name: inst.applicant_name || inst.borrowerName || r.applicant_name || '',
         institution_details: inst,
         property_identification: prop,
         final_valuation: finalVal,

@@ -62,6 +62,15 @@ export default function AdminSidebar({ isOpen, onClose }) {
           </Link>
 
           <Link
+            href="/admin/reports"
+            className={`${styles.navItem} ${isActive('/admin/reports') ? styles.active : ''}`}
+            onClick={onClose}
+          >
+            <FileText size={18} className={styles.navIcon} />
+            <span>Valuation Reports</span>
+          </Link>
+
+          <Link
             href="/admin/employees"
             className={`${styles.navItem} ${isActive('/admin/employees') ? styles.active : ''}`}
             onClick={onClose}

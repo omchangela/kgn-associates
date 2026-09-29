@@ -170,7 +170,7 @@ export default function AdminLoginPage() {
             </div>
           )}
 
-          <form onSubmit={handleAdminLogin} className={styles.form} style={{ marginTop: error ? '16px' : '0' }}>
+          <form onSubmit={handleAdminLogin} className={styles.form} style={{ marginTop: error ? '16px' : '0' }} autoComplete="off">
             <div className={styles.inputGroup}>
               <label className={styles.label}>Admin Email or Username</label>
               <div className={styles.inputWrapper}>
@@ -179,10 +179,15 @@ export default function AdminLoginPage() {
                   type="text"
                   name="email"
                   className={styles.input}
-                  placeholder="admin@admin.com"
+                  placeholder="Enter administrator ID or email"
                   value={formData.email}
                   onChange={handleChange}
                   required
+                  autoComplete="off"
+                  onCopy={(e) => e.preventDefault()}
+                  onCut={(e) => e.preventDefault()}
+                  onPaste={(e) => e.preventDefault()}
+                  onContextMenu={(e) => e.preventDefault()}
                 />
               </div>
             </div>
@@ -195,10 +200,15 @@ export default function AdminLoginPage() {
                   type={showPassword ? 'text' : 'password'}
                   name="password"
                   className={styles.input}
-                  placeholder="Password"
+                  placeholder="Enter administrator password"
                   value={formData.password}
                   onChange={handleChange}
                   required
+                  autoComplete="new-password"
+                  onCopy={(e) => e.preventDefault()}
+                  onCut={(e) => e.preventDefault()}
+                  onPaste={(e) => e.preventDefault()}
+                  onContextMenu={(e) => e.preventDefault()}
                 />
                 <button
                   type="button"

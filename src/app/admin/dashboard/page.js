@@ -198,7 +198,7 @@ export default function AdminDashboardPage() {
             {/* 6 Metric Cards Requested by User */}
             <div className={styles.statsGrid} ref={statsRef}>
               {/* 1. Total Employees */}
-              <div className={styles.statCard}>
+              <Link href="/admin/employees" style={{ textDecoration: 'none', color: 'inherit' }} className={styles.statCard}>
                 <div className={styles.statTop}>
                   <span className={styles.statLabel}>Total Staff</span>
                   <div className={styles.statIconWrapper} style={{ background: 'rgba(212, 175, 55, 0.12)', color: 'var(--primary-gold)' }}>
@@ -209,10 +209,10 @@ export default function AdminDashboardPage() {
                 <div className={styles.statIndicator}>
                   <span>Valuers &amp; Engineers</span>
                 </div>
-              </div>
+              </Link>
 
               {/* 2. Active Employees */}
-              <div className={`${styles.statCard} ${styles.statCardActive}`}>
+              <Link href="/admin/employees" style={{ textDecoration: 'none', color: 'inherit' }} className={`${styles.statCard} ${styles.statCardActive}`}>
                 <div className={styles.statTop}>
                   <span className={styles.statLabel}>Active Staff</span>
                   <div className={styles.statIconWrapper} style={{ background: 'rgba(16, 185, 129, 0.12)', color: '#10b981' }}>
@@ -224,10 +224,10 @@ export default function AdminDashboardPage() {
                   <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
                   <span>Authorized to Login</span>
                 </div>
-              </div>
+              </Link>
 
               {/* 3. Inactive Employees */}
-              <div className={`${styles.statCard} ${styles.statCardInactive}`}>
+              <Link href="/admin/employees" style={{ textDecoration: 'none', color: 'inherit' }} className={`${styles.statCard} ${styles.statCardInactive}`}>
                 <div className={styles.statTop}>
                   <span className={styles.statLabel}>Inactive Staff</span>
                   <div className={styles.statIconWrapper} style={{ background: 'rgba(245, 158, 11, 0.12)', color: '#f59e0b' }}>
@@ -238,10 +238,10 @@ export default function AdminDashboardPage() {
                 <div className={styles.statIndicator}>
                   <span>Deactivated Accounts</span>
                 </div>
-              </div>
+              </Link>
 
               {/* 4. Total Reports */}
-              <div className={styles.statCard}>
+              <Link href="/admin/reports" style={{ textDecoration: 'none', color: 'inherit' }} className={styles.statCard}>
                 <div className={styles.statTop}>
                   <span className={styles.statLabel}>Total Reports</span>
                   <div className={styles.statIconWrapper} style={{ background: 'rgba(59, 130, 246, 0.12)', color: '#60a5fa' }}>
@@ -252,10 +252,10 @@ export default function AdminDashboardPage() {
                 <div className={styles.statIndicator}>
                   <span>Valuation Dossiers</span>
                 </div>
-              </div>
+              </Link>
 
               {/* 5. Approved Reports */}
-              <div className={`${styles.statCard} ${styles.statCardApproved}`}>
+              <Link href="/admin/reports" style={{ textDecoration: 'none', color: 'inherit' }} className={`${styles.statCard} ${styles.statCardApproved}`}>
                 <div className={styles.statTop}>
                   <span className={styles.statLabel}>Approved</span>
                   <div className={styles.statIconWrapper} style={{ background: 'rgba(16, 185, 129, 0.12)', color: '#10b981' }}>
@@ -266,10 +266,10 @@ export default function AdminDashboardPage() {
                 <div className={styles.statIndicator}>
                   <span>Certified for Banks</span>
                 </div>
-              </div>
+              </Link>
 
               {/* 6. Rejected Reports */}
-              <div className={`${styles.statCard} ${styles.statCardRejected}`}>
+              <Link href="/admin/reports" style={{ textDecoration: 'none', color: 'inherit' }} className={`${styles.statCard} ${styles.statCardRejected}`}>
                 <div className={styles.statTop}>
                   <span className={styles.statLabel}>Rejected</span>
                   <div className={styles.statIconWrapper} style={{ background: 'rgba(239, 68, 68, 0.12)', color: '#ef4444' }}>
@@ -280,7 +280,7 @@ export default function AdminDashboardPage() {
                 <div className={styles.statIndicator}>
                   <span>Audit Flags / Returned</span>
                 </div>
-              </div>
+              </Link>
             </div>
 
             {/* Split Sections */}
@@ -293,7 +293,7 @@ export default function AdminDashboardPage() {
                     <span>Recent Reports &amp; Moderation</span>
                   </div>
                   <Link 
-                    href="/report-list" 
+                    href="/admin/reports" 
                     style={{ fontSize: '0.82rem', color: 'var(--primary-gold)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}
                   >
                     <span>View All Reports</span>

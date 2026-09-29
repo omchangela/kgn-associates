@@ -153,7 +153,7 @@ const Login = () => {
             <h2 className={styles.adminTitle}>Employee &amp; Valuer Sign In</h2>
             <p className={styles.portalSubtitle}>Access the Field Valuation &amp; Reporting Console</p>
 
-            <form className={styles.form} onSubmit={handleLogin} style={{ marginTop: '16px' }}>
+            <form className={styles.form} onSubmit={handleLogin} style={{ marginTop: '16px' }} autoComplete="off">
               <div className={styles.inputGroup}>
                 <Mail className={styles.inputIcon} size={20} />
                 <input
@@ -164,6 +164,11 @@ const Login = () => {
                   value={formData.email}
                   onChange={handleChange}
                   required
+                  autoComplete="off"
+                  onCopy={(e) => e.preventDefault()}
+                  onCut={(e) => e.preventDefault()}
+                  onPaste={(e) => e.preventDefault()}
+                  onContextMenu={(e) => e.preventDefault()}
                 />
               </div>
 
@@ -177,6 +182,11 @@ const Login = () => {
                   value={formData.password}
                   onChange={handleChange}
                   required
+                  autoComplete="new-password"
+                  onCopy={(e) => e.preventDefault()}
+                  onCut={(e) => e.preventDefault()}
+                  onPaste={(e) => e.preventDefault()}
+                  onContextMenu={(e) => e.preventDefault()}
                 />
                 <button
                   type="button"
@@ -209,13 +219,20 @@ const Login = () => {
                 )}
               </button>
 
-              <div className={styles.signupContainer}>
-                <p className={styles.signupText}>
-                  Need credentials?{' '}
-                  <Link href="/signup" className={styles.signupLink}>
-                    Register New Valuer
-                  </Link>
-                </p>
+              <div style={{
+                marginTop: '20px',
+                paddingTop: '16px',
+                borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+                textAlign: 'center',
+                color: '#94a3b8',
+                fontSize: '0.8rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px'
+              }}>
+                <ShieldCheck size={14} style={{ color: 'var(--primary-gold)' }} />
+                <span>Authorized Personnel Only &bull; Contact Administrator for Access</span>
               </div>
             </form>
           </div>

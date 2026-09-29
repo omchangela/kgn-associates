@@ -51,15 +51,21 @@ async function ensureTables() {
         first_name VARCHAR(100) DEFAULT '',
         last_name VARCHAR(100) DEFAULT '',
         phone_number VARCHAR(50) DEFAULT '',
+        city VARCHAR(100) DEFAULT '',
         role VARCHAR(50) DEFAULT 'admin',
         status VARCHAR(20) DEFAULT 'active',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `);
 
-    // Ensure status column exists if table was created previously
+    // Ensure status and city columns exist if table was created previously
     try {
       await p.query(`ALTER TABLE users ADD COLUMN status VARCHAR(20) DEFAULT 'active'`);
+    } catch (e) {
+      // Column already exists
+    }
+    try {
+      await p.query(`ALTER TABLE users ADD COLUMN city VARCHAR(100) DEFAULT ''`);
     } catch (e) {
       // Column already exists
     }
@@ -116,6 +122,76 @@ async function ensureTables() {
         )
       `);
     }
+
+    // Seed sample reports if table has <= 1 report
+    const [valCount] = await p.query('SELECT COUNT(*) as count FROM valuations');
+    if (valCount[0]?.count <= 1) {
+      const sampleVal2 = {
+        id: 'val_hdfc_002',
+        report_number: 'KGN-2026-002',
+        status: 'pending',
+        applicant_name: 'Dr. Anand Verma',
+        bank_name: 'HDFC Bank Ltd',
+        locality_name: 'Gachibowli, Financial District',
+        final_market_value: 18500000,
+        createdBy: 'emp_1790673965630',
+        institution_details: {
+          applicant_name: 'Dr. Anand Verma',
+          bank_name: 'HDFC Bank Ltd',
+          branch_name: 'Banjara Hills, Hyderabad',
+          loan_application_id: 'HDFC-MORT-8812',
+          product_loan_type: 'Mortgage Loan',
+          date_of_report: '2026-03-24'
+        },
+        property_identification: {
+          locality_name: 'Gachibowli, Financial District',
+          plot_no_flat_no: 'Unit 301, Cyber Heights'
+        },
+        final_valuation: {
+          final_market_value: 18500000,
+          distress_value: 15000000,
+          forced_sale_value: 14000000,
+          valuer_name: 'Er. Arjun Reddy'
+        }
+      };
+
+      const sampleVal3 = {
+        id: 'val_icici_003',
+        report_number: 'KGN-2026-003',
+        status: 'rejected',
+        applicant_name: 'Pooja Enterprises',
+        bank_name: 'ICICI Bank Ltd',
+        locality_name: 'GIDC Pandesara, Surat',
+        final_market_value: 29000000,
+        createdBy: 'emp_1790673965630',
+        institution_details: {
+          applicant_name: 'Pooja Enterprises',
+          bank_name: 'ICICI Bank Ltd',
+          branch_name: 'Ring Road, Surat',
+          loan_application_id: 'ICICI-LAP-4412',
+          product_loan_type: 'Loan Against Property',
+          date_of_report: '2026-03-25'
+        },
+        property_identification: {
+          locality_name: 'GIDC Pandesara, Surat',
+          plot_no_flat_no: 'Shed No. 12'
+        },
+        final_valuation: {
+          final_market_value: 29000000,
+          distress_value: 23000000,
+          forced_sale_value: 21500000,
+          valuer_name: 'Er. Arjun Reddy'
+        }
+      };
+
+      await p.query(`
+        INSERT IGNORE INTO valuations (id, report_number, status, applicant_name, bank_name, locality_name, final_market_value, data)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?, ?, ?)
+      `, [
+        sampleVal2.id, sampleVal2.report_number, sampleVal2.status, sampleVal2.applicant_name, sampleVal2.bank_name, sampleVal2.locality_name, sampleVal2.final_market_value, JSON.stringify(sampleVal2),
+        sampleVal3.id, sampleVal3.report_number, sampleVal3.status, sampleVal3.applicant_name, sampleVal3.bank_name, sampleVal3.locality_name, sampleVal3.final_market_value, JSON.stringify(sampleVal3)
+      ]);
+    }
   } catch (err) {
     console.warn('[MySQL Initialization Note]:', err.message);
   }
@@ -158,18 +234,18 @@ export async function findUserById(id) {
   }
 }
 
-export async function createUser({ id, username, email, password, first_name = '', last_name = '', phone_number = '', role = 'valuer', status = 'active' }) {
+export async function createUser({ id, username, email, password, first_name = '', last_name = '', phone_number = '', city = '', role = 'valuer', status = 'active' }) {
   const sql = `
-    INSERT INTO users (id, username, email, password, first_name, last_name, phone_number, role, status)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO users (id, username, email, password, first_name, last_name, phone_number, city, role, status)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
-  await query(sql, [id, username, email, password, first_name, last_name, phone_number, role, status]);
-  return { id, username, email, first_name, last_name, phone_number, role, status };
+  await query(sql, [id, username, email, password, first_name, last_name, phone_number, city, role, status]);
+  return { id, username, email, first_name, last_name, phone_number, city, role, status };
 }
 
 export async function getAllUsers() {
   try {
-    const sql = `SELECT id, username, email, first_name, last_name, phone_number, role, COALESCE(status, 'active') as status, created_at FROM users ORDER BY created_at DESC`;
+    const sql = `SELECT id, username, email, first_name, last_name, phone_number, COALESCE(city, '') as city, role, COALESCE(status, 'active') as status, created_at FROM users ORDER BY created_at DESC`;
     const rows = await query(sql);
     return rows || [];
   } catch (err) {
@@ -189,10 +265,10 @@ export async function updateUserStatus(id, status) {
   }
 }
 
-export async function updateUser(id, { first_name = '', last_name = '', email = '', phone_number = '', role = 'valuer', status = 'active', password = '' }) {
+export async function updateUser(id, { first_name = '', last_name = '', email = '', phone_number = '', city = '', role = 'valuer', status = 'active', password = '' }) {
   try {
-    let sql = `UPDATE users SET first_name = ?, last_name = ?, email = ?, phone_number = ?, role = ?, status = ?`;
-    const params = [first_name, last_name, email, phone_number, role, status];
+    let sql = `UPDATE users SET first_name = ?, last_name = ?, email = ?, phone_number = ?, city = ?, role = ?, status = ?`;
+    const params = [first_name, last_name, email, phone_number, city, role, status];
     if (password) {
       sql += `, password = ?`;
       params.push(password);
@@ -247,7 +323,7 @@ export async function getAdminStats() {
     `);
 
     const recentEmployees = await query(`
-      SELECT id, username, email, first_name, last_name, phone_number, role, COALESCE(status, 'active') as status, created_at
+      SELECT id, username, email, first_name, last_name, phone_number, COALESCE(city, '') as city, role, COALESCE(status, 'active') as status, created_at
       FROM users
       ORDER BY created_at DESC
       LIMIT 8
@@ -278,6 +354,7 @@ export async function getAdminStats() {
         first_name: e.first_name,
         last_name: e.last_name,
         phone_number: e.phone_number,
+        city: e.city || '',
         role: e.role,
         status: e.status || 'active',
         created_at: e.created_at,
@@ -326,11 +403,11 @@ export async function getAllValuations({ search = '', limit = 50 } = {}) {
       return {
         id: r.id,
         _id: r.id,
-        report_number: r.report_number,
-        status: r.status,
         created_at: r.created_at,
         updated_at: r.updated_at,
         ...parsedData,
+        report_number: r.report_number || parsedData.report_number,
+        status: r.status || parsedData.status || 'completed',
       };
     });
   } catch (err) {
@@ -354,11 +431,11 @@ export async function getValuationById(id) {
     return {
       id: r.id,
       _id: r.id,
-      report_number: r.report_number,
-      status: r.status,
       created_at: r.created_at,
       updated_at: r.updated_at,
       ...parsedData,
+      report_number: r.report_number || parsedData.report_number,
+      status: r.status || parsedData.status || 'completed',
     };
   } catch (err) {
     return null;
