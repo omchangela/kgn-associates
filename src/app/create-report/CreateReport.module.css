@@ -130,50 +130,72 @@
   min-height: 120px;
 }
 
+.buttonGroup,
 .actionArea {
   display: flex;
-  gap: 15px;
+  gap: 16px;
   justify-content: flex-end;
+  align-items: center;
   margin-top: 40px;
   padding-top: 25px;
   border-top: 1px solid var(--border-color); /* Visual separator for actions */
 }
 
 /* Primary Action Button */
+.createBtn,
 .primaryBtn {
   background: var(--gradient-gold);
   color: var(--bg-primary);
   border: none;
-  padding: 12px 35px;
+  padding: 13px 28px;
   border-radius: var(--border-radius);
   font-weight: 700;
   font-family: var(--font-heading);
-  font-size: 1rem;
+  font-size: 0.95rem;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   transition: var(--transition);
   box-shadow: var(--shadow-gold);
+  white-space: nowrap;
 }
 
-.primaryBtn:hover {
+.createBtn:hover:not(:disabled),
+.primaryBtn:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 15px 30px var(--border-hover);
   filter: brightness(1.1);
 }
 
+.createBtn:disabled,
+.primaryBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
 /* Secondary Action Button */
+.cancelBtn,
 .secondaryBtn {
   background: transparent;
   color: var(--text-primary);
   border: 1px solid var(--border-color);
-  padding: 12px 35px;
+  padding: 13px 26px;
   border-radius: var(--border-radius);
   font-weight: 600;
   font-family: var(--font-heading);
-  font-size: 1rem;
+  font-size: 0.95rem;
   cursor: pointer;
   transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
 }
 
+.cancelBtn:hover,
 .secondaryBtn:hover {
   background: var(--bg-primary);
   color: var(--primary-gold);
@@ -184,11 +206,15 @@
   .formGrid { grid-template-columns: 1fr; }
   .fullWidth { grid-column: span 1; }
   
+  .buttonGroup,
   .actionArea {
     flex-direction: column-reverse;
   }
   
-  .primaryBtn, .secondaryBtn {
+  .createBtn,
+  .primaryBtn,
+  .cancelBtn,
+  .secondaryBtn {
     width: 100%;
   }
 }
