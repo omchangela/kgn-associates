@@ -601,7 +601,21 @@ const PropertyValues = () => {
                         </div>
                       </div>
                     )}
-                    <SelectField label="Roof Type" section="scheduleDetails" field="roof_type" options={[{ value: '', label: 'Select' }, { value: 'flat', label: 'Flat' }, { value: 'sloped', label: 'Sloped' }]} />
+                    <SelectField label="Roof Type" section="scheduleDetails" field="roof_type" options={[{ value: '', label: 'Select' }, { value: 'flat', label: 'Flat' }, { value: 'sloped', label: 'Sloped' }, { value: 'rcc_roof', label: 'RCC Roof' }, { value: 'iron_mtr', label: 'Iron Mtr' }, { value: 'wooden_mtr', label: 'Wooden Mtr' }, { value: 'cc_mtr', label: 'CC Mtr' }, { value: 'acc_shed', label: 'ACC Shed' }, { value: 'gi_sheets', label: 'GI Sheets' }, { value: 'others', label: 'Others' }]} />
+                    {formData.scheduleDetails?.roof_type === 'others' && (
+                      <div className={styles.inputStack}>
+                        <label className={styles.label}>Roof Type (Others)</label>
+                        <div className={styles.fieldWrapper}>
+                          <input
+                            type="text"
+                            placeholder="Please specify roof type"
+                            className={styles.inputField}
+                            value={formData.scheduleDetails?.other_roof_type || ''}
+                            onChange={(e) => updateField('scheduleDetails', 'other_roof_type', e.target.value)}
+                          />
+                        </div>
+                      </div>
+                    )}
                     <SelectField label="Flooring Type" section="scheduleDetails" field="flooring_type" options={[{ value: '', label: 'Select' }, { value: 'marble', label: 'Marble' }, { value: 'tiles', label: 'Tiles' }]} />
                     <InputGroup label="Stair Type" placeholder="Enter" section="scheduleDetails" field="stair_type" />
                     <InputGroup label="No. of Floors Approved" placeholder="Enter" type="number" section="scheduleDetails" field="no_of_floors_approved" />
