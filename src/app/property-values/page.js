@@ -287,8 +287,9 @@ const PropertyValues = () => {
                     <div>
                       <label className={styles.label}>Property Holding Type</label>
                       <div className={styles.radioGroup}>
-                        <Radio label="Freehold" name="holding" value="freehold" section="institutionDetails" field="property_holding_type" />
-                        <Radio label="Leased" name="holding" value="leased" section="institutionDetails" field="property_holding_type" />
+                        <Radio label="Free Hold" name="holding" value="freehold" section="institutionDetails" field="property_holding_type" />
+                        <Radio label="Lease Hold" name="holding" value="lease_hold" section="institutionDetails" field="property_holding_type" />
+                        <Radio label="Mortgaged" name="holding" value="mortgaged" section="institutionDetails" field="property_holding_type" />
                         <Radio label="Development Authority" name="holding" value="development_authority" section="institutionDetails" field="property_holding_type" />
                       </div>
                     </div>
