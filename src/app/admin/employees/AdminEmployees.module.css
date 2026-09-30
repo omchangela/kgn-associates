@@ -98,12 +98,11 @@
 }
 
 .card {
-  background: rgba(15, 23, 42, 0.65);
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--border-light);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
 }
 
 .tableWrapper {
@@ -123,21 +122,21 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1px;
-  color: var(--text-muted);
-  border-bottom: 1px solid var(--border-light);
-  background: rgba(10, 14, 24, 0.4);
+  color: #64748b;
+  border-bottom: 1px solid #e2e8f0;
+  background: #f8fafc;
 }
 
 .table td {
   padding: 16px 20px;
   font-size: 0.9rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid #f1f5f9;
   color: #1e293b;
   vertical-align: middle;
 }
 
 .table tr:hover td {
-  background: rgba(255, 255, 255, 0.02);
+  background: #f8fafc;
 }
 
 .userCell {
@@ -278,11 +277,11 @@
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(165deg, #131c30 0%, #090e1a 100%);
-  border: 1px solid rgba(212, 175, 55, 0.35);
+  background: #ffffff;
+  border: 1px solid rgba(148, 163, 184, 0.25);
   border-radius: 18px;
-  box-shadow: 0 30px 80px -10px rgba(0, 0, 0, 0.9), 
-              0 0 45px -8px rgba(212, 175, 55, 0.2);
+  box-shadow: 0 30px 80px -10px rgba(0, 0, 0, 0.2), 
+              0 0 45px -8px rgba(184, 134, 11, 0.15);
   overflow: hidden;
   animation: modalEnter 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -303,8 +302,8 @@
   align-items: flex-start;
   justify-content: space-between;
   padding: 24px 28px 20px;
-  border-bottom: 1px solid rgba(212, 175, 55, 0.18);
-  background: rgba(14, 21, 37, 0.85);
+  border-bottom: 1px solid #e2e8f0;
+  background: #f8fafc;
 }
 
 .modalHeaderLeft {
@@ -413,7 +412,7 @@
 .label {
   font-size: 0.83rem;
   font-weight: 700;
-  color: #e2e8f0;
+  color: #334155;
   letter-spacing: 0.2px;
 }
 
@@ -425,34 +424,34 @@
 
 .labelHint {
   font-size: 0.72rem;
-  color: #94a3b8;
+  color: #64748b;
 }
 
 .inputWrapper {
   position: relative;
   display: flex;
   align-items: center;
-  background: #141e33;
-  border: 1.5px solid rgba(255, 255, 255, 0.14);
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
   border-radius: 10px;
   transition: all 0.2s ease;
 }
 
 .inputWrapper:hover {
-  border-color: rgba(255, 255, 255, 0.25);
-  background: #17233c;
+  border-color: #94a3b8;
+  background: #ffffff;
 }
 
 .inputWrapper:focus-within {
-  border-color: #D4B07A;
-  background: #192642;
-  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.22);
+  border-color: var(--primary-gold);
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(184, 134, 11, 0.15);
 }
 
 .fieldIcon {
   position: absolute;
   left: 13px;
-  color: #94a3b8;
+  color: #64748b;
   pointer-events: none;
   transition: color 0.2s ease;
 }
@@ -473,7 +472,7 @@
 }
 
 .inputField::placeholder {
-  color: rgba(255, 255, 255, 0.38);
+  color: #94a3b8;
   font-weight: 400;
 }
 
@@ -481,19 +480,19 @@
   position: relative;
   display: flex;
   align-items: center;
-  background: #141e33;
-  border: 1.5px solid rgba(255, 255, 255, 0.14);
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
   border-radius: 10px;
   transition: all 0.2s ease;
 }
 
 .selectWrapper:hover {
-  border-color: rgba(255, 255, 255, 0.25);
+  border-color: #94a3b8;
 }
 
 .selectWrapper:focus-within {
-  border-color: #D4B07A;
-  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.22);
+  border-color: var(--primary-gold);
+  box-shadow: 0 0 0 3px rgba(184, 134, 11, 0.15);
 }
 
 .selectField {
@@ -510,7 +509,7 @@
 }
 
 .selectField option {
-  background: #0f172a;
+  background: #ffffff;
   color: #1e293b;
   padding: 10px;
 }
@@ -520,8 +519,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 18px 28px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(10, 15, 26, 0.8);
+  border-top: 1px solid #e2e8f0;
+  background: #f8fafc;
   flex-shrink: 0;
 }
 
@@ -529,7 +528,7 @@
   display: flex;
   align-items: center;
   gap: 7px;
-  color: #94a3b8;
+  color: #64748b;
   font-size: 0.78rem;
   font-weight: 500;
 }
@@ -542,9 +541,9 @@
 
 .cancelBtn {
   padding: 10px 18px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  color: #cbd5e1;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  color: #475569;
   font-weight: 600;
   font-size: 0.88rem;
   border-radius: 8px;
@@ -553,7 +552,8 @@
 }
 
 .cancelBtn:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: #e2e8f0;
+  color: #1e293b;
   color: #1e293b;
 }
 

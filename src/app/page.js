@@ -64,7 +64,7 @@ export default function Home() {
         alignItems: 'center',
         justifyContent: 'center',
         minHeight: '100vh',
-        background: 'radial-gradient(circle at 50% 40%, #161D2E 0%, #0A0D14 100%)',
+        background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fb 50%, #f1f5f9 100%)',
         overflow: 'hidden',
       }}
     >
@@ -77,7 +77,7 @@ export default function Home() {
           width: '500px',
           height: '500px',
           borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(212, 176, 122, 0.15) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(184, 134, 11, 0.1) 0%, transparent 70%)',
           pointerEvents: 'none',
         }}
       />
@@ -99,7 +99,7 @@ export default function Home() {
               letterSpacing: '2px',
               color: 'var(--primary-gold)',
               margin: '0 0 8px 0',
-              textShadow: '0 4px 20px rgba(212, 176, 122, 0.3)',
+              textShadow: '0 2px 12px rgba(184, 134, 11, 0.2)',
             }}
           >
             KGN ASSOCIATES
@@ -110,10 +110,10 @@ export default function Home() {
               color: 'var(--text-secondary)',
               letterSpacing: '1px',
               margin: 0,
-              fontWeight: 500,
+              fontWeight: 600,
             }}
           >
-            Chartered Engineers & Approved Valuers Portal
+            Chartered Engineers &amp; Approved Valuers Portal
           </p>
         </div>
 
@@ -122,7 +122,7 @@ export default function Home() {
           style={{
             width: '240px',
             height: '4px',
-            background: 'rgba(255, 255, 255, 0.08)',
+            background: 'rgba(148, 163, 184, 0.25)',
             borderRadius: '999px',
             margin: '36px auto 14px',
             overflow: 'hidden',
@@ -134,12 +134,12 @@ export default function Home() {
               height: '100%',
               background: 'var(--gradient-gold)',
               borderRadius: '999px',
-              boxShadow: '0 0 12px rgba(212, 176, 122, 0.8)',
+              boxShadow: '0 0 12px rgba(184, 134, 11, 0.6)',
             }}
           />
         </div>
 
-        <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', letterSpacing: '0.5px' }}>
+        <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', letterSpacing: '0.5px', fontWeight: 500 }}>
           Initializing Valuation Engine...
         </p>
       </div>

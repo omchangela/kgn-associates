@@ -145,11 +145,12 @@ export default function EmployeesPage() {
                     width: '100%',
                     padding: '10px 14px 10px 38px',
                     borderRadius: '8px',
-                    background: 'rgba(15, 23, 42, 0.6)',
-                    border: '1px solid var(--border-light)',
-                    color: 'var(--text-primary)',
+                    background: '#ffffff',
+                    border: '1.5px solid #cbd5e1',
+                    color: '#1e293b',
                     fontSize: '0.9rem',
                     outline: 'none',
+                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
                   }}
                 />
               </div>
@@ -163,13 +164,14 @@ export default function EmployeesPage() {
                       padding: '8px 14px',
                       borderRadius: '6px',
                       fontSize: '0.85rem',
-                      fontWeight: '600',
+                      fontWeight: '700',
                       cursor: 'pointer',
-                      border: filterRole === roleKey ? '1px solid var(--primary-gold)' : '1px solid var(--border-light)',
-                      background: filterRole === roleKey ? 'rgba(212, 175, 55, 0.15)' : 'rgba(15, 23, 42, 0.4)',
-                      color: filterRole === roleKey ? 'var(--primary-gold)' : 'var(--text-muted)',
+                      border: filterRole === roleKey ? '1.5px solid var(--primary-gold)' : '1px solid #cbd5e1',
+                      background: filterRole === roleKey ? 'var(--gradient-gold)' : '#ffffff',
+                      color: filterRole === roleKey ? '#1e293b' : '#64748b',
                       textTransform: 'capitalize',
                       transition: 'all 0.2s',
+                      boxShadow: filterRole === roleKey ? '0 2px 8px rgba(184, 134, 11, 0.25)' : 'none',
                     }}
                   >
                     {roleKey === 'all' ? `All Staff (${users.length})` : roleKey}

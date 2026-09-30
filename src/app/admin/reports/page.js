@@ -427,7 +427,7 @@ export default function AdminReportsPage() {
 
                             {/* Value */}
                             <td>
-                              <span style={{ fontWeight: 700, color: '#ffffff' }}>
+                              <span style={{ fontWeight: 800, color: '#1e293b' }}>
                                 {formatCurrency(valuationValue)}
                               </span>
                             </td>

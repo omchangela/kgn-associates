@@ -22,8 +22,8 @@ export const KgnCrest = ({ className = '', size = 56 }) => (
         <stop offset="100%" stopColor="#96703E" />
       </linearGradient>
       <linearGradient id="shieldBg" x1="0%" y1="0%" x2="0%" y2="100%">
-        <stop offset="0%" stopColor="#1E283F" stopOpacity="0.8" />
-        <stop offset="100%" stopColor="#0F1422" stopOpacity="0.95" />
+        <stop offset="0%" stopColor="#ffffff" stopOpacity="0.95" />
+        <stop offset="100%" stopColor="#f1f5f9" stopOpacity="1" />
       </linearGradient>
     </defs>
 
@@ -140,8 +140,8 @@ export const ValuationTrendChart = ({ height = 180 }) => (
       {/* Interactive Dots on Key Data Points */}
       {[{ cx: 140, cy: 85, label: 'Oct' }, { cx: 280, cy: 60, label: 'Nov' }, { cx: 400, cy: 35, label: 'Dec' }, { cx: 490, cy: 22, label: 'Current' }].map((pt, idx) => (
         <g key={idx}>
-          <circle cx={pt.cx} cy={pt.cy} r="6" fill="#0A0D14" stroke="#F5E2BE" strokeWidth="2.5" />
-          <circle cx={pt.cx} cy={pt.cy} r="2.5" fill="#D4B07A" />
+          <circle cx={pt.cx} cy={pt.cy} r="6" fill="#ffffff" stroke="#B8860B" strokeWidth="2.5" />
+          <circle cx={pt.cx} cy={pt.cy} r="2.5" fill="#D4A017" />
         </g>
       ))}
     </svg>
@@ -151,7 +151,7 @@ export const ValuationTrendChart = ({ height = 180 }) => (
 /**
  * Micro Sparkline for dashboard cards
  */
-export const MicroSparkline = ({ color = '#D4B07A', isUp = true }) => (
+export const MicroSparkline = ({ color = '#B8860B', isUp = true }) => (
   <svg width="60" height="24" viewBox="0 0 60 24" fill="none">
     <path
       d={isUp ? "M2 18 L15 14 L28 17 L42 8 L58 4" : "M2 6 L15 10 L28 8 L42 16 L58 20"}
@@ -174,15 +174,15 @@ export const ArchitecturalGridSvg = () => (
       width: '100%',
       height: '100%',
       pointerEvents: 'none',
-      opacity: 0.15,
+      opacity: 0.35,
       zIndex: 0,
     }}
     xmlns="http://www.w3.org/2000/svg"
   >
     <defs>
       <pattern id="archGrid" width="40" height="40" patternUnits="userSpaceOnUse">
-        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(212, 176, 122, 0.4)" strokeWidth="0.8" />
-        <circle cx="40" cy="40" r="1.5" fill="#D4B07A" opacity="0.6" />
+        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(184, 134, 11, 0.15)" strokeWidth="0.8" />
+        <circle cx="40" cy="40" r="1.5" fill="#B8860B" opacity="0.3" />
       </pattern>
     </defs>
     <rect width="100%" height="100%" fill="url(#archGrid)" />

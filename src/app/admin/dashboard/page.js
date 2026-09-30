@@ -327,7 +327,7 @@ export default function AdminDashboardPage() {
                           return (
                             <tr key={r.id}>
                               <td>
-                                <div style={{ fontWeight: '700', color: '#ffffff' }}>
+                                <div style={{ fontWeight: '700', color: '#1e293b' }}>
                                   {r.report_number || r.id}
                                 </div>
                                 <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>
@@ -447,8 +447,8 @@ export default function AdminDashboardPage() {
                                 width: '32px',
                                 height: '32px',
                                 borderRadius: '6px',
-                                background: emp.role === 'admin' ? 'linear-gradient(135deg, #D4B07A, #C28B52)' : 'rgba(255, 255, 255, 0.1)',
-                                color: emp.role === 'admin' ? '#0A0D14' : '#ffffff',
+                                background: emp.role === 'admin' ? 'linear-gradient(135deg, #B8860B, #D4A017)' : 'rgba(184, 134, 11, 0.12)',
+                                color: emp.role === 'admin' ? '#ffffff' : 'var(--primary-gold)',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
@@ -458,7 +458,7 @@ export default function AdminDashboardPage() {
                                 {initials}
                               </div>
                               <div>
-                                <div style={{ fontSize: '0.88rem', fontWeight: '600', color: '#ffffff' }}>
+                                <div style={{ fontSize: '0.88rem', fontWeight: '700', color: '#1e293b' }}>
                                   {emp.first_name ? `${emp.first_name} ${emp.last_name || ''}` : emp.username}
                                 </div>
                                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>

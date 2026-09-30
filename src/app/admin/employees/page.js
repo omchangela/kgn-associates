@@ -255,29 +255,30 @@ function AdminEmployeesContent() {
             <div style={{
               display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'center',
               justifyContent: 'space-between', marginBottom: '20px', padding: '14px 18px',
-              background: 'rgba(15,23,42,0.6)', border: '1px solid var(--border-light)', borderRadius: '10px',
+              background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '10px',
+              boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)',
             }}>
               <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.86rem', color: 'var(--text-muted)' }}>
-                  Total: <strong style={{ color: '#fff' }}>{users.length}</strong>
+                <span style={{ fontSize: '0.86rem', color: '#64748b' }}>
+                  Total: <strong style={{ color: '#1e293b' }}>{users.length}</strong>
                 </span>
-                <span style={{ fontSize: '0.86rem', color: '#34d399', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span style={{ fontSize: '0.86rem', color: '#059669', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}>
                   <UserCheck size={14} /> Active: <strong>{activeCount}</strong>
                 </span>
-                <span style={{ fontSize: '0.86rem', color: '#fbbf24', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span style={{ fontSize: '0.86rem', color: '#d97706', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}>
                   <UserX size={14} /> Inactive: <strong>{inactiveCount}</strong>
                 </span>
               </div>
               <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
                 <div style={{ position: 'relative', width: '220px' }}>
-                  <Search size={15} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                  <Search size={15} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
                   <input type="text" placeholder="Search name / email..." value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    style={{ width: '100%', padding: '8px 12px 8px 34px', borderRadius: '6px', background: 'rgba(11,16,29,0.7)', border: '1px solid var(--border-light)', color: '#fff', fontSize: '0.85rem', outline: 'none' }}
+                    style={{ width: '100%', padding: '8px 12px 8px 34px', borderRadius: '6px', background: '#f8fafc', border: '1.5px solid #cbd5e1', color: '#1e293b', fontSize: '0.85rem', outline: 'none' }}
                   />
                 </div>
                 <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}
-                  style={{ padding: '8px 12px', borderRadius: '6px', background: 'rgba(11,16,29,0.7)', border: '1px solid var(--border-light)', color: '#cbd5e1', fontSize: '0.85rem', outline: 'none' }}>
+                  style={{ padding: '8px 12px', borderRadius: '6px', background: '#f8fafc', border: '1.5px solid #cbd5e1', color: '#1e293b', fontSize: '0.85rem', outline: 'none' }}>
                   <option value="all">All Statuses</option>
                   <option value="active">Active Only</option>
                   <option value="inactive">Inactive Only</option>
@@ -593,7 +594,7 @@ function AdminEmployeesContent() {
 
 export default function AdminEmployeesPage() {
   return (
-    <Suspense fallback={<div style={{ padding: '40px', color: '#fff' }}>Loading Employee Console...</div>}>
+    <Suspense fallback={<div style={{ padding: '40px', color: '#1e293b' }}>Loading Employee Console...</div>}>
       <AdminEmployeesContent />
     </Suspense>
   );

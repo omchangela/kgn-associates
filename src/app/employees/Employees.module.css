@@ -129,13 +129,13 @@
 }
 
 .modalContent {
-  background: #141A28;
-  border: 1px solid rgba(212, 175, 55, 0.3);
+  background: #ffffff;
+  border: 1px solid rgba(148, 163, 184, 0.25);
   border-radius: var(--border-radius);
   max-width: 600px;
   width: 100%;
   padding: 32px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
   position: relative;
 }
 
@@ -166,7 +166,7 @@
 }
 
 .closeBtn:hover {
-  color: #fff;
+  color: #1e293b;
 }
 
 .formGrid {
@@ -188,18 +188,18 @@
 
 .label {
   font-size: 0.8rem;
-  color: #E8D3A8;
-  font-weight: 600;
+  color: #475569;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.8px;
 }
 
 .input, .select {
   padding: 12px 14px;
-  background: #0B0E17;
-  border: 1px solid rgba(212, 176, 122, 0.25);
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
   border-radius: var(--border-radius-sm);
-  color: #F8FAFC;
+  color: #1e293b;
   font-size: 0.95rem;
   outline: none;
   transition: border-color 0.2s, box-shadow 0.2s;
@@ -211,8 +211,8 @@
 
 .input:focus, .select:focus {
   border-color: var(--primary-gold);
-  background: #0F1420;
-  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.25);
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(184, 134, 11, 0.15);
 }
 
 .modalFooter {
@@ -226,9 +226,9 @@
 
 .cancelBtn {
   padding: 11px 22px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: #E2E8F0;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  color: #475569;
   border-radius: var(--border-radius-sm);
   cursor: pointer;
   font-weight: 600;
@@ -237,9 +237,9 @@
 }
 
 .cancelBtn:hover {
-  background: rgba(255, 255, 255, 0.12);
-  color: #FFFFFF;
-  border-color: rgba(255, 255, 255, 0.3);
+  background: #e2e8f0;
+  color: #1e293b;
+  border-color: #cbd5e1;
 }
 
 .submitBtn {
@@ -270,9 +270,8 @@
   background: #ffffff;
   border-radius: var(--border-radius);
   padding: 24px;
-  box-shadow: var(--shadow-dark);
-  border: 1px solid var(--border-color);
-  backdrop-filter: blur(12px);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+  border: 1px solid #e2e8f0;
 }
 
 .tableWrapper {
@@ -288,23 +287,24 @@
 .table th {
   padding: 14px 18px;
   font-size: 0.78rem;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1px;
-  color: var(--text-muted);
-  border-bottom: 1px solid var(--border-color);
-  background: rgba(10, 13, 20, 0.4);
+  color: #64748b;
+  border-bottom: 1px solid #e2e8f0;
+  background: #f8fafc;
 }
 
 .table td {
   padding: 16px 18px;
   font-size: 0.92rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid #f1f5f9;
+  color: #1e293b;
   vertical-align: middle;
 }
 
 .table tr:hover {
-  background: rgba(212, 175, 55, 0.03);
+  background: #f8fafc;
 }
 
 .userCell {
@@ -317,7 +317,7 @@
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #1f2a3f, #121824);
+  background: linear-gradient(135deg, rgba(184, 134, 11, 0.15), rgba(184, 134, 11, 0.05));
   border: 1.5px solid var(--primary-gold);
   display: flex;
   align-items: center;
