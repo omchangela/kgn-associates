@@ -1549,20 +1549,77 @@ const RadioYesNo = ({ label, section, field }) => {
 const BoundaryTable = () => {
   const { formData, updateField } = useFormContext();
   const sched = formData.scheduleDetails;
-
-  const rows = [
-    { label: 'As per Documents', prefix: 'docs' },
-    { label: 'As Per Actual Visit', prefix: 'actual' },
-    { label: 'As Per Plan', prefix: 'plan' },
-    { label: 'Boundary Matching Status', prefix: 'status' },
-    { label: 'Property Identification Status', prefix: 'identification', single: true },
-  ];
-
   const directions = ['east', 'west', 'north', 'south'];
 
-  const getFieldName = (prefix, direction) => {
-    if (prefix === 'identification') return 'property_identification_status';
-    return `${direction}_boundary_${prefix}`;
+  // Extra rows state: { docs: [[...4 values]], actual: [[...4 values]], plan: [[...4 values]] }
+  const [extraRows, setExtraRows] = React.useState({ docs: [], actual: [], plan: [] });
+
+  const getFieldName = (prefix, direction) => `${direction}_boundary_${prefix}`;
+
+  const addExtraRow = (key) => {
+    setExtraRows(prev => ({ ...prev, [key]: [...prev[key], ['', '', '', '']] }));
+  };
+
+  const updateExtraCell = (key, rowIdx, colIdx, val) => {
+    setExtraRows(prev => {
+      const updated = prev[key].map((row, ri) =>
+        ri === rowIdx ? row.map((cell, ci) => ci === colIdx ? val : cell) : row
+      );
+      return { ...prev, [key]: updated };
+    });
+  };
+
+  const removeExtraRow = (key, rowIdx) => {
+    setExtraRows(prev => ({ ...prev, [key]: prev[key].filter((_, i) => i !== rowIdx) }));
+  };
+
+  const staticRows = [
+    { label: 'As per Documents', prefix: 'docs', extraKey: 'docs' },
+    { label: 'As Per Actual Visit', prefix: 'actual', extraKey: 'actual' },
+    { label: 'As Per Plan', prefix: 'plan', extraKey: 'plan' },
+    { label: 'Boundary Matching Status', prefix: 'status', extraKey: null },
+    { label: 'Property Identification Status', prefix: 'identification', single: true, extraKey: null },
+  ];
+
+  const labelCellStyle = {
+    fontSize: '0.9rem', fontWeight: '600', color: 'var(--text-primary)',
+    whiteSpace: 'nowrap', paddingRight: '8px',
+  };
+
+  const plusBtnStyle = {
+    background: 'rgba(201,168,76,0.1)',
+    border: '1.5px solid #C9A84C',
+    color: '#C9A84C',
+    borderRadius: '50%',
+    width: '22px',
+    height: '22px',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    fontSize: '1rem',
+    fontWeight: '700',
+    lineHeight: 1,
+    marginLeft: '6px',
+    flexShrink: 0,
+  };
+
+  const minusBtnStyle = {
+    background: 'rgba(239,68,68,0.09)',
+    border: '1.5px solid rgba(239,68,68,0.4)',
+    color: '#ef4444',
+    borderRadius: '50%',
+    width: '20px',
+    height: '20px',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    fontSize: '1rem',
+    fontWeight: '700',
+    lineHeight: 1,
+    marginLeft: '4px',
+    flexShrink: 0,
   };
 
   return (
@@ -1579,37 +1636,84 @@ const BoundaryTable = () => {
           </tr>
         </thead>
         <tbody>
-          {rows.map((row) => (
-            <tr key={row.label}>
-              <td style={{ fontSize: '0.9rem', fontWeight: '600', color: 'var(--text-primary)' }}>{row.label}</td>
-              {row.single ? (
-                <td colSpan={4}>
-                  <input
-                    type="text"
-                    className={styles.inputField}
-                    style={{ padding: '10px', fontSize: '0.9rem', width: '100%' }}
-                    value={sched.property_identification_status}
-                    onChange={(e) => updateField('scheduleDetails', 'property_identification_status', e.target.value)}
-                  />
-                </td>
-              ) : (
-                directions.map((dir) => {
-                  const fieldName = getFieldName(row.prefix, dir);
-                  return (
-                    <td key={fieldName}>
+          {staticRows.map((row) => {
+            const extra = row.extraKey ? extraRows[row.extraKey] : [];
+            return (
+              <React.Fragment key={row.label}>
+                {/* Main row */}
+                <tr>
+                  <td style={labelCellStyle}>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      <span>{row.label}</span>
+                      {row.extraKey && (
+                        <button
+                          type="button"
+                          style={plusBtnStyle}
+                          title={`Add another ${row.label} row`}
+                          onClick={() => addExtraRow(row.extraKey)}
+                        >+</button>
+                      )}
+                    </div>
+                  </td>
+                  {row.single ? (
+                    <td colSpan={4}>
                       <input
                         type="text"
                         className={styles.inputField}
                         style={{ padding: '10px', fontSize: '0.9rem', width: '100%' }}
-                        value={sched[fieldName] ?? ''}
-                        onChange={(e) => updateField('scheduleDetails', fieldName, e.target.value)}
+                        value={sched.property_identification_status}
+                        onChange={(e) => updateField('scheduleDetails', 'property_identification_status', e.target.value)}
                       />
                     </td>
-                  );
-                })
-              )}
-            </tr>
-          ))}
+                  ) : (
+                    directions.map((dir) => {
+                      const fieldName = row.prefix === 'identification'
+                        ? 'property_identification_status'
+                        : `${dir}_boundary_${row.prefix}`;
+                      return (
+                        <td key={fieldName}>
+                          <input
+                            type="text"
+                            className={styles.inputField}
+                            style={{ padding: '10px', fontSize: '0.9rem', width: '100%' }}
+                            value={sched[fieldName] ?? ''}
+                            onChange={(e) => updateField('scheduleDetails', fieldName, e.target.value)}
+                          />
+                        </td>
+                      );
+                    })
+                  )}
+                </tr>
+                {/* Extra rows */}
+                {extra.map((extraRowValues, ri) => (
+                  <tr key={`${row.extraKey}-extra-${ri}`}>
+                    <td style={labelCellStyle}>
+                      <div style={{ display: 'flex', alignItems: 'center', paddingLeft: '12px' }}>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{row.label} {ri + 2}</span>
+                        <button
+                          type="button"
+                          style={minusBtnStyle}
+                          title="Remove row"
+                          onClick={() => removeExtraRow(row.extraKey, ri)}
+                        >−</button>
+                      </div>
+                    </td>
+                    {directions.map((dir, ci) => (
+                      <td key={`${row.extraKey}-${ri}-${ci}`}>
+                        <input
+                          type="text"
+                          className={styles.inputField}
+                          style={{ padding: '10px', fontSize: '0.9rem', width: '100%' }}
+                          value={extraRowValues[ci]}
+                          onChange={(e) => updateExtraCell(row.extraKey, ri, ci, e.target.value)}
+                        />
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </React.Fragment>
+            );
+          })}
         </tbody>
       </table>
     </div>
