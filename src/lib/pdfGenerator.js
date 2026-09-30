@@ -216,7 +216,7 @@ export function generateValuationPdf(report) {
       ['Person Met at Site', fmtVal(inst.person_met_at_site), 'Contact & Relationship', `${fmtVal(inst.person_met_contact_number)} (${fmtVal(inst.relationship_with_applicant)})`],
       ['Property Holding Type', fmtVal(inst.property_holding_type).toUpperCase(), 'Property Category', fmtVal(inst.property_type).toUpperCase()],
       ['Assessing Engineer', fmtVal(inst.site_engineer_name, 'Rajesh Kumar'), 'Engineer Contact', fmtVal(inst.site_engineer_contact_number, '+91 98765 43211')],
-      ['Vendor / Firm Name', fmtVal(inst.vendor_engineer_institution_name, 'KGN Associates'), 'Vendor Contact', fmtVal(inst.vendor_contact_number, '+91 98765 43210')],
+      ['Valuer / Firm Name', fmtVal(inst.vendor_engineer_institution_name, 'KGN Associates'), 'Valuer Contact', fmtVal(inst.vendor_contact_number, '+91 98765 43210')],
     ],
     theme: 'grid',
     headStyles: sectionHeaderStyles,

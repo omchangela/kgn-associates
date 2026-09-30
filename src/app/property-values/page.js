@@ -262,7 +262,7 @@ const PropertyValues = () => {
                   <div className={styles.formGrid}>
                     <InputGroup label="Financial Institution" placeholder="Financial Institution" section="institutionDetails" field="bank_name" />
                     <InputGroup label="Branch Name" placeholder="Branch Name" section="institutionDetails" field="branch_name" />
-                    <InputGroup label="Vendor / Engineer / Institution Name" placeholder="Vendor/engineer/institution name" section="institutionDetails" field="vendor_engineer_institution_name" />
+                    <InputGroup label="Valuer / Engineer / Institution Name" placeholder="Valuer/engineer/institution name" section="institutionDetails" field="vendor_engineer_institution_name" />
                     <InputGroup label="Contact Number" placeholder="Number" section="institutionDetails" field="vendor_contact_number" />
                     <InputGroup label="Site Engineer Name" placeholder="Site engineer name" section="institutionDetails" field="site_engineer_name" />
                     <InputGroup label="Contact Number" placeholder="Number" section="institutionDetails" field="site_engineer_contact_number" />
@@ -1181,7 +1181,7 @@ const PropertyValues = () => {
                   <h2 className={styles.sectionHeading}>Signatures</h2>
                   <div className={styles.formGrid}>
                     <SignatureField label="Signature Of Inspector" />
-                    <SignatureField label="Signature Of Vendor" />
+                    <SignatureField label="Signature Of Valuer" />
                     <SignatureField label="Signature Of Engineer" />
                     <SignatureField label="Signature Of Institution" />
                   </div>
