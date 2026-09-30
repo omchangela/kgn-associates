@@ -140,6 +140,20 @@ export const initialFormData = {
     number_of_electrical_points: '',
     number_of_water_outlets: '',
     technical_assessment: '',
+    landMeasurements: {
+      shape: 'Regular',
+      north: { actual: '', document: '', plan: '', match: false },
+      south: { actual: '', document: '', plan: '', match: false },
+      east: { actual: '', document: '', plan: '', match: false },
+      west: { actual: '', document: '', plan: '', match: false },
+    },
+    buildingMeasurements: {
+      shape: 'Regular',
+      north: { actual: '', document: '', plan: '', match: false },
+      south: { actual: '', document: '', plan: '', match: false },
+      east: { actual: '', document: '', plan: '', match: false },
+      west: { actual: '', document: '', plan: '', match: false },
+    },
   },
   finalValuation: {
     property_type: '',

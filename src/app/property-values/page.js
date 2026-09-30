@@ -224,6 +224,7 @@ const PropertyValues = () => {
 
   const formContextValue = {
     formData,
+    setFormData,
     updateField,
     updateTableRow,
     addTableRow,
@@ -773,31 +774,15 @@ const PropertyValues = () => {
                     <InputGroup label="Slab Area" placeholder="Enter" section="technicalDetails" field="slab_area" />
                   </div>
                 </div>
-                <div className={styles.card}>
-                  <h2 className={styles.sectionHeading}>Structural Details</h2>
-                  <div className={styles.formGrid}>
-                    <SelectField label="Foundation Type" section="technicalDetails" field="foundation_type" options={[{ value: '', label: 'Select' }, { value: 'shallow', label: 'Shallow' }, { value: 'deep', label: 'Deep' }, { value: 'pile', label: 'Pile' }, { value: 'raft', label: 'Raft' }]} />
-                    <SelectField label="Wall Thickness" section="technicalDetails" field="wall_thickness" options={[{ value: '', label: 'Select' }, { value: '4-inch', label: '4 inch' }, { value: '6-inch', label: '6 inch' }, { value: '9-inch', label: '9 inch' }, { value: '12-inch', label: '12 inch' }]} />
-                    <InputGroup label="Plinth Height" placeholder="Enter" type="number" section="technicalDetails" field="plinth_height" />
-                    <InputGroup label="Ceiling Height" placeholder="Enter" type="number" section="technicalDetails" field="ceiling_height" />
-                    <InputGroup label="Slab Thickness" placeholder="Enter" type="number" section="technicalDetails" field="slab_thickness" />
-                    <InputGroup label="Beam Size" placeholder="Enter" section="technicalDetails" field="beam_size" />
-                    <InputGroup label="Column Size" placeholder="Enter" section="technicalDetails" field="column_size" />
-                  </div>
-                </div>
-                <div className={styles.card}>
-                  <h2 className={styles.sectionHeading}>Electrical & Plumbing</h2>
-                  <div className={styles.radioList}>
-                    <RadioYesNo label="Electrical Wiring Done?" section="technicalDetails" field="electrical_wiring_done" />
-                    <RadioYesNo label="Plumbing Work Done?" section="technicalDetails" field="plumbing_work_done" />
-                    <RadioYesNo label="AC Points Provided?" section="technicalDetails" field="ac_points_provided" />
-                    <RadioYesNo label="Fire Fighting System?" section="technicalDetails" field="fire_fighting_system" />
-                  </div>
-                  <div className={styles.formGrid}>
-                    <InputGroup label="Number of Electrical Points" placeholder="Enter" type="number" section="technicalDetails" field="number_of_electrical_points" />
-                    <InputGroup label="Number of Water Outlets" placeholder="Enter" type="number" section="technicalDetails" field="number_of_water_outlets" />
-                  </div>
-                </div>
+                <MeasurementMatchingCard
+                  title="Land Measurements & Matching Status"
+                  sectionKey="landMeasurements"
+                />
+
+                <MeasurementMatchingCard
+                  title="Building Measurements & Matching Status"
+                  sectionKey="buildingMeasurements"
+                />
                 <div className={styles.card}>
                   <h2 className={styles.sectionHeading}>Technical Remarks</h2>
                   <TextAreaField label="Technical Assessment" section="technicalDetails" field="technical_assessment" placeholder="Enter technical assessment details" />
@@ -1661,6 +1646,285 @@ const RadioYesNo = ({ label, section, field }) => {
           No
         </label>
       </div>
+    </div>
+  );
+};
+
+const MeasurementMatchingCard = ({ title, sectionKey }) => {
+  const { formData, setFormData } = useFormContext();
+  const sectionData = formData.technicalDetails?.[sectionKey] || {};
+  const currentShape = sectionData.shape || 'Regular';
+
+  const updateShape = (shape) => {
+    setFormData(prev => ({
+      ...prev,
+      technicalDetails: {
+        ...prev.technicalDetails,
+        [sectionKey]: {
+          ...prev.technicalDetails?.[sectionKey],
+          shape,
+        },
+      },
+    }));
+  };
+
+  const updateMeasurement = (dirKey, field, val) => {
+    setFormData(prev => {
+      const currentDirData = prev.technicalDetails?.[sectionKey]?.[dirKey] || {};
+      const newDirData = { ...currentDirData, [field]: val };
+
+      const act = field === 'actual' ? val : (newDirData.actual || '');
+      const doc = field === 'document' ? val : (newDirData.document || '');
+      const pln = field === 'plan' ? val : (newDirData.plan || '');
+
+      let autoMatch = newDirData.match;
+      if (act && (act === doc || act === pln)) {
+        autoMatch = true;
+      }
+
+      return {
+        ...prev,
+        technicalDetails: {
+          ...prev.technicalDetails,
+          [sectionKey]: {
+            ...prev.technicalDetails?.[sectionKey],
+            [dirKey]: {
+              ...newDirData,
+              match: autoMatch,
+            },
+          },
+        },
+      };
+    });
+  };
+
+  const toggleMatch = (dirKey) => {
+    setFormData(prev => {
+      const currentMatch = Boolean(prev.technicalDetails?.[sectionKey]?.[dirKey]?.match);
+      return {
+        ...prev,
+        technicalDetails: {
+          ...prev.technicalDetails,
+          [sectionKey]: {
+            ...prev.technicalDetails?.[sectionKey],
+            [dirKey]: {
+              ...prev.technicalDetails?.[sectionKey]?.[dirKey],
+              match: !currentMatch,
+            },
+          },
+        },
+      };
+    });
+  };
+
+  const directionsList = [
+    { key: 'north', label: 'North' },
+    { key: 'south', label: 'South' },
+    { key: 'east', label: 'East' },
+    { key: 'west', label: 'West' },
+  ];
+
+  return (
+    <div className={styles.card} style={{ marginBottom: '25px', padding: '24px' }}>
+      <h2 className={styles.sectionHeading} style={{ fontSize: '1.25rem', marginBottom: '20px' }}>
+        {title}
+      </h2>
+
+      {/* Property Shape Selector */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '24px' }}>
+        <span style={{ fontSize: '0.95rem', color: 'var(--text-secondary, #cbd5e1)', fontWeight: 500 }}>
+          Property Shape:
+        </span>
+        <div style={{ display: 'inline-flex', borderRadius: '6px', border: '1px solid #14b8a6', overflow: 'hidden' }}>
+          <button
+            type="button"
+            onClick={() => updateShape('Regular')}
+            style={{
+              padding: '6px 20px',
+              fontSize: '0.85rem',
+              fontWeight: 600,
+              border: 'none',
+              cursor: 'pointer',
+              backgroundColor: currentShape === 'Regular' ? 'rgba(20, 184, 166, 0.25)' : 'transparent',
+              color: currentShape === 'Regular' ? '#2dd4bf' : 'var(--text-muted, #94a3b8)',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            Regular
+          </button>
+          <button
+            type="button"
+            onClick={() => updateShape('Irregular')}
+            style={{
+              padding: '6px 20px',
+              fontSize: '0.85rem',
+              fontWeight: 600,
+              border: 'none',
+              borderLeft: '1px solid #14b8a6',
+              cursor: 'pointer',
+              backgroundColor: currentShape === 'Irregular' ? 'rgba(20, 184, 166, 0.25)' : 'transparent',
+              color: currentShape === 'Irregular' ? '#2dd4bf' : 'var(--text-muted, #94a3b8)',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            Irregular
+          </button>
+        </div>
+      </div>
+
+      {/* 4 Directions */}
+      {directionsList.map(({ key, label }, idx) => {
+        const dirData = sectionData[key] || {};
+        const isMatch = Boolean(dirData.match);
+
+        return (
+          <div
+            key={key}
+            style={{
+              borderBottom: idx < directionsList.length - 1 ? '1px solid rgba(255, 255, 255, 0.08)' : 'none',
+              paddingBottom: idx < directionsList.length - 1 ? '22px' : '6px',
+              marginBottom: idx < directionsList.length - 1 ? '22px' : '0',
+            }}
+          >
+            {/* Header: Direction Name + Toggle Pill */}
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '12px',
+              }}
+            >
+              <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary, #ffffff)' }}>
+                {label}
+              </span>
+              <button
+                type="button"
+                onClick={() => toggleMatch(key)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '5px 14px',
+                  borderRadius: '20px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '0.8rem',
+                  fontWeight: 600,
+                  color: '#ffffff',
+                  backgroundColor: isMatch ? '#16a34a' : '#ea580c',
+                  boxShadow: isMatch ? '0 2px 8px rgba(22, 163, 74, 0.35)' : '0 2px 8px rgba(234, 88, 12, 0.35)',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <span
+                  style={{
+                    width: '10px',
+                    height: '10px',
+                    borderRadius: '50%',
+                    backgroundColor: '#ffffff',
+                    display: 'inline-block',
+                  }}
+                />
+                {isMatch ? 'Match' : 'No Match'}
+              </button>
+            </div>
+
+            {/* 3 Inputs */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                gap: '16px',
+              }}
+            >
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-secondary, #94a3b8)' }}>
+                  As per Actual *
+                </label>
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                  <input
+                    type="text"
+                    placeholder="Enter"
+                    className={styles.inputField}
+                    style={{ width: '100%', paddingRight: '36px' }}
+                    value={dirData.actual ?? ''}
+                    onChange={(e) => updateMeasurement(key, 'actual', e.target.value)}
+                  />
+                  <span
+                    style={{
+                      position: 'absolute',
+                      right: '12px',
+                      fontSize: '0.85rem',
+                      color: 'var(--text-muted, #64748b)',
+                      pointerEvents: 'none',
+                      fontWeight: 500,
+                    }}
+                  >
+                    ft
+                  </span>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-secondary, #94a3b8)' }}>
+                  As per Document Provided
+                </label>
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                  <input
+                    type="text"
+                    placeholder="Enter"
+                    className={styles.inputField}
+                    style={{ width: '100%', paddingRight: '36px' }}
+                    value={dirData.document ?? ''}
+                    onChange={(e) => updateMeasurement(key, 'document', e.target.value)}
+                  />
+                  <span
+                    style={{
+                      position: 'absolute',
+                      right: '12px',
+                      fontSize: '0.85rem',
+                      color: 'var(--text-muted, #64748b)',
+                      pointerEvents: 'none',
+                      fontWeight: 500,
+                    }}
+                  >
+                    ft
+                  </span>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-secondary, #94a3b8)' }}>
+                  As per Layout Plan
+                </label>
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                  <input
+                    type="text"
+                    placeholder="Enter"
+                    className={styles.inputField}
+                    style={{ width: '100%', paddingRight: '36px' }}
+                    value={dirData.plan ?? ''}
+                    onChange={(e) => updateMeasurement(key, 'plan', e.target.value)}
+                  />
+                  <span
+                    style={{
+                      position: 'absolute',
+                      right: '12px',
+                      fontSize: '0.85rem',
+                      color: 'var(--text-muted, #64748b)',
+                      pointerEvents: 'none',
+                      fontWeight: 500,
+                    }}
+                  >
+                    ft
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 };

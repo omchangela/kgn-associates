@@ -191,6 +191,8 @@ const ValuationReportSchema = new mongoose.Schema(
       number_of_electrical_points: { type: Number, default: 0 },
       number_of_water_outlets: { type: Number, default: 0 },
       technical_assessment: { type: String, default: '' },
+      landMeasurements: { type: mongoose.Schema.Types.Mixed, default: {} },
+      buildingMeasurements: { type: mongoose.Schema.Types.Mixed, default: {} },
     },
 
     landExtentValuations: [LandExtentValuationSchema],
