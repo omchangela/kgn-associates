@@ -249,6 +249,29 @@ export function generateValuationPdf(report) {
     columnStyles: fourColStyles,
   });
 
+  const verifiedDocs = report.verifiedDocuments || report.verified_documents || [];
+  const validDocs = verifiedDocs.filter(d => d.type_of_document || d.document_type || d.document_number);
+  if (validDocs.length > 0) {
+    currentY = doc.lastAutoTable.finalY + 4;
+    autoTable(doc, {
+      startY: currentY,
+      margin: { left: 14, right: 14 },
+      tableWidth: 182,
+      head: [['Verified Document Type', 'Document Number', 'Execution Date', 'Expiry Date', 'In Favour Of', 'Approval Authority']],
+      body: validDocs.map(d => [
+        fmtVal(d.type_of_document || d.document_type),
+        fmtVal(d.document_number),
+        fmtVal(d.execution_date),
+        fmtVal(d.expiry_date),
+        fmtVal(d.in_favour_of),
+        fmtVal(d.approval_authority),
+      ]),
+      theme: 'grid',
+      headStyles: sectionHeaderStyles,
+      styles: bodyStyles,
+    });
+  }
+
   // ==========================================
   // PAGE 2: BOUNDARIES, INFRASTRUCTURE & TECHNICAL
   // ==========================================

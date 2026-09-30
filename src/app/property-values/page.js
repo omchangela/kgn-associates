@@ -4,7 +4,7 @@ import styles from './PropertyValues.module.css';
 import Sidebar from '@/components/sidebar/Sidebar';
 import Header from '@/components/header/Header';
 import Footer from '@/components/footer/Footer';
-import { Calendar, ChevronRight, ChevronDown } from 'lucide-react';
+import { Calendar, ChevronRight, ChevronDown, Plus, Trash2 } from 'lucide-react';
 import { propertyValuationAPI } from '@/services/api';
 import { initialFormData, getSampleFormData, sanitizePayload, parseNumber, roundCoord } from './propertyFormState';
 import gsap from 'gsap';
@@ -141,6 +141,7 @@ const PropertyValues = () => {
         report_number: `KGN-2026-${id.slice(-4)}`,
         status: 'completed',
         institutionDetails: formData.institutionDetails,
+        verifiedDocuments: formData.verifiedDocuments || [],
         propertyIdentification: formData.propertyIdentification,
         scheduleDetails: formData.scheduleDetails,
         infrastructureDetails: formData.infrastructureDetails,
@@ -324,29 +325,155 @@ const PropertyValues = () => {
                 </div>
 
                 <h2 className={styles.sectionHeading}>Verified Documents:</h2>
-                <div className={styles.card}>
-                  <div className={styles.formGrid}>
-                    <div className={styles.inputStack}>
-                      <label className={styles.label}>Type of Document</label>
-                      <div style={{ position: 'relative', display: 'inline-block', width: '100%' }}>
-                        <button className={styles.blueBtn} style={{ padding: '8px 16px', fontSize: '0.85rem', width: '100%' }}>
-                          + Add Document
+                {(formData.verifiedDocuments && formData.verifiedDocuments.length > 0
+                  ? formData.verifiedDocuments
+                  : [{ type_of_document: '', document_number: '', execution_date: '', expiry_date: '', in_favour_of: '', approval_authority: '' }]
+                ).map((doc, idx) => (
+                  <div key={idx} className={styles.card} style={{ marginBottom: '16px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                      <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--accent-primary, #C9A84C)' }}>
+                        Document #{idx + 1}
+                      </span>
+                      {(formData.verifiedDocuments?.length > 1) && (
+                        <button
+                          type="button"
+                          onClick={() => removeTableRow('verifiedDocuments', idx)}
+                          style={{
+                            background: 'rgba(239, 68, 68, 0.1)',
+                            border: '1px solid rgba(239, 68, 68, 0.3)',
+                            color: '#ef4444',
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            fontSize: '0.82rem',
+                            padding: '4px 10px',
+                            borderRadius: '6px',
+                            fontWeight: 500,
+                          }}
+                          title="Remove Document"
+                        >
+                          <Trash2 size={14} /> Remove
                         </button>
-                        <input type="file" multiple style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }} />
+                      )}
+                    </div>
+                    <div className={styles.formGrid}>
+                      <div className={styles.inputStack}>
+                        <label className={styles.label}>Type of Document</label>
+                        <div className={styles.fieldWrapper}>
+                          <input
+                            type="text"
+                            placeholder="Enter Document Name (e.g. Sale Deed, Patta, EC)"
+                            className={styles.inputField}
+                            value={doc.type_of_document || ''}
+                            onChange={(e) => {
+                              updateTableRow('verifiedDocuments', idx, 'type_of_document', e.target.value);
+                              if (idx === 0) updateField('institutionDetails', 'type_of_document', e.target.value);
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      <div className={styles.inputStack}>
+                        <label className={styles.label}>Document Number</label>
+                        <div className={styles.fieldWrapper}>
+                          <input
+                            type="text"
+                            placeholder="Enter Document Number"
+                            className={styles.inputField}
+                            value={doc.document_number || ''}
+                            onChange={(e) => {
+                              updateTableRow('verifiedDocuments', idx, 'document_number', e.target.value);
+                              if (idx === 0) updateField('institutionDetails', 'document_number', e.target.value);
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      <div className={styles.inputStack}>
+                        <label className={styles.label}>Execution Date</label>
+                        <div className={styles.fieldWrapper}>
+                          <input
+                            type="date"
+                            placeholder="dd-mm-yyyy"
+                            className={styles.inputField}
+                            value={doc.execution_date || ''}
+                            onChange={(e) => {
+                              updateTableRow('verifiedDocuments', idx, 'execution_date', e.target.value);
+                              if (idx === 0) updateField('institutionDetails', 'execution_date', e.target.value);
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      <div className={styles.inputStack}>
+                        <label className={styles.label}>Expiry Date</label>
+                        <div className={styles.fieldWrapper}>
+                          <input
+                            type="date"
+                            placeholder="dd-mm-yyyy"
+                            className={styles.inputField}
+                            value={doc.expiry_date || ''}
+                            onChange={(e) => {
+                              updateTableRow('verifiedDocuments', idx, 'expiry_date', e.target.value);
+                              if (idx === 0) updateField('institutionDetails', 'expiry_date', e.target.value);
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      <div className={styles.inputStack}>
+                        <label className={styles.label}>In Favour Of</label>
+                        <div className={styles.fieldWrapper}>
+                          <input
+                            type="text"
+                            placeholder="In Favour Of"
+                            className={styles.inputField}
+                            value={doc.in_favour_of || ''}
+                            onChange={(e) => {
+                              updateTableRow('verifiedDocuments', idx, 'in_favour_of', e.target.value);
+                              if (idx === 0) updateField('institutionDetails', 'in_favour_of', e.target.value);
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      <div className={styles.inputStack}>
+                        <label className={styles.label}>Approval Authority</label>
+                        <div className={styles.fieldWrapper}>
+                          <input
+                            type="text"
+                            placeholder="Enter Approval Authority"
+                            className={styles.inputField}
+                            value={doc.approval_authority || ''}
+                            onChange={(e) => {
+                              updateTableRow('verifiedDocuments', idx, 'approval_authority', e.target.value);
+                              if (idx === 0) updateField('institutionDetails', 'approval_authority', e.target.value);
+                            }}
+                          />
+                        </div>
                       </div>
                     </div>
-                    <InputGroup label="Document Number" placeholder="Enter Document Number" section="institutionDetails" field="document_number" />
-                    <InputGroup label="Execution Date" placeholder="Execution Date" isDate section="institutionDetails" field="execution_date" />
-                    <InputGroup label="Expiry Date" placeholder="Expiry Date" isDate section="institutionDetails" field="expiry_date" />
-                    <InputGroup label="In Favour Of" placeholder="In Favour Of" section="institutionDetails" field="in_favour_of" />
-                    <InputGroup label="Approval Authority" placeholder="Enter Approval Authority" section="institutionDetails" field="approval_authority" />
                   </div>
-                </div>
+                ))}
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '20px', paddingBottom: '30px' }}>
-                  <div style={{ alignSelf: 'flex-start', position: 'relative' }}>
-                    <button className={styles.blueBtn}>+ Add Document</button>
-                    <input type="file" multiple style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }} />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '16px', paddingBottom: '30px' }}>
+                  <div style={{ alignSelf: 'flex-start' }}>
+                    <button
+                      type="button"
+                      className={styles.blueBtn}
+                      onClick={() => addTableRow('verifiedDocuments', {
+                        type_of_document: '',
+                        document_number: '',
+                        execution_date: '',
+                        expiry_date: '',
+                        in_favour_of: '',
+                        approval_authority: '',
+                      })}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
+                    >
+                      <Plus size={16} /> Add Document
+                    </button>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
                     <button className={styles.nextBtn} onClick={handleNext}>Next <ChevronRight size={20} /></button>

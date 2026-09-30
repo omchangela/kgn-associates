@@ -27,6 +27,16 @@ export const initialFormData = {
     in_favour_of: '',
     approval_authority: '',
   },
+  verifiedDocuments: [
+    {
+      type_of_document: '',
+      document_number: '',
+      execution_date: '',
+      expiry_date: '',
+      in_favour_of: '',
+      approval_authority: '',
+    },
+  ],
   propertyIdentification: {
     address_as_per_documents: '',
     address_as_per_actual_site: '',
@@ -254,6 +264,16 @@ export const getSampleFormData = () => {
       in_favour_of: 'John Doe',
       approval_authority: 'Municipal Corporation / CMDA',
     },
+    verifiedDocuments: [
+      {
+        type_of_document: 'Sale Deed',
+        document_number: 'DOC-2024-8891',
+        execution_date: '2024-01-15',
+        expiry_date: '2034-01-15',
+        in_favour_of: 'John Doe',
+        approval_authority: 'Municipal Corporation / CMDA',
+      },
+    ],
     propertyIdentification: {
       address_as_per_documents: '123 Main Street, T. Nagar, Chennai, Tamil Nadu',
       address_as_per_actual_site: '123 Main Street, T. Nagar, Chennai, Tamil Nadu',
