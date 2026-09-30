@@ -586,7 +586,21 @@ const PropertyValues = () => {
                 <h2 className={styles.sectionHeading} style={{ fontSize: '1.5rem', marginTop: '10px', marginBottom: '20px' }}>Construction Details</h2>
                 <div className={styles.card}>
                   <div className={styles.formGrid}>
-                    <SelectField label="Construction Type" section="scheduleDetails" field="construction_type" options={[{ value: '', label: 'Select' }, { value: 'rcc', label: 'RCC' }, { value: 'load_bearing', label: 'Load Bearing' }]} />
+                    <SelectField label="Construction Type" section="scheduleDetails" field="construction_type" options={[{ value: '', label: 'Select' }, { value: 'framed', label: 'Framed' }, { value: 'load_bearing', label: 'Load Bearing' }, { value: 'timber_wooden', label: 'Timber / Wooden' }, { value: 'stone', label: 'Stone' }, { value: 'others', label: 'Others' }]} />
+                    {formData.scheduleDetails?.construction_type === 'others' && (
+                      <div className={styles.inputStack}>
+                        <label className={styles.label}>Construction Type (Others)</label>
+                        <div className={styles.fieldWrapper}>
+                          <input
+                            type="text"
+                            placeholder="Please specify construction type"
+                            className={styles.inputField}
+                            value={formData.scheduleDetails?.other_construction_type || ''}
+                            onChange={(e) => updateField('scheduleDetails', 'other_construction_type', e.target.value)}
+                          />
+                        </div>
+                      </div>
+                    )}
                     <SelectField label="Roof Type" section="scheduleDetails" field="roof_type" options={[{ value: '', label: 'Select' }, { value: 'flat', label: 'Flat' }, { value: 'sloped', label: 'Sloped' }]} />
                     <SelectField label="Flooring Type" section="scheduleDetails" field="flooring_type" options={[{ value: '', label: 'Select' }, { value: 'marble', label: 'Marble' }, { value: 'tiles', label: 'Tiles' }]} />
                     <InputGroup label="Stair Type" placeholder="Enter" section="scheduleDetails" field="stair_type" />
