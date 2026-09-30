@@ -825,15 +825,7 @@ const PropertyValues = () => {
             {activeTab === "Final Valuation" && (
               <>
                 <h1 className={styles.pageTitle}>Final Valuation</h1>
-                <div className={styles.card}>
-                  <h2 className={styles.sectionHeading}>Valuation Summary</h2>
-                  <div className={styles.formGrid}>
-                    <InputGroup label="Property Type" placeholder="Enter" section="finalValuation" field="property_type" />
-                    <InputGroup label="Property Use" placeholder="Enter" section="finalValuation" field="property_use" />
-                    <InputGroup label="Valuation Purpose" placeholder="Enter" section="finalValuation" field="valuation_purpose" />
-                    <InputGroup label="Valuation Date" placeholder="Enter" isDate section="finalValuation" field="valuation_date" />
-                  </div>
-                </div>
+
                 <div className={styles.card}>
                   <h2 className={styles.sectionHeading}>Final Values</h2>
                   <div className={styles.formGrid}>
