@@ -648,8 +648,8 @@ const PropertyValues = () => {
                     )}
                     <InputGroup label="No. of Floors Approved" placeholder="Enter" section="scheduleDetails" field="no_of_floors_approved" />
                     <InputGroup label="No. of Floors Existing" placeholder="Enter" section="scheduleDetails" field="no_of_floors_existing" />
-                    <InputGroup label="Construction Quality" placeholder="Select" section="scheduleDetails" field="construction_quality" />
-                    <InputGroup label="Maintenance of Property" placeholder="Select" section="scheduleDetails" field="maintenance_of_property" />
+                    <SelectField label="Construction Quality" section="scheduleDetails" field="construction_quality" options={[{ value: '', label: 'Select' }, { value: 'Excellent', label: 'Excellent' }, { value: 'Good', label: 'Good' }, { value: 'Average', label: 'Average' }, { value: 'Poor', label: 'Poor' }]} />
+                    <SelectField label="Maintenance of Property" section="scheduleDetails" field="maintenance_of_property" options={[{ value: '', label: 'Select' }, { value: 'Excellent', label: 'Excellent' }, { value: 'Good', label: 'Good' }, { value: 'Average', label: 'Average' }, { value: 'Poor', label: 'Poor' }]} />
                   </div>
                 </div>
 
@@ -1512,7 +1512,9 @@ const InputGroup = ({ label, placeholder, isDate, fullWidth, type = "text", sect
 
 const SelectField = ({ label, section, field, options, fullWidth }) => {
   const { formData, updateField } = useFormContext();
-  const value = formData[section]?.[field] ?? '';
+  const rawValue = formData[section]?.[field] ?? '';
+  const matchedOpt = options.find((opt) => String(opt.value).toLowerCase() === String(rawValue).toLowerCase());
+  const value = matchedOpt ? matchedOpt.value : rawValue;
 
   return (
     <div className={`${styles.inputStack} ${fullWidth ? styles.fullWidth : ''}`}>

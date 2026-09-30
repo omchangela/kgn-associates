@@ -327,7 +327,7 @@ export const getSampleFormData = () => {
       no_of_floors_approved: '5',
       no_of_floors_existing: '4',
       construction_quality: 'Good',
-      maintenance_of_property: 'Well maintained',
+      maintenance_of_property: 'Good',
       occupancy_status: 'occupied',
       occupant_details: 'Owner occupied',
       actual_usage_of_property: 'residential',
