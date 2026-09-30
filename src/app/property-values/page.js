@@ -631,7 +631,21 @@ const PropertyValues = () => {
                         </div>
                       </div>
                     )}
-                    <InputGroup label="Stair Type" placeholder="Enter" section="scheduleDetails" field="stair_type" />
+                    <SelectField label="Stair Type" section="scheduleDetails" field="stair_type" options={[{ value: '', label: 'Select' }, { value: 'cast_in_situ', label: 'Cast-in-situ' }, { value: 'metal', label: 'Metal' }, { value: 'cast_in_situ_metal', label: 'Cast-in-situ Metal' }, { value: 'stones', label: 'Stones' }, { value: 'timber', label: 'Timber' }, { value: 'glass', label: 'Glass' }, { value: 'not_applicable', label: 'Not Applicable' }, { value: 'others', label: 'Others' }]} />
+                    {formData.scheduleDetails?.stair_type === 'others' && (
+                      <div className={styles.inputStack}>
+                        <label className={styles.label}>Stair Type (Others)</label>
+                        <div className={styles.fieldWrapper}>
+                          <input
+                            type="text"
+                            placeholder="Please specify stair type"
+                            className={styles.inputField}
+                            value={formData.scheduleDetails?.other_stair_type || ''}
+                            onChange={(e) => updateField('scheduleDetails', 'other_stair_type', e.target.value)}
+                          />
+                        </div>
+                      </div>
+                    )}
                     <InputGroup label="No. of Floors Approved" placeholder="Enter" type="number" section="scheduleDetails" field="no_of_floors_approved" />
                     <InputGroup label="No. of Floors Existing" placeholder="Enter" type="number" section="scheduleDetails" field="no_of_floors_existing" />
                     <InputGroup label="Construction Quality" placeholder="Select" section="scheduleDetails" field="construction_quality" />

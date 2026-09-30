@@ -134,6 +134,7 @@ const ValuationReportSchema = new mongoose.Schema(
       flooring_type: { type: String, default: '' },
       other_flooring_type: { type: String, default: '' },
       stair_type: { type: String, default: '' },
+      other_stair_type: { type: String, default: '' },
       no_of_floors_approved: { type: Number, default: null },
       no_of_floors_existing: { type: Number, default: null },
       construction_quality: { type: String, default: '' },

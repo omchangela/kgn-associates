@@ -86,6 +86,7 @@ export const initialFormData = {
     flooring_type: '',
     other_flooring_type: '',
     stair_type: '',
+    other_stair_type: '',
     no_of_floors_approved: '',
     no_of_floors_existing: '',
     construction_quality: '',
