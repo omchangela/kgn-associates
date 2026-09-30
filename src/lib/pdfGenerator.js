@@ -312,8 +312,8 @@ export function generateValuationPdf(report) {
     tableWidth: 182,
     head: [['3.1 PHYSICAL BUILDING ATTRIBUTES & OCCUPANCY', '', '', '']],
     body: [
-      ['Demarcation Status', fmtVal(sched.property_identification_status, 'Clearly Demarcated with Compound Wall'), 'Structural Construction Type', fmtVal(sched.construction_type, 'RCC Framed Structure')],
-      ['Roof & Ceiling Type', fmtVal(sched.roof_type, 'RCC Flat Slab'), 'Flooring & Staircase', `${fmtVal(sched.flooring_type, 'Vitrified')} / ${fmtVal(sched.stair_type, 'Internal RCC')}`],
+      ['Demarcation Status', fmtVal(sched.property_identification_status, 'Clearly Demarcated with Compound Wall'), 'Structural Construction Type', sched.construction_type === 'others' && sched.other_construction_type ? sched.other_construction_type : fmtVal(sched.construction_type, 'RCC Framed Structure')],
+      ['Roof & Ceiling Type', sched.roof_type === 'others' && sched.other_roof_type ? sched.other_roof_type : fmtVal(sched.roof_type, 'RCC Flat Slab'), 'Flooring & Staircase', `${sched.flooring_type === 'others' && sched.other_flooring_type ? sched.other_flooring_type : fmtVal(sched.flooring_type, 'Vitrified')} / ${fmtVal(sched.stair_type, 'Internal RCC')}`],
       ['Floors Approved / Exist', `Appr: ${fmtVal(sched.no_of_floors_approved, 'G+1')} | Exist: ${fmtVal(sched.no_of_floors_existing || sched.number_of_floors, 'G+1')}`, 'Construction Quality', fmtVal(sched.construction_quality, 'Superior / Good')],
       ['Property Maintenance', fmtVal(sched.maintenance_of_property, 'Well Maintained'), 'Occupancy Details', `${fmtVal(sched.occupancy_status, 'Occupied')} (${fmtVal(sched.occupant_details, 'Owner')})`],
       ['Actual Usage at Site', fmtVal(sched.actual_usage_of_property, 'Residential House'), 'Locality Classification', fmtVal(sched.class_of_locality, 'High / Middle Income')],

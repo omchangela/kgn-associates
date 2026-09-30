@@ -616,7 +616,21 @@ const PropertyValues = () => {
                         </div>
                       </div>
                     )}
-                    <SelectField label="Flooring Type" section="scheduleDetails" field="flooring_type" options={[{ value: '', label: 'Select' }, { value: 'marble', label: 'Marble' }, { value: 'tiles', label: 'Tiles' }]} />
+                    <SelectField label="Flooring Type" section="scheduleDetails" field="flooring_type" options={[{ value: '', label: 'Select' }, { value: 'granite', label: 'Granite' }, { value: 'marble', label: 'Marble' }, { value: 'vertified_tiles', label: 'Vertified Tiles' }, { value: 'ceramic_tiles', label: 'Ceramic Tiles' }, { value: 'tiles', label: 'Tiles' }, { value: 'concrete_flooring', label: 'Concrete Flooring' }, { value: 'emanuel_flooring', label: 'Emanuel Flooring' }, { value: 'others', label: 'Others' }]} />
+                    {formData.scheduleDetails?.flooring_type === 'others' && (
+                      <div className={styles.inputStack}>
+                        <label className={styles.label}>Flooring Type (Others)</label>
+                        <div className={styles.fieldWrapper}>
+                          <input
+                            type="text"
+                            placeholder="Please specify flooring type"
+                            className={styles.inputField}
+                            value={formData.scheduleDetails?.other_flooring_type || ''}
+                            onChange={(e) => updateField('scheduleDetails', 'other_flooring_type', e.target.value)}
+                          />
+                        </div>
+                      </div>
+                    )}
                     <InputGroup label="Stair Type" placeholder="Enter" section="scheduleDetails" field="stair_type" />
                     <InputGroup label="No. of Floors Approved" placeholder="Enter" type="number" section="scheduleDetails" field="no_of_floors_approved" />
                     <InputGroup label="No. of Floors Existing" placeholder="Enter" type="number" section="scheduleDetails" field="no_of_floors_existing" />
