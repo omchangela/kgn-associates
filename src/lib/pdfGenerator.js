@@ -333,8 +333,8 @@ export function generateValuationPdf(report) {
     tableWidth: 182,
     head: [['4.0 INFRASTRUCTURE & ACCESS ROAD AMENITIES', '', '', '']],
     body: [
-      ['Land Locked Status', infra.land_locked ? 'Yes (Restricted Access)' : 'No (Direct Street Access)', 'Access Road Type', fmtVal(infra.type_of_access, 'Public BT / Concrete Road')],
-      ['Number of Facing Roads', fmtVal(infra.number_of_roads, '1 Road'), 'Facing Road Width', `${fmtVal(infra.road_width_ft, '30')} Feet (${fmtVal(infra.road_direction, 'East')} Facing)`],
+      ['Land Locked Status', infra.land_locked ? 'Yes (Restricted Access)' : 'No (Direct Street Access)', 'Approach Road Type', infra.approach_road_type === 'others' && infra.other_approach_road_type ? infra.other_approach_road_type : fmtVal(infra.approach_road_type, 'Black Top Road')],
+      ['Number of Facing Roads', fmtVal(infra.number_of_roads, '1 Road'), 'Facing Road Width / Access', `${fmtVal(infra.road_width_ft, '30')} Feet (${fmtVal(infra.road_direction, 'East')} Facing / ${fmtVal(infra.type_of_access, 'Public')})`],
       ['Electricity Connection', infra.electricity ? 'Connected (State Discom Grid)' : 'Not Connected', 'Water Supply', infra.water ? 'Available (Municipal + Borewell)' : 'Not Available'],
       ['Drainage & Sewerage', infra.drainage_connection ? 'Underground Drainage System' : 'Septic Tank', 'Lifts / Elevators', `${fmtVal(infra.number_of_lifts, '0')} Operational Lift(s)`],
     ],

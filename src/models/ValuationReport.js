@@ -150,14 +150,17 @@ const ValuationReportSchema = new mongoose.Schema(
     infrastructureDetails: {
       land_locked: { type: Boolean, default: false },
       land_locked_description: { type: String, default: '' },
-      number_of_roads: { type: Number, default: 1 },
+      number_of_roads: { type: mongoose.Schema.Types.Mixed, default: 1 },
       road_direction: { type: String, default: 'north' },
+      approach_road_type: { type: String, default: '' },
+      other_approach_road_type: { type: String, default: '' },
       type_of_access: { type: String, default: 'public' },
-      road_width_ft: { type: Number, default: 30 },
+      road_width_ft: { type: mongoose.Schema.Types.Mixed, default: 30 },
       electricity: { type: Boolean, default: true },
       water: { type: Boolean, default: true },
       drainage_connection: { type: Boolean, default: true },
-      number_of_lifts: { type: Number, default: 0 },
+      number_of_lifts: { type: mongoose.Schema.Types.Mixed, default: 0 },
+      roads_details: { type: mongoose.Schema.Types.Mixed, default: [] },
     },
 
     technicalDetails: {

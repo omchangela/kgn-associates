@@ -103,6 +103,8 @@ export const initialFormData = {
     land_locked_description: '',
     number_of_roads: '',
     road_direction: '',
+    approach_road_type: '',
+    other_approach_road_type: '',
     type_of_access: '',
     road_width_ft: '',
     electricity: true,

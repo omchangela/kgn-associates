@@ -18,6 +18,29 @@ const useFormContext = () => {
   return ctx;
 };
 
+const directionOptions = [
+  { value: '', label: 'Select' },
+  { value: 'north', label: 'North' },
+  { value: 'south', label: 'South' },
+  { value: 'east', label: 'East' },
+  { value: 'west', label: 'West' },
+  { value: 'north_east', label: 'North-East' },
+  { value: 'north_west', label: 'North-West' },
+  { value: 'south_east', label: 'South-East' },
+  { value: 'south_west', label: 'South-West' },
+];
+
+const approachRoadOptions = [
+  { value: '', label: 'Select' },
+  { value: 'black_top_road', label: 'Black Top Road' },
+  { value: 'bitumen_road', label: 'Bitumen Road' },
+  { value: 'cement_concrete_road', label: 'Cement Concrete Road' },
+  { value: 'gravel_road', label: 'Gravel Road' },
+  { value: 'sand_road', label: 'Sand Road' },
+  { value: 'mud_road', label: 'Mud Road' },
+  { value: 'others', label: 'Others' },
+];
+
 const PropertyValues = () => {
   const tabs = ["Institution Details", "Property", "Schedule", "Infrastructure", "Technical", "Property Market Value","Final Valuation", "Location", "Characteristics", "Photos"];
   const [activeTab, setActiveTab] = useState("Institution Details");
@@ -655,7 +678,7 @@ const PropertyValues = () => {
 
                 <div className={styles.card} style={{ marginTop: '20px' }}>
                   <div className={styles.formGrid}>
-                    <SelectField label="Occupancy Status" section="scheduleDetails" field="occupancy_status" options={[{ value: '', label: 'Select' }, { value: 'occupied', label: 'Occupied' }, { value: 'vacant', label: 'Vacant' }]} />
+                    <SelectField label="Occupancy Status" section="scheduleDetails" field="occupancy_status" options={[{ value: '', label: 'Select' }, { value: 'fully_occupied', label: 'Fully Occupied' }, { value: 'partly_occupied', label: 'Partly Occupied' }, { value: 'occupied', label: 'Occupied' }, { value: 'vacant', label: 'Vacant' }]} />
                     <InputGroup label="Occupant Details" placeholder="Input / Textarea" section="scheduleDetails" field="occupant_details" />
                     <InputGroup label="Class of Locality" placeholder="e.g. Prime / High Income / Middle Income" section="scheduleDetails" field="class_of_locality" />
                     <InputGroup label="Number of Floors Valued" placeholder="Enter" section="scheduleDetails" field="number_of_floors" />
@@ -678,14 +701,56 @@ const PropertyValues = () => {
                     <div></div>
                     <InputGroup label="Description" placeholder="Enter" section="infrastructureDetails" field="land_locked_description" fullWidth />
                     <div></div>
-                    <InputGroup label="Number of Roads" placeholder="Enter" type="number" section="infrastructureDetails" field="number_of_roads" />
-                    <SelectField label="Direction" section="infrastructureDetails" field="road_direction" options={[{ value: '', label: 'Select' }, { value: 'north', label: 'North' }, { value: 'south', label: 'South' }, { value: 'east', label: 'East' }, { value: 'west', label: 'West' }]} />
+                    <InputGroup label="Number of Roads" placeholder="Enter" section="infrastructureDetails" field="number_of_roads" />
                     <SelectField label="Type of Access" section="infrastructureDetails" field="type_of_access" options={[{ value: '', label: 'Select' }, { value: 'public', label: 'Public' }, { value: 'private', label: 'Private' }]} />
+
+                    {Array.from({ length: Math.max(1, Math.min(10, parseInt(formData.infrastructureDetails?.number_of_roads, 10) || 1)) }, (_, idx) => {
+                      const roadNum = idx + 1;
+                      const dirField = roadNum === 1 ? 'road_direction' : `road_direction_${roadNum}`;
+                      const approachField = roadNum === 1 ? 'approach_road_type' : `approach_road_type_${roadNum}`;
+                      const otherApproachField = roadNum === 1 ? 'other_approach_road_type' : `other_approach_road_type_${roadNum}`;
+                      const totalRoads = Math.max(1, Math.min(10, parseInt(formData.infrastructureDetails?.number_of_roads, 10) || 1));
+                      const isOther = formData.infrastructureDetails?.[approachField] === 'others';
+
+                      return (
+                        <React.Fragment key={roadNum}>
+                          <SelectField
+                            label={totalRoads > 1 ? `Direction (Road ${roadNum})` : "Direction"}
+                            section="infrastructureDetails"
+                            field={dirField}
+                            options={directionOptions}
+                          />
+                          <SelectField
+                            label={totalRoads > 1 ? `Approach Road Type to Property (Road ${roadNum})` : "Approach Road Type to Property"}
+                            section="infrastructureDetails"
+                            field={approachField}
+                            options={approachRoadOptions}
+                          />
+                          {isOther && (
+                            <div className={`${styles.inputStack} ${styles.fullWidth}`}>
+                              <label className={styles.label}>
+                                Approach Road Type to Property (Others{totalRoads > 1 ? ` - Road ${roadNum}` : ''})
+                              </label>
+                              <div className={styles.fieldWrapper}>
+                                <input
+                                  type="text"
+                                  placeholder="Please specify approach road type"
+                                  className={styles.inputField}
+                                  value={formData.infrastructureDetails?.[otherApproachField] || ''}
+                                  onChange={(e) => updateField('infrastructureDetails', otherApproachField, e.target.value)}
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </React.Fragment>
+                      );
+                    })}
+
                     <InputGroup label="Road Width (ft)" placeholder="Enter" type="number" section="infrastructureDetails" field="road_width_ft" />
+                    <InputGroup label="Number of Lifts" placeholder="Enter" type="number" section="infrastructureDetails" field="number_of_lifts" />
                     <div className={styles.inputStack}><RadioYesNo label="Electricity" section="infrastructureDetails" field="electricity" /></div>
                     <div className={styles.inputStack}><RadioYesNo label="Water" section="infrastructureDetails" field="water" /></div>
                     <div className={styles.inputStack}><RadioYesNo label="Drainage Connection" section="infrastructureDetails" field="drainage_connection" /></div>
-                    <InputGroup label="Number of Lifts" placeholder="Enter" type="number" section="infrastructureDetails" field="number_of_lifts" />
                   </div>
                 </div>
                 <div className={styles.footerActions}>
