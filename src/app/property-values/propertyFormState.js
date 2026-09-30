@@ -113,8 +113,12 @@ export const initialFormData = {
     number_of_lifts: '',
   },
   technicalDetails: {
-    total_built_up_area: '',
     carpet_area: '',
+    plinth_area: '',
+    built_up_area: '',
+    super_built_up_area: '',
+    slab_area: '',
+    total_built_up_area: '',
     plot_area: '',
     floor_area_ratio: '',
     ground_coverage: '',

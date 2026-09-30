@@ -766,15 +766,11 @@ const PropertyValues = () => {
                 <div className={styles.card}>
                   <h2 className={styles.sectionHeading}>Building Specifications</h2>
                   <div className={styles.formGrid}>
-                    <InputGroup label="Total Built-up Area" placeholder="Enter" type="number" section="technicalDetails" field="total_built_up_area" />
-                    <InputGroup label="Carpet Area" placeholder="Enter" type="number" section="technicalDetails" field="carpet_area" />
-                    <InputGroup label="Plot Area" placeholder="Enter" type="number" section="technicalDetails" field="plot_area" />
-                    <InputGroup label="Floor Area Ratio (FAR)" placeholder="Enter" type="number" section="technicalDetails" field="floor_area_ratio" />
-                    <InputGroup label="Ground Coverage" placeholder="Enter" type="number" section="technicalDetails" field="ground_coverage" />
-                    <InputGroup label="Setback Front" placeholder="Enter" type="number" section="technicalDetails" field="setback_front" />
-                    <InputGroup label="Setback Back" placeholder="Enter" type="number" section="technicalDetails" field="setback_back" />
-                    <InputGroup label="Setback Left" placeholder="Enter" type="number" section="technicalDetails" field="setback_left" />
-                    <InputGroup label="Setback Right" placeholder="Enter" type="number" section="technicalDetails" field="setback_right" />
+                    <InputGroup label="Carpet Area" placeholder="Enter" section="technicalDetails" field="carpet_area" />
+                    <InputGroup label="Plinth Area" placeholder="Enter" section="technicalDetails" field="plinth_area" />
+                    <InputGroup label="Built-Up-Area" placeholder="Enter" section="technicalDetails" field="built_up_area" />
+                    <InputGroup label="Super-Built-Up Area" placeholder="Enter" section="technicalDetails" field="super_built_up_area" />
+                    <InputGroup label="Slab Area" placeholder="Enter" section="technicalDetails" field="slab_area" />
                   </div>
                 </div>
                 <div className={styles.card}>

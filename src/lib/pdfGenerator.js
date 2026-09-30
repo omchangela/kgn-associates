@@ -353,7 +353,7 @@ export function generateValuationPdf(report) {
     tableWidth: 182,
     head: [['5.0 TECHNICAL & STRUCTURAL ENGINEERING PARAMETERS', '', '', '']],
     body: [
-      ['Total Plot Area', `${fmtVal(tech.plot_area)} Sq.Ft`, 'Built-Up Area (Carpet)', `${fmtVal(tech.total_built_up_area)} Sq.Ft (${fmtVal(tech.carpet_area)} Sq.Ft)`],
+      ['Carpet / Plinth Area', `Carpet: ${fmtVal(tech.carpet_area)} Sq.Ft | Plinth: ${fmtVal(tech.plinth_area)} Sq.Ft`, 'Built-Up / Super Built-Up', `Built-Up: ${fmtVal(tech.built_up_area || tech.total_built_up_area)} Sq.Ft (${fmtVal(tech.super_built_up_area || tech.slab_area)} Sq.Ft)`],
       ['Floor Area Ratio (FAR/FSI)', fmtVal(tech.floor_area_ratio || char.fsi, '1.50'), 'Ground Coverage %', `${fmtVal(tech.ground_coverage, '65')}%`],
       ['Setbacks (Front / Back)', `Front: ${fmtVal(tech.setback_front, '10')} ft | Back: ${fmtVal(tech.setback_back, '5')} ft`, 'Setbacks (Left / Right)', `Left: ${fmtVal(tech.setback_left, '5')} ft | Right: ${fmtVal(tech.setback_right, '5')} ft`],
       ['Foundation & Plinth', `${fmtVal(tech.foundation_type, 'Isolated Footing')} (Plinth: ${fmtVal(tech.plinth_height, '2.5')} ft)`, 'Clear Ceiling Height', `${fmtVal(tech.ceiling_height, '10.0')} Feet Clear`],

@@ -164,9 +164,13 @@ const ValuationReportSchema = new mongoose.Schema(
     },
 
     technicalDetails: {
-      total_built_up_area: { type: Number, default: 0 },
-      carpet_area: { type: Number, default: 0 },
-      plot_area: { type: Number, default: 0 },
+      carpet_area: { type: mongoose.Schema.Types.Mixed, default: '' },
+      plinth_area: { type: mongoose.Schema.Types.Mixed, default: '' },
+      built_up_area: { type: mongoose.Schema.Types.Mixed, default: '' },
+      super_built_up_area: { type: mongoose.Schema.Types.Mixed, default: '' },
+      slab_area: { type: mongoose.Schema.Types.Mixed, default: '' },
+      total_built_up_area: { type: mongoose.Schema.Types.Mixed, default: '' },
+      plot_area: { type: mongoose.Schema.Types.Mixed, default: '' },
       floor_area_ratio: { type: Number, default: 0 },
       ground_coverage: { type: Number, default: 0 },
       setback_front: { type: Number, default: 0 },
