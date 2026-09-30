@@ -191,6 +191,7 @@ const PropertyValues = () => {
             cost_per_sqft: parseNumber(row.cost_per_sqft),
             total_value: parseNumber(row.total_value),
           })),
+        structure_valuation_basis: formData.structure_valuation_basis || 'as_per_actual',
         amenityValuations: formData.amenityValuations
           .filter((row) => row.amenity_name || row.amenity_value)
           .map((row) => ({
@@ -801,8 +802,7 @@ const PropertyValues = () => {
                 <div className={styles.card} style={{ padding: '20px', marginBottom: '40px' }}>
                   <LandExtentTable />
                   <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '0 0 25px 10px' }}>Provide Selection Option For Final Valuation</p>
-                  <h2 className={styles.sectionHeading} style={{ fontSize: '1.2rem', marginTop: '10px', marginBottom: '10px' }}>Structure Valuation:</h2>
-                  <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '0 0 15px 0' }}>Provide Selection Option For As Per Documents, As Per Actual, As Per Plan From Structure Dimensions Tab.</p>
+                  <h2 className={styles.sectionHeading} style={{ fontSize: '1.2rem', marginTop: '10px', marginBottom: '14px' }}>Structure Valuation:</h2>
                   <StructureValuationTable />
                   <h2 className={styles.sectionHeading} style={{ fontSize: '1.2rem', marginTop: '10px', marginBottom: '15px' }}>Amenities Valuation:</h2>
                   <AmenitiesTable />
@@ -845,15 +845,7 @@ const PropertyValues = () => {
                     <InputGroup label="Depreciated Cost" placeholder="Enter" type="number" section="finalValuation" field="depreciated_cost" />
                   </div>
                 </div>
-                <div className={styles.card}>
-                  <h2 className={styles.sectionHeading}>Valuation Certificates</h2>
-                  <div className={styles.radioList}>
-                    <RadioYesNo label="Certificate Issued?" section="finalValuation" field="certificate_issued" />
-                    <RadioYesNo label="Report Certified?" section="finalValuation" field="report_certified" />
-                    <RadioYesNo label="Photographs Attached?" section="finalValuation" field="photographs_attached" />
-                    <RadioYesNo label="Documents Verified?" section="finalValuation" field="documents_verified" />
-                  </div>
-                </div>
+
                 <div className={styles.card}>
                   <h2 className={styles.sectionHeading}>Valuer Details</h2>
                   <div className={styles.formGrid}>
@@ -2104,13 +2096,35 @@ const BoundaryTable = () => {
 };
 
 const LandExtentTable = () => {
-  const { formData, updateTableRow } = useFormContext();
+  const { formData, setFormData } = useFormContext();
   const labels = [
     'As Per Documents (Sq Ft)',
     'As Per Actual (Sq Ft)',
     'As Per Plan (Sq Ft)',
     'Final Selected (Sq Ft)',
   ];
+
+  const handleLandChange = (idx, field, value) => {
+    setFormData(prev => {
+      const list = [...(prev.landExtentValuations || [])];
+      const cur = { ...(list[idx] || {}) };
+      cur[field] = value;
+
+      if (field === 'land_extent_sqft' || field === 'cost_per_sqft') {
+        const extent = parseFloat(String(cur.land_extent_sqft || '').replace(/,/g, '')) || 0;
+        const cost = parseFloat(String(cur.cost_per_sqft || '').replace(/,/g, '')) || 0;
+        if (extent > 0 && cost > 0) {
+          cur.total_value = String(Math.round(extent * cost));
+        } else if (!cur.land_extent_sqft || !cur.cost_per_sqft) {
+          if (field === 'land_extent_sqft' && !value) cur.total_value = '';
+          if (field === 'cost_per_sqft' && !value) cur.total_value = '';
+        }
+      }
+
+      list[idx] = cur;
+      return { ...prev, landExtentValuations: list };
+    });
+  };
 
   return (
     <div style={{ overflowX: 'auto', marginBottom: '5px' }}>
@@ -2124,12 +2138,12 @@ const LandExtentTable = () => {
           </tr>
         </thead>
         <tbody>
-          {formData.landExtentValuations.map((row, idx) => (
-            <tr key={row.basis_of_valuation}>
-              <td style={{ fontSize: '0.95rem', fontWeight: '600', color: 'var(--text-primary)', paddingRight: '15px' }}>{labels[idx]}</td>
-              <td><input type="text" className={styles.inputField} placeholder="Sq Ft" value={row.land_extent_sqft} onChange={(e) => updateTableRow('landExtentValuations', idx, 'land_extent_sqft', e.target.value)} /></td>
-              <td><input type="text" className={styles.inputField} placeholder="Cost" value={row.cost_per_sqft} onChange={(e) => updateTableRow('landExtentValuations', idx, 'cost_per_sqft', e.target.value)} /></td>
-              <td><input type="text" className={styles.inputField} placeholder="Total" value={row.total_value} onChange={(e) => updateTableRow('landExtentValuations', idx, 'total_value', e.target.value)} /></td>
+          {(formData.landExtentValuations || []).map((row, idx) => (
+            <tr key={row.basis_of_valuation || idx}>
+              <td style={{ fontSize: '0.95rem', fontWeight: '600', color: 'var(--text-primary)', paddingRight: '15px' }}>{labels[idx] || row.basis_of_valuation}</td>
+              <td><input type="text" className={styles.inputField} placeholder="Sq Ft" value={row.land_extent_sqft || ''} onChange={(e) => handleLandChange(idx, 'land_extent_sqft', e.target.value)} /></td>
+              <td><input type="text" className={styles.inputField} placeholder="Cost" value={row.cost_per_sqft || ''} onChange={(e) => handleLandChange(idx, 'cost_per_sqft', e.target.value)} /></td>
+              <td><input type="text" className={styles.inputField} placeholder="Total" value={row.total_value || ''} onChange={(e) => handleLandChange(idx, 'total_value', e.target.value)} /></td>
             </tr>
           ))}
         </tbody>
@@ -2139,37 +2153,268 @@ const LandExtentTable = () => {
 };
 
 const StructureValuationTable = () => {
-  const { formData, updateTableRow } = useFormContext();
+  const { formData, setFormData } = useFormContext();
+
   const labels = {
+    carpet_area: 'Carpet Area (Sq Ft)',
     plinth_area: 'Plinth Area (Sq Ft)',
     built_up_area: 'Built Up Area (Sq Ft)',
     super_built: 'Super Built (Sq Ft)',
+    slab_area: 'Slab Area (Sq Ft)',
   };
 
+  const techMapping = {
+    carpet_area: 'carpet_area',
+    plinth_area: 'plinth_area',
+    built_up_area: 'built_up_area',
+    super_built: 'super_built_up_area',
+    slab_area: 'slab_area',
+  };
+
+  const ORDERED_KEYS = ['carpet_area', 'plinth_area', 'built_up_area', 'super_built', 'slab_area'];
+
+  // Ensure all 5 rows exist in formData.structureValuations in exact order
+  useEffect(() => {
+    const existing = formData.structureValuations || [];
+    const isComplete = ORDERED_KEYS.length === existing.length && ORDERED_KEYS.every((k, i) => existing[i]?.floor_details === k);
+    if (!isComplete) {
+      setFormData(prev => {
+        const prevList = prev.structureValuations || [];
+        const newList = ORDERED_KEYS.map(k => {
+          const found = prevList.find(r => r.floor_details === k);
+          const defaultArea = prev.technicalDetails?.[techMapping[k]] || '';
+          return found ? { ...found } : {
+            floor_details: k,
+            area_sqft: defaultArea,
+            recommendation_of_funding: '',
+            cost_per_sqft: '',
+            total_value: '',
+          };
+        });
+        return { ...prev, structureValuations: newList };
+      });
+    }
+  }, []);
+
+  // Auto-populate empty areas from technical details when available
+  useEffect(() => {
+    const tech = formData.technicalDetails || {};
+    const hasEmptyToFill = (formData.structureValuations || []).some(row => {
+      const techVal = tech[techMapping[row.floor_details]];
+      return techVal && !row.area_sqft;
+    });
+
+    if (hasEmptyToFill) {
+      setFormData(prev => {
+        const techDetails = prev.technicalDetails || {};
+        const updated = (prev.structureValuations || []).map(row => {
+          const techVal = techDetails[techMapping[row.floor_details]];
+          if (techVal && !row.area_sqft) {
+            const area = parseFloat(String(techVal).replace(/,/g, '')) || 0;
+            const cost = parseFloat(String(row.cost_per_sqft || '').replace(/,/g, '')) || 0;
+            let total = row.total_value;
+            if (area > 0 && cost > 0) {
+              const fundingStr = String(row.recommendation_of_funding || '').replace('%', '').trim();
+              let pct = 1;
+              if (fundingStr !== '') {
+                const num = parseFloat(fundingStr);
+                if (!isNaN(num) && num >= 0) pct = num / 100;
+              }
+              total = String(Math.round(area * cost * pct));
+            }
+            return { ...row, area_sqft: techVal, total_value: total };
+          }
+          return row;
+        });
+        return { ...prev, structureValuations: updated };
+      });
+    }
+  }, [
+    formData.technicalDetails?.carpet_area,
+    formData.technicalDetails?.plinth_area,
+    formData.technicalDetails?.built_up_area,
+    formData.technicalDetails?.super_built_up_area,
+    formData.technicalDetails?.slab_area,
+  ]);
+
+  const handleCellChange = (idx, field, val) => {
+    setFormData(prev => {
+      const list = [...(prev.structureValuations || [])];
+      const cur = { ...(list[idx] || {}) };
+      cur[field] = val;
+
+      // Automatically calculate total value
+      if (field === 'area_sqft' || field === 'cost_per_sqft' || field === 'recommendation_of_funding') {
+        const area = parseFloat(String(cur.area_sqft || '').replace(/,/g, '')) || 0;
+        const cost = parseFloat(String(cur.cost_per_sqft || '').replace(/,/g, '')) || 0;
+        if (area > 0 && cost > 0) {
+          const fundingStr = String(cur.recommendation_of_funding || '').replace('%', '').trim();
+          let pct = 1;
+          if (fundingStr !== '') {
+            const num = parseFloat(fundingStr);
+            if (!isNaN(num) && num >= 0) {
+              pct = num / 100;
+            }
+          }
+          cur.total_value = String(Math.round(area * cost * pct));
+        } else if (!cur.area_sqft || !cur.cost_per_sqft) {
+          if (field === 'area_sqft' && !val) cur.total_value = '';
+          if (field === 'cost_per_sqft' && !val) cur.total_value = '';
+        }
+      }
+
+      list[idx] = cur;
+      return { ...prev, structureValuations: list };
+    });
+  };
+
+  const syncAllFromTechnical = () => {
+    setFormData(prev => {
+      const tech = prev.technicalDetails || {};
+      const updated = (prev.structureValuations || []).map(row => {
+        const techVal = tech[techMapping[row.floor_details]] || row.area_sqft || '';
+        const area = parseFloat(String(techVal).replace(/,/g, '')) || 0;
+        const cost = parseFloat(String(row.cost_per_sqft || '').replace(/,/g, '')) || 0;
+        let total = row.total_value;
+        if (area > 0 && cost > 0) {
+          const fundingStr = String(row.recommendation_of_funding || '').replace('%', '').trim();
+          let pct = 1;
+          if (fundingStr !== '') {
+            const num = parseFloat(fundingStr);
+            if (!isNaN(num) && num >= 0) pct = num / 100;
+          }
+          total = String(Math.round(area * cost * pct));
+        }
+        return { ...row, area_sqft: techVal, total_value: total };
+      });
+      return { ...prev, structureValuations: updated };
+    });
+  };
+
+  const handleBasisSelect = (basis) => {
+    setFormData(prev => ({
+      ...prev,
+      structure_valuation_basis: basis,
+    }));
+  };
+
+  const currentBasis = formData.structure_valuation_basis || 'as_per_actual';
+
   return (
-    <div style={{ overflowX: 'auto', marginBottom: '10px' }}>
-      <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '10px' }}>
-        <thead>
-          <tr>
-            <th style={{ textAlign: 'left', color: 'var(--text-primary)', fontWeight: '600', paddingBottom: '10px' }}>Floor Details</th>
-            <th style={{ textAlign: 'left', color: 'var(--text-primary)', fontWeight: '600', paddingBottom: '10px' }}>Area</th>
-            <th style={{ textAlign: 'left', color: 'var(--text-primary)', fontWeight: '600', paddingBottom: '10px' }}>Recommendation<br/>Of Funding</th>
-            <th style={{ textAlign: 'left', color: 'var(--text-primary)', fontWeight: '600', paddingBottom: '10px' }}>Cost Per Sft</th>
-            <th style={{ textAlign: 'left', color: 'var(--text-primary)', fontWeight: '600', paddingBottom: '10px' }}>Total Value</th>
-          </tr>
-        </thead>
-        <tbody>
-          {formData.structureValuations.map((row, idx) => (
-            <tr key={row.floor_details}>
-              <td style={{ fontSize: '0.95rem', fontWeight: '600', color: 'var(--text-primary)', paddingRight: '15px' }}>{labels[row.floor_details]}</td>
-              <td><input type="text" className={styles.inputField} placeholder="Area" value={row.area_sqft} onChange={(e) => updateTableRow('structureValuations', idx, 'area_sqft', e.target.value)} /></td>
-              <td><input type="text" className={styles.inputField} placeholder="%" value={row.recommendation_of_funding} onChange={(e) => updateTableRow('structureValuations', idx, 'recommendation_of_funding', e.target.value)} /></td>
-              <td><input type="text" className={styles.inputField} placeholder="Cost" value={row.cost_per_sqft} onChange={(e) => updateTableRow('structureValuations', idx, 'cost_per_sqft', e.target.value)} /></td>
-              <td><input type="text" className={styles.inputField} placeholder="Total" value={row.total_value} onChange={(e) => updateTableRow('structureValuations', idx, 'total_value', e.target.value)} /></td>
+    <div style={{ marginBottom: '10px' }}>
+      {/* Basis selection & Auto-fill controls */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', marginBottom: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: '600' }}>Basis:</span>
+          {[
+            { id: 'as_per_actual', label: 'As Per Actual' },
+            { id: 'as_per_documents', label: 'As Per Documents' },
+            { id: 'as_per_plan', label: 'As Per Plan' },
+          ].map(opt => {
+            const active = currentBasis === opt.id;
+            return (
+              <button
+                key={opt.id}
+                type="button"
+                onClick={() => handleBasisSelect(opt.id)}
+                style={{
+                  padding: '5px 12px',
+                  borderRadius: '16px',
+                  fontSize: '0.8rem',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  border: active ? '1px solid #3b82f6' : '1px solid rgba(255,255,255,0.15)',
+                  background: active ? '#2563eb' : 'rgba(255,255,255,0.06)',
+                  color: active ? '#ffffff' : 'var(--text-secondary)',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                {opt.label}
+              </button>
+            );
+          })}
+        </div>
+
+        <button
+          type="button"
+          onClick={syncAllFromTechnical}
+          style={{
+            padding: '5px 12px',
+            borderRadius: '8px',
+            fontSize: '0.8rem',
+            fontWeight: '500',
+            background: 'rgba(59, 130, 246, 0.15)',
+            color: '#60a5fa',
+            border: '1px solid rgba(59, 130, 246, 0.3)',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+          }}
+          title="Auto-fill Area values from Technical Details"
+        >
+          <span>⚡ Auto-fill Area from Technical</span>
+        </button>
+      </div>
+
+      <div style={{ overflowX: 'auto', marginBottom: '10px' }}>
+        <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '10px' }}>
+          <thead>
+            <tr>
+              <th style={{ textAlign: 'left', color: 'var(--text-primary)', fontWeight: '600', paddingBottom: '10px' }}>Floor Details</th>
+              <th style={{ textAlign: 'left', color: 'var(--text-primary)', fontWeight: '600', paddingBottom: '10px' }}>Area</th>
+              <th style={{ textAlign: 'left', color: 'var(--text-primary)', fontWeight: '600', paddingBottom: '10px' }}>Recommendation<br/>Of Funding</th>
+              <th style={{ textAlign: 'left', color: 'var(--text-primary)', fontWeight: '600', paddingBottom: '10px' }}>Cost Per Sft</th>
+              <th style={{ textAlign: 'left', color: 'var(--text-primary)', fontWeight: '600', paddingBottom: '10px' }}>Total Value</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {(formData.structureValuations || []).map((row, idx) => (
+              <tr key={row.floor_details || idx}>
+                <td style={{ fontSize: '0.95rem', fontWeight: '600', color: 'var(--text-primary)', paddingRight: '15px', whiteSpace: 'nowrap' }}>
+                  {labels[row.floor_details] || row.floor_details}
+                </td>
+                <td>
+                  <input
+                    type="text"
+                    className={styles.inputField}
+                    placeholder="Area"
+                    value={row.area_sqft || ''}
+                    onChange={(e) => handleCellChange(idx, 'area_sqft', e.target.value)}
+                  />
+                </td>
+                <td>
+                  <input
+                    type="text"
+                    className={styles.inputField}
+                    placeholder="%"
+                    value={row.recommendation_of_funding || ''}
+                    onChange={(e) => handleCellChange(idx, 'recommendation_of_funding', e.target.value)}
+                  />
+                </td>
+                <td>
+                  <input
+                    type="text"
+                    className={styles.inputField}
+                    placeholder="Cost"
+                    value={row.cost_per_sqft || ''}
+                    onChange={(e) => handleCellChange(idx, 'cost_per_sqft', e.target.value)}
+                  />
+                </td>
+                <td>
+                  <input
+                    type="text"
+                    className={styles.inputField}
+                    placeholder="Total"
+                    value={row.total_value || ''}
+                    onChange={(e) => handleCellChange(idx, 'total_value', e.target.value)}
+                  />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };
