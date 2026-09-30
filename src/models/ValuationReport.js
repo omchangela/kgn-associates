@@ -222,10 +222,10 @@ const ValuationReportSchema = new mongoose.Schema(
     },
 
     locationDetails: {
-      latitude: { type: Number, default: null },
-      longitude: { type: Number, default: null },
-      manual_latitude: { type: Number, default: null },
-      manual_longitude: { type: Number, default: null },
+      latitude: { type: mongoose.Schema.Types.Mixed, default: '' },
+      longitude: { type: mongoose.Schema.Types.Mixed, default: '' },
+      manual_latitude: { type: mongoose.Schema.Types.Mixed, default: '' },
+      manual_longitude: { type: mongoose.Schema.Types.Mixed, default: '' },
     },
 
     propertyCharacteristics: {

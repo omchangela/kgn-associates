@@ -858,15 +858,53 @@ const PropertyValues = () => {
               <>
                 <h1 className={styles.pageTitle}>Location Details</h1>
                 <div className={styles.card}>
-                  <h2 className={styles.sectionHeading}>Gps Co-Ordinates:</h2>
-                  <div className={styles.formGrid}>
-                    <InputGroup label="Latitude" placeholder="Enter" type="number" section="locationDetails" field="latitude" />
-                    <InputGroup label="Longitude" placeholder="Enter" type="number" section="locationDetails" field="longitude" />
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', marginBottom: '10px' }}>
+                    <h2 className={styles.sectionHeading} style={{ margin: 0 }}>Gps Co-Ordinates:</h2>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (typeof window !== 'undefined' && navigator.geolocation) {
+                          navigator.geolocation.getCurrentPosition(
+                            (pos) => {
+                              updateField('locationDetails', 'latitude', String(pos.coords.latitude));
+                              updateField('locationDetails', 'longitude', String(pos.coords.longitude));
+                            },
+                            (err) => {
+                              console.warn('Geolocation error:', err);
+                              alert('Unable to retrieve location automatically. Please enter coordinates manually.');
+                            },
+                            { enableHighAccuracy: true, timeout: 10000 }
+                          );
+                        } else {
+                          alert('Geolocation is not supported by your browser.');
+                        }
+                      }}
+                      style={{
+                        padding: '6px 14px',
+                        borderRadius: '8px',
+                        fontSize: '0.8rem',
+                        fontWeight: '600',
+                        background: 'rgba(59, 130, 246, 0.15)',
+                        color: '#60a5fa',
+                        border: '1px solid rgba(59, 130, 246, 0.3)',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                      }}
+                      title="Fetch device GPS coordinates"
+                    >
+                      <span>📍 Get Current Location</span>
+                    </button>
                   </div>
-                  <h2 className={styles.sectionHeading}>Manual Gps Co-Ordinates:</h2>
                   <div className={styles.formGrid}>
-                    <InputGroup label="Latitude" placeholder="Enter" type="number" section="locationDetails" field="manual_latitude" />
-                    <InputGroup label="Longitude" placeholder="Enter" type="number" section="locationDetails" field="manual_longitude" />
+                    <InputGroup label="Latitude" placeholder="Enter Latitude" section="locationDetails" field="latitude" />
+                    <InputGroup label="Longitude" placeholder="Enter Longitude" section="locationDetails" field="longitude" />
+                  </div>
+                  <h2 className={styles.sectionHeading} style={{ marginTop: '20px' }}>Manual Gps Co-Ordinates:</h2>
+                  <div className={styles.formGrid}>
+                    <InputGroup label="Latitude" placeholder="Enter Latitude" section="locationDetails" field="manual_latitude" />
+                    <InputGroup label="Longitude" placeholder="Enter Longitude" section="locationDetails" field="manual_longitude" />
                   </div>
                 </div>
                 <div className={styles.footerActions}>
