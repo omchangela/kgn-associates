@@ -297,12 +297,24 @@ const PropertyValues = () => {
                     <div>
                       <label className={styles.label}>Property Type</label>
                       <div className={styles.radioGroup}>
-                        <Radio label="Open Plot" name="type" value="open_plot" section="institutionDetails" field="property_type" />
-                        <Radio label="Residential House" name="type" value="residential_house" section="institutionDetails" field="property_type" />
+                        <Radio label="Vacant Land" name="type" value="vacant_land" section="institutionDetails" field="property_type" />
+                        <Radio label="Residential" name="type" value="residential" section="institutionDetails" field="property_type" />
                         <Radio label="Commercial" name="type" value="commercial" section="institutionDetails" field="property_type" />
+                        <Radio label="Institutional" name="type" value="institutional" section="institutionDetails" field="property_type" />
+                        <Radio label="Industrial" name="type" value="industrial" section="institutionDetails" field="property_type" />
                         <Radio label="Mixed" name="type" value="mixed" section="institutionDetails" field="property_type" />
                         <Radio label="Others" name="type" value="others" section="institutionDetails" field="property_type" />
                       </div>
+                      {formData.institutionDetails?.property_type === 'others' && (
+                        <div style={{ marginTop: '14px', width: '100%', maxWidth: '400px' }}>
+                          <InputGroup 
+                            label="Specify Property Type" 
+                            placeholder="Enter property type manually" 
+                            section="institutionDetails" 
+                            field="other_property_type" 
+                          />
+                        </div>
+                      )}
                     </div>
 
                     <InputGroup label="Property Sub Type" placeholder="Property Sub Type" section="institutionDetails" field="property_sub_type" />
