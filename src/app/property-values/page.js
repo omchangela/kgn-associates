@@ -646,8 +646,8 @@ const PropertyValues = () => {
                         </div>
                       </div>
                     )}
-                    <InputGroup label="No. of Floors Approved" placeholder="Enter" type="number" section="scheduleDetails" field="no_of_floors_approved" />
-                    <InputGroup label="No. of Floors Existing" placeholder="Enter" type="number" section="scheduleDetails" field="no_of_floors_existing" />
+                    <InputGroup label="No. of Floors Approved" placeholder="Enter" section="scheduleDetails" field="no_of_floors_approved" />
+                    <InputGroup label="No. of Floors Existing" placeholder="Enter" section="scheduleDetails" field="no_of_floors_existing" />
                     <InputGroup label="Construction Quality" placeholder="Select" section="scheduleDetails" field="construction_quality" />
                     <InputGroup label="Maintenance of Property" placeholder="Select" section="scheduleDetails" field="maintenance_of_property" />
                   </div>
@@ -658,7 +658,7 @@ const PropertyValues = () => {
                     <SelectField label="Occupancy Status" section="scheduleDetails" field="occupancy_status" options={[{ value: '', label: 'Select' }, { value: 'occupied', label: 'Occupied' }, { value: 'vacant', label: 'Vacant' }]} />
                     <InputGroup label="Occupant Details" placeholder="Input / Textarea" section="scheduleDetails" field="occupant_details" />
                     <InputGroup label="Class of Locality" placeholder="e.g. Prime / High Income / Middle Income" section="scheduleDetails" field="class_of_locality" />
-                    <InputGroup label="Number of Floors Valued" placeholder="Enter" type="number" section="scheduleDetails" field="number_of_floors" />
+                    <InputGroup label="Number of Floors Valued" placeholder="Enter" section="scheduleDetails" field="number_of_floors" />
                   </div>
                 </div>
 

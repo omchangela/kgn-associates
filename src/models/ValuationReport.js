@@ -135,8 +135,8 @@ const ValuationReportSchema = new mongoose.Schema(
       other_flooring_type: { type: String, default: '' },
       stair_type: { type: String, default: '' },
       other_stair_type: { type: String, default: '' },
-      no_of_floors_approved: { type: Number, default: null },
-      no_of_floors_existing: { type: Number, default: null },
+      no_of_floors_approved: { type: mongoose.Schema.Types.Mixed, default: '' },
+      no_of_floors_existing: { type: mongoose.Schema.Types.Mixed, default: '' },
       construction_quality: { type: String, default: '' },
       maintenance_of_property: { type: String, default: '' },
       occupancy_status: { type: String, default: 'occupied' },
@@ -144,7 +144,7 @@ const ValuationReportSchema = new mongoose.Schema(
       actual_usage_of_property: { type: String, default: 'residential' },
       approved_usage_of_property: { type: String, default: 'residential' },
       class_of_locality: { type: String, default: 'good' },
-      number_of_floors: { type: Number, default: 1 },
+      number_of_floors: { type: mongoose.Schema.Types.Mixed, default: '' },
     },
 
     infrastructureDetails: {
