@@ -1,7 +1,7 @@
 .layoutWrapper {
   display: flex;
   min-height: 100vh;
-  background: #07090e;
+  background: #f8f9fb;
   color: #f8fafc;
   font-family: var(--font-body, inherit);
   position: relative;
@@ -68,7 +68,7 @@
   font-size: 2rem;
   font-weight: 800;
   letter-spacing: -0.5px;
-  color: #ffffff;
+  color: #1e293b;
   margin: 0 0 6px 0;
 }
 
@@ -103,7 +103,7 @@
 
 .secondaryBtn:hover {
   background: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
+  color: #1e293b;
 }
 
 /* Stat Cards Row */
@@ -155,7 +155,7 @@
 .statValue {
   font-size: 1.6rem;
   font-weight: 800;
-  color: #ffffff;
+  color: #1e293b;
   line-height: 1.2;
 }
 
@@ -195,7 +195,7 @@
   background: #141e33;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
-  color: #ffffff;
+  color: #1e293b;
   font-size: 0.9rem;
   outline: none;
   transition: border-color 0.2s, box-shadow 0.2s;
@@ -236,12 +236,12 @@
 }
 
 .filterTab:hover {
-  color: #ffffff;
+  color: #1e293b;
 }
 
 .filterTabActive {
   background: #D4B07A !important;
-  color: #0A0D14 !important;
+  color: #ffffff !important;
   font-weight: 800 !important;
 }
 
@@ -309,7 +309,7 @@
 
 .customerName {
   font-weight: 700;
-  color: #ffffff;
+  color: #1e293b;
   font-size: 0.94rem;
 }
 
@@ -350,7 +350,7 @@
 
 .empName {
   font-weight: 600;
-  color: #ffffff;
+  color: #1e293b;
 }
 
 .empCity {
@@ -437,7 +437,7 @@
 
 .pdfBtn:hover {
   background: rgba(59, 130, 246, 0.25);
-  color: #ffffff;
+  color: #1e293b;
   border-color: #60a5fa;
   transform: translateY(-1px);
 }
@@ -459,7 +459,7 @@
 
 .approveBtn:hover:not(:disabled) {
   background: rgba(16, 185, 129, 0.3);
-  color: #ffffff;
+  color: #1e293b;
   border-color: #10b981;
   transform: translateY(-1px);
 }
@@ -481,7 +481,7 @@
 
 .rejectBtn:hover:not(:disabled) {
   background: rgba(239, 68, 68, 0.3);
-  color: #ffffff;
+  color: #1e293b;
   border-color: #ef4444;
   transform: translateY(-1px);
 }
@@ -511,7 +511,7 @@
 .emptyTitle {
   font-size: 1.1rem;
   font-weight: 700;
-  color: #ffffff;
+  color: #1e293b;
 }
 
 .emptySubtitle {
@@ -533,7 +533,7 @@
 }
 
 .modalBox {
-  background: #0c1220;
+  background: #ffffff;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 16px;
   width: 100%;
@@ -563,7 +563,7 @@
 .modalTitle {
   font-size: 1.25rem;
   font-weight: 800;
-  color: #ffffff;
+  color: #1e293b;
   margin: 0;
 }
 
@@ -587,7 +587,7 @@
 
 .closeIconBtn:hover {
   background: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
+  color: #1e293b;
 }
 
 .modalBody {
@@ -625,7 +625,7 @@
 .detailValue {
   font-size: 0.95rem;
   font-weight: 700;
-  color: #ffffff;
+  color: #1e293b;
 }
 
 .modalFooter {

@@ -3,42 +3,42 @@
 
 :root {
   /* Brand Luxury Gold Palette */
-  --primary-gold: #D4B07A;
-  --secondary-gold: #E8D3A8;
+  --primary-gold: #B8860B;
+  --secondary-gold: #D4A017;
   --dark-gold: #96703E;
-  --primary-gold-dark: #96703E;
+  --primary-gold-dark: #7a5a28;
   --accent-copper: #C28B52;
-  --accent-emerald: #10B981;
-  --accent-sapphire: #3B82F6;
+  --accent-emerald: #059669;
+  --accent-sapphire: #2563EB;
 
-  /* Backgrounds - Rich Obsidian & Deep Slate */
-  --bg-primary: #0A0D14;
-  --bg-secondary: #111624;
-  --bg-card: #182033;
-  --bg-card-hover: #1F2A42;
-  --bg-input: #121826;
+  /* Backgrounds - Clean White Theme */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fb;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f1f5f9;
+  --bg-input: #f8fafc;
 
   /* Typography */
-  --text-primary: #F8FAFC;
-  --text-secondary: #E2E8F0;
-  --text-muted: #94A3B8;
-  --text-gold: #D4B07A;
+  --text-primary: #1e293b;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+  --text-gold: #B8860B;
 
   /* Borders & Highlights */
-  --border-color: rgba(212, 176, 122, 0.22);
-  --border-hover: rgba(212, 176, 122, 0.55);
-  --border-glow: 0 0 15px rgba(212, 176, 122, 0.3);
+  --border-color: rgba(148, 163, 184, 0.35);
+  --border-hover: rgba(184, 134, 11, 0.55);
+  --border-glow: 0 0 15px rgba(184, 134, 11, 0.2);
 
   /* Shadows */
-  --shadow-gold: 0 10px 30px rgba(212, 176, 122, 0.16);
-  --shadow-dark: 0 10px 30px rgba(0, 0, 0, 0.6);
-  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.35);
+  --shadow-gold: 0 10px 30px rgba(184, 134, 11, 0.12);
+  --shadow-dark: 0 4px 20px rgba(0, 0, 0, 0.08);
+  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.07);
 
   /* Gradients */
-  --gradient-gold: linear-gradient(135deg, #96703E 0%, #D4B07A 50%, #F5E2BE 100%);
-  --gradient-gold-reverse: linear-gradient(135deg, #F5E2BE 0%, #D4B07A 50%, #96703E 100%);
-  --gradient-dark: linear-gradient(135deg, #0A0D14 0%, #161D2E 100%);
-  --gradient-glow: radial-gradient(circle at 50% 0%, rgba(212, 176, 122, 0.15) 0%, transparent 70%);
+  --gradient-gold: linear-gradient(135deg, #96703E 0%, #D4A017 50%, #F5E2BE 100%);
+  --gradient-gold-reverse: linear-gradient(135deg, #F5E2BE 0%, #D4A017 50%, #96703E 100%);
+  --gradient-dark: linear-gradient(135deg, #f8f9fb 0%, #e2e8f0 100%);
+  --gradient-glow: radial-gradient(circle at 50% 0%, rgba(184, 134, 11, 0.08) 0%, transparent 70%);
 
   /* Fonts */
   --font-heading: 'Outfit', 'Roboto Slab', Georgia, serif;
@@ -84,18 +84,17 @@ body {
 
 /* Premium Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--bg-primary);
+  background: #f1f5f9;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--dark-gold);
+  background: #cbd5e1;
   border-radius: 9999px;
-  border: 2px solid var(--bg-primary);
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -124,10 +123,11 @@ button {
 }
 
 .card-glass {
-  background: rgba(24, 32, 51, 0.8);
+  background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--border-color);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
 }
 
 /* Luxury Shimmer Button Effect */

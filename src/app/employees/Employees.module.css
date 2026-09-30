@@ -18,7 +18,7 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  background: radial-gradient(circle at 50% 0%, #161D2E 0%, #0A0D14 60%);
+  background: #f8f9fb;
 }
 
 .contentPadding {
@@ -92,7 +92,7 @@
   gap: 8px;
   padding: 12px 24px;
   background: linear-gradient(135deg, #D4B07A 0%, #E8D3A8 50%, #C28B52 100%) !important;
-  color: #0A0D14 !important;
+  color: #ffffff !important;
   font-weight: 800;
   font-size: 0.95rem;
   letter-spacing: 0.3px;
@@ -111,8 +111,8 @@
 
 .addBtn svg,
 .submitBtn svg {
-  stroke: #0A0D14 !important;
-  color: #0A0D14 !important;
+  stroke: #ffffff !important;
+  color: #ffffff !important;
 }
 
 /* Modal Form Styles */
@@ -248,7 +248,7 @@
   gap: 8px;
   padding: 11px 26px;
   background: linear-gradient(135deg, #D4B07A 0%, #E8D3A8 50%, #C28B52 100%) !important;
-  color: #0A0D14 !important;
+  color: #ffffff !important;
   border: 1px solid rgba(232, 211, 168, 0.4);
   border-radius: var(--border-radius-sm);
   cursor: pointer;
@@ -267,7 +267,7 @@
 
 /* Directory Table */
 .card {
-  background: rgba(24, 32, 51, 0.7);
+  background: #ffffff;
   border-radius: var(--border-radius);
   padding: 24px;
   box-shadow: var(--shadow-dark);

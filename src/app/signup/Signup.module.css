@@ -22,7 +22,7 @@
 /* LEFT PANEL STYLES */
 .leftPanel {
   flex: 1;
-  background: radial-gradient(circle at 30% 50%, #161D2E 0%, #0A0D14 100%);
+  background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -74,7 +74,7 @@
 /* RIGHT PANEL STYLES */
 .rightPanel {
   flex: 1.2;
-  background: radial-gradient(circle at 70% 30%, #111624 0%, #0A0D14 100%);
+  background: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -86,7 +86,7 @@
 .formContent {
   width: 100%;
   max-width: 500px;
-  background: rgba(24, 32, 51, 0.7);
+  background: #ffffff;
   border: 1px solid var(--border-color);
   padding: 38px 32px;
   border-radius: var(--border-radius-lg);

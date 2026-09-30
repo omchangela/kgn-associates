@@ -1,7 +1,7 @@
 .layoutWrapper {
   display: flex;
   min-height: 100vh;
-  background: #07090e;
+  background: #f8f9fb;
   position: relative;
   overflow-x: hidden;
 }
@@ -66,7 +66,7 @@
 .pageTitle {
   font-size: 1.85rem;
   font-weight: 800;
-  color: #ffffff;
+  color: #1e293b;
   letter-spacing: -0.5px;
   margin-bottom: 6px;
 }
@@ -88,7 +88,7 @@
   gap: 8px;
   padding: 10px 18px;
   background: linear-gradient(135deg, #D4B07A 0%, #E8D3A8 50%, #C28B52 100%);
-  color: #0A0D14;
+  color: #1e293b;
   font-weight: 700;
   font-size: 0.9rem;
   border-radius: 8px;
@@ -111,7 +111,7 @@
   padding: 10px 16px;
   background: rgba(15, 23, 42, 0.6);
   border: 1px solid var(--border-light);
-  color: #ffffff;
+  color: #1e293b;
   font-weight: 600;
   font-size: 0.88rem;
   border-radius: 8px;
@@ -196,7 +196,7 @@
 .statValue {
   font-size: 2rem;
   font-weight: 800;
-  color: #ffffff;
+  color: #1e293b;
   line-height: 1;
   margin-bottom: 6px;
 }
@@ -231,13 +231,13 @@
   justify-content: space-between;
   padding: 18px 22px;
   border-bottom: 1px solid var(--border-light);
-  background: rgba(11, 16, 29, 0.5);
+  background: rgba(248, 250, 252, 0.5);
 }
 
 .cardTitle {
   font-size: 1.05rem;
   font-weight: 700;
-  color: #ffffff;
+  color: #1e293b;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -269,7 +269,7 @@
   padding: 14px 18px;
   font-size: 0.88rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  color: #ffffff;
+  color: #1e293b;
   vertical-align: middle;
 }
 
@@ -327,7 +327,7 @@
 
 .actionBtnApprove:hover {
   background: #10b981;
-  color: #ffffff;
+  color: #1e293b;
 }
 
 .actionBtnReject {
@@ -344,7 +344,7 @@
 
 .actionBtnReject:hover {
   background: #ef4444;
-  color: #ffffff;
+  color: #1e293b;
 }
 
 .actionBtnPdf {
@@ -364,7 +364,7 @@
 
 .actionBtnPdf:hover {
   background: var(--primary-gold);
-  color: #0A0D14;
+  color: #1e293b;
 }
 
 @media (max-width: 1200px) {

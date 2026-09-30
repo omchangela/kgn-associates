@@ -5,7 +5,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(circle at 50% 20%, #151d30 0%, #080b12 70%);
+  background: linear-gradient(135deg, #f0f4ff 0%, #e8edf8 100%);
   overflow-x: hidden;
   padding: 24px;
 }
@@ -17,7 +17,7 @@
   width: 100%;
   max-width: 1020px;
   min-height: 600px;
-  background: rgba(15, 23, 42, 0.75);
+  background: #ffffff;
   backdrop-filter: blur(20px);
   border: 1px solid rgba(212, 175, 55, 0.25);
   border-radius: 20px;
@@ -28,7 +28,7 @@
 
 .leftPanel {
   flex: 1;
-  background: linear-gradient(145deg, rgba(20, 27, 45, 0.95), rgba(10, 14, 24, 0.98));
+  background: linear-gradient(145deg, #f0f4ff, #e8edf8);
   border-right: 1px solid rgba(212, 175, 55, 0.2);
   padding: 48px;
   display: flex;
@@ -56,7 +56,7 @@
   font-size: 2.1rem;
   font-weight: 800;
   letter-spacing: -0.5px;
-  color: #ffffff;
+  color: #1e293b;
   margin-bottom: 12px;
   line-height: 1.2;
 }
@@ -102,7 +102,7 @@
 .featureTitle {
   font-size: 0.92rem;
   font-weight: 600;
-  color: #ffffff;
+  color: #1e293b;
   margin-bottom: 3px;
 }
 
@@ -118,13 +118,13 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  background: rgba(11, 16, 29, 0.8);
+  background: #ffffff;
 }
 
 .adminTitle {
   font-size: 1.7rem;
   font-weight: 700;
-  color: #ffffff;
+  color: #1e293b;
   margin-bottom: 6px;
 }
 
@@ -147,7 +147,7 @@
 
 .demoText {
   font-size: 0.86rem;
-  color: #cbd5e1;
+  color: #475569;
 }
 
 .demoText strong {
@@ -156,7 +156,7 @@
 
 .demoBtn {
   background: linear-gradient(135deg, #D4B07A 0%, #E8D3A8 50%, #C28B52 100%);
-  color: #0A0D14;
+  color: #1e293b;
   font-weight: 700;
   font-size: 0.82rem;
   border: none;
@@ -187,7 +187,7 @@
 .label {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #cbd5e1;
+  color: #475569;
 }
 
 .inputWrapper {
@@ -206,10 +206,10 @@
 .input {
   width: 100%;
   padding: 12px 14px 12px 42px;
-  background: rgba(15, 23, 42, 0.7);
+  background: #f8fafc;
   border: 1px solid var(--border-light);
   border-radius: 8px;
-  color: #ffffff;
+  color: #1e293b;
   font-size: 0.95rem;
   outline: none;
   transition: all 0.2s;
@@ -232,7 +232,7 @@
 }
 
 .eyeBtn:hover {
-  color: #ffffff;
+  color: #1e293b;
 }
 
 .errorBanner {
@@ -251,7 +251,7 @@
   margin-top: 8px;
   padding: 14px 20px;
   background: linear-gradient(135deg, #D4B07A 0%, #E8D3A8 50%, #C28B52 100%);
-  color: #0A0D14;
+  color: #1e293b;
   font-size: 1rem;
   font-weight: 700;
   border: none;

@@ -1,14 +1,15 @@
 .sidebar {
   width: 270px;
-  background-color: var(--bg-primary);
+  background-color: #ffffff;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  border-right: 1px solid var(--border-color);
+  border-right: 1px solid rgba(148, 163, 184, 0.3);
   position: relative;
   z-index: 50;
   transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 2px 0 16px rgba(0,0,0,0.06);
 }
 
 .logoContainer {
@@ -93,14 +94,14 @@
 }
 
 .active {
-  color: var(--bg-primary) !important;
+  color: #ffffff !important;
   background: var(--gradient-gold) !important;
-  box-shadow: 0 4px 15px rgba(212, 176, 122, 0.3);
+  box-shadow: 0 4px 15px rgba(184, 134, 11, 0.25);
   font-weight: 700;
 }
 
 .active .navIcon {
-  color: var(--bg-primary) !important;
+  color: #ffffff !important;
 }
 
 .navIcon {
@@ -112,8 +113,8 @@
 /* Sidebar Footer Badge */
 .sidebarFooter {
   padding: 20px 16px;
-  border-top: 1px solid rgba(212, 176, 122, 0.12);
-  background: rgba(17, 22, 36, 0.6);
+  border-top: 1px solid rgba(148, 163, 184, 0.2);
+  background: #f8f9fb;
 }
 
 .systemBadge {
@@ -121,8 +122,8 @@
   align-items: center;
   gap: 10px;
   padding: 10px 12px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
+  background: #f1f5f9;
+  border: 1px solid rgba(148, 163, 184, 0.25);
   border-radius: var(--border-radius-sm);
 }
 
