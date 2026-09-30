@@ -24,6 +24,7 @@ const PropertyValues = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [formData, setFormData] = useState(initialFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPropertyDetails, setShowPropertyDetails] = useState(false);
   const tabContentRef = useRef(null);
 
   useEffect(() => {
@@ -497,36 +498,64 @@ const PropertyValues = () => {
                       <div></div>
                     </div>
                   </div>
-
-                  <div className={styles.card}>
-                    <div className={styles.formGrid}>
-                      <InputGroup label="Survey Number" placeholder="Enter" section="propertyIdentification" field="survey_number" />
-                      <InputGroup label="Plot No / Flat No" placeholder="Enter" section="propertyIdentification" field="plot_no_flat_no" />
-                      <InputGroup label="LPM / Approval No" placeholder="Enter" section="propertyIdentification" field="lpm_approval_no" />
-                      <InputGroup label="Door No" placeholder="Enter" section="propertyIdentification" field="door_no" />
-                      <InputGroup label="Assessment No" placeholder="Enter" section="propertyIdentification" field="assessment_no" />
-                      <InputGroup label="Landmark" placeholder="Enter" section="propertyIdentification" field="landmark" />
-                      <InputGroup label="Locality Name" placeholder="Enter" section="propertyIdentification" field="locality_name" />
-                      <InputGroup label="Grama Polam" placeholder="Enter" section="propertyIdentification" field="grama_polam" />
-                      <InputGroup label="Jurisdiction" placeholder="Enter" section="propertyIdentification" field="jurisdiction" />
-                      <InputGroup label="Taluka" placeholder="Enter" section="propertyIdentification" field="taluka" />
-                      <InputGroup label="Mandal" placeholder="Enter" section="propertyIdentification" field="mandal" />
-                      <InputGroup label="District" placeholder="Enter" section="propertyIdentification" field="district" />
-                      <SelectField
-                        label="State"
-                        section="propertyIdentification"
-                        field="state"
-                        options={[
-                          { value: '', label: 'Select' },
-                          { value: 'Tamil Nadu', label: 'Tamil Nadu' },
-                          { value: 'Karnataka', label: 'Karnataka' },
-                          { value: 'Kerala', label: 'Kerala' },
-                          { value: 'Andhra Pradesh', label: 'Andhra Pradesh' },
-                        ]}
-                      />
-                      <InputGroup label="Pincode" placeholder="Enter" section="propertyIdentification" field="pincode" />
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '-8px', marginBottom: '12px', paddingRight: '4px' }}>
+                      <button
+                        type="button"
+                        onClick={() => setShowPropertyDetails(prev => !prev)}
+                        title={showPropertyDetails ? 'Collapse' : 'Add more property details'}
+                        style={{
+                          background: showPropertyDetails ? 'rgba(201,168,76,0.18)' : 'rgba(201,168,76,0.09)',
+                          border: '2px solid #C9A84C',
+                          color: '#C9A84C',
+                          borderRadius: '50%',
+                          width: '36px',
+                          height: '36px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: 'pointer',
+                          fontSize: '1.5rem',
+                          fontWeight: '700',
+                          lineHeight: 1,
+                          transition: 'all 0.2s ease',
+                          flexShrink: 0,
+                        }}
+                      >
+                        {showPropertyDetails ? '\u2212' : '+'}
+                      </button>
                     </div>
-                  </div>
+
+                  {showPropertyDetails && (
+                    <div className={styles.card}>
+                      <div className={styles.formGrid}>
+                        <InputGroup label="Survey Number" placeholder="Enter" section="propertyIdentification" field="survey_number" />
+                        <InputGroup label="Plot No / Flat No" placeholder="Enter" section="propertyIdentification" field="plot_no_flat_no" />
+                        <InputGroup label="LPM / Approval No" placeholder="Enter" section="propertyIdentification" field="lpm_approval_no" />
+                        <InputGroup label="Door No" placeholder="Enter" section="propertyIdentification" field="door_no" />
+                        <InputGroup label="Assessment No" placeholder="Enter" section="propertyIdentification" field="assessment_no" />
+                        <InputGroup label="Landmark" placeholder="Enter" section="propertyIdentification" field="landmark" />
+                        <InputGroup label="Locality Name" placeholder="Enter" section="propertyIdentification" field="locality_name" />
+                        <InputGroup label="Grama Polam" placeholder="Enter" section="propertyIdentification" field="grama_polam" />
+                        <InputGroup label="Jurisdiction" placeholder="Enter" section="propertyIdentification" field="jurisdiction" />
+                        <InputGroup label="Taluka" placeholder="Enter" section="propertyIdentification" field="taluka" />
+                        <InputGroup label="Mandal" placeholder="Enter" section="propertyIdentification" field="mandal" />
+                        <InputGroup label="District" placeholder="Enter" section="propertyIdentification" field="district" />
+                        <SelectField
+                          label="State"
+                          section="propertyIdentification"
+                          field="state"
+                          options={[
+                            { value: '', label: 'Select' },
+                            { value: 'Tamil Nadu', label: 'Tamil Nadu' },
+                            { value: 'Karnataka', label: 'Karnataka' },
+                            { value: 'Kerala', label: 'Kerala' },
+                            { value: 'Andhra Pradesh', label: 'Andhra Pradesh' },
+                          ]}
+                        />
+                        <InputGroup label="Pincode" placeholder="Enter" section="propertyIdentification" field="pincode" />
+                      </div>
+                    </div>
+                  )}
 
                   <h2 className={styles.sectionHeading}>Approval Details</h2>
                   <div className={styles.card}>
