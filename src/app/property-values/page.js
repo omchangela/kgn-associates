@@ -849,7 +849,7 @@ const PropertyValues = () => {
                 <div className={styles.card}>
                   <h2 className={styles.sectionHeading}>Valuer Details</h2>
                   <div className={styles.formGrid}>
-                    <InputGroup label="Valuer Name" placeholder="Enter" section="finalValuation" field="valuer_name" />
+                    <InputGroup label="Engineer Name" placeholder="Enter" section="finalValuation" field="valuer_name" />
                     <InputGroup label="Valuer License No" placeholder="Enter" section="finalValuation" field="valuer_license_no" />
                     <InputGroup label="Signature Date" placeholder="Enter" isDate section="finalValuation" field="report_date" />
                   </div>
