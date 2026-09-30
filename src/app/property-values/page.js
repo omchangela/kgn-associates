@@ -260,7 +260,7 @@ const PropertyValues = () => {
                 <h1 className={styles.pageTitle}>Institution Details</h1>
                 <div className={styles.card}>
                   <div className={styles.formGrid}>
-                    <InputGroup label="Bank Name" placeholder="Bank Name" section="institutionDetails" field="bank_name" />
+                    <InputGroup label="Financial Institution" placeholder="Financial Institution" section="institutionDetails" field="bank_name" />
                     <InputGroup label="Branch Name" placeholder="Branch Name" section="institutionDetails" field="branch_name" />
                     <InputGroup label="Vendor / Engineer / Institution Name" placeholder="Vendor/engineer/institution name" section="institutionDetails" field="vendor_engineer_institution_name" />
                     <InputGroup label="Contact Number" placeholder="Number" section="institutionDetails" field="vendor_contact_number" />
