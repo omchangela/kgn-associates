@@ -4,7 +4,7 @@ import styles from './PropertyValues.module.css';
 import Sidebar from '@/components/sidebar/Sidebar';
 import Header from '@/components/header/Header';
 import Footer from '@/components/footer/Footer';
-import { Calendar, ChevronRight, ChevronDown, Plus, Trash2 } from 'lucide-react';
+import { Calendar, ChevronRight, ChevronDown, Plus, Trash2, Upload, PenTool, RotateCcw } from 'lucide-react';
 import { propertyValuationAPI } from '@/services/api';
 import { initialFormData, getSampleFormData, sanitizePayload, parseNumber, roundCoord } from './propertyFormState';
 import gsap from 'gsap';
@@ -206,6 +206,7 @@ const PropertyValues = () => {
           region: p.region || '',
           photo: p.preview || '',
         })),
+        signatures: formData.signatures || {},
       };
 
       // 1 single instant atomic save in MySQL (under 20ms)
@@ -1035,10 +1036,10 @@ const PropertyValues = () => {
                 <div className={styles.card}>
                   <h2 className={styles.sectionHeading}>Signatures</h2>
                   <div className={styles.formGrid}>
-                    <SignatureField label="Signature Of Inspector" />
-                    <SignatureField label="Signature Of Valuer" />
-                    <SignatureField label="Signature Of Engineer" />
-                    <SignatureField label="Signature Of Institution" />
+                    <SignatureField label="Signature Of Inspector" section="signatures" field="signature_inspector" />
+                    <SignatureField label="Signature Of Valuer" section="signatures" field="signature_valuer" />
+                    <SignatureField label="Signature Of Engineer" section="signatures" field="signature_engineer" />
+                    <SignatureField label="Signature Of Institution" section="signatures" field="signature_institution" />
                   </div>
                 </div>
 
@@ -2262,12 +2263,26 @@ const DrawingCanvas = () => {
   );
 };
 
-/* Signature field with draw pad */
-const SignatureField = ({ label }) => {
-  const canvasRef = React.useRef(null);
-  const [signed, setSigned] = React.useState(false);
-  const drawing = React.useRef(false);
-  const lastPos = React.useRef(null);
+/* Signature field with draw pad and picture upload */
+const SignatureField = ({ label, section = 'signatures', field }) => {
+  const { formData, updateField } = useFormContext();
+  const existingVal = (section && field && formData?.[section]?.[field]) || '';
+  const canvasRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const [mode, setMode] = useState(existingVal ? 'upload' : 'draw');
+  const [signed, setSigned] = useState(Boolean(existingVal));
+  const [imagePreview, setImagePreview] = useState(existingVal || '');
+  const [isDragOver, setIsDragOver] = useState(false);
+  const drawing = useRef(false);
+  const lastPos = useRef(null);
+
+  useEffect(() => {
+    if (existingVal && existingVal !== imagePreview) {
+      setImagePreview(existingVal);
+      setSigned(true);
+      setMode('upload');
+    }
+  }, [existingVal]);
 
   const getPos = (e, canvas) => {
     const rect = canvas.getBoundingClientRect();
@@ -2275,18 +2290,24 @@ const SignatureField = ({ label }) => {
     return { x: src.clientX - rect.left, y: src.clientY - rect.top };
   };
 
-  const start = (e) => { e.preventDefault(); drawing.current = true; lastPos.current = getPos(e, canvasRef.current); };
+  const start = (e) => {
+    e.preventDefault();
+    drawing.current = true;
+    lastPos.current = getPos(e, canvasRef.current);
+  };
 
   const move = (e) => {
     e.preventDefault();
     if (!drawing.current) return;
     const canvas = canvasRef.current;
+    if (!canvas) return;
     const ctx = canvas.getContext('2d');
     const pos = getPos(e, canvas);
     ctx.beginPath();
-    ctx.strokeStyle = '#C9A84C';
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#0f172a';
+    ctx.lineWidth = 2.2;
     ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
     ctx.moveTo(lastPos.current.x, lastPos.current.y);
     ctx.lineTo(pos.x, pos.y);
     ctx.stroke();
@@ -2294,38 +2315,175 @@ const SignatureField = ({ label }) => {
     setSigned(true);
   };
 
-  const stop = () => { drawing.current = false; };
+  const stop = () => {
+    if (drawing.current) {
+      drawing.current = false;
+      if (canvasRef.current && section && field) {
+        const dataUrl = canvasRef.current.toDataURL('image/png');
+        setImagePreview(dataUrl);
+        updateField(section, field, dataUrl);
+      }
+    }
+  };
 
   const clear = () => {
-    const canvas = canvasRef.current;
-    canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+    if (canvasRef.current) {
+      const canvas = canvasRef.current;
+      canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+    }
     setSigned(false);
+    setImagePreview('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    if (section && field) {
+      updateField(section, field, '');
+    }
+  };
+
+  const handleFile = (file) => {
+    if (!file || !file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target.result;
+      setImagePreview(dataUrl);
+      setSigned(true);
+      setMode('upload');
+      if (section && field) {
+        updateField(section, field, dataUrl);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const onFileInputChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) handleFile(file);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    const file = e.dataTransfer?.files?.[0];
+    if (file) handleFile(file);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setIsDragOver(false);
   };
 
   return (
     <div className={styles.inputStack}>
-      <label className={styles.label}>{label}</label>
-      <div style={{ border: '1px solid var(--border-color)', borderRadius: 'var(--border-radius)', overflow: 'hidden', background: 'var(--bg-primary)' }}>
-        <canvas
-          ref={canvasRef}
-          width={400}
-          height={80}
-          onMouseDown={start}
-          onMouseMove={move}
-          onMouseUp={stop}
-          onMouseLeave={stop}
-          onTouchStart={start}
-          onTouchMove={move}
-          onTouchEnd={stop}
-          style={{ width: '100%', height: '80px', cursor: 'crosshair', display: 'block', touchAction: 'none' }}
-        />
-        {!signed && (
-          <div style={{ position: 'absolute', pointerEvents: 'none', fontSize: '0.8rem', color: 'var(--text-muted)', padding: '4px 10px' }}>Sign here...</div>
-        )}
+      <div className={styles.signatureHeader}>
+        <label className={styles.label}>{label}</label>
+        <div className={styles.signatureToggleGroup}>
+          <button
+            type="button"
+            className={`${styles.signatureToggleBtn} ${mode === 'draw' ? styles.signatureToggleBtnActive : ''}`}
+            onClick={() => setMode('draw')}
+            title="Draw signature with pen"
+          >
+            <PenTool size={12} /> Draw
+          </button>
+          <button
+            type="button"
+            className={`${styles.signatureToggleBtn} ${mode === 'upload' ? styles.signatureToggleBtnActive : ''}`}
+            onClick={() => setMode('upload')}
+            title="Upload signature picture"
+          >
+            <Upload size={12} /> Upload Picture
+          </button>
+        </div>
       </div>
-      {signed && (
-        <button onClick={clear} style={{ alignSelf: 'flex-start', background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-muted)', padding: '4px 10px', borderRadius: 'var(--border-radius)', cursor: 'pointer', fontSize: '0.8rem', marginTop: '4px' }}>Clear</button>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        style={{ display: 'none' }}
+        onChange={onFileInputChange}
+      />
+
+      {mode === 'upload' ? (
+        imagePreview ? (
+          <div
+            className={styles.signatureBox}
+            onDrop={handleDrop}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            style={{
+              borderColor: isDragOver ? 'var(--primary-gold)' : undefined,
+              backgroundColor: '#ffffff',
+            }}
+          >
+            <img src={imagePreview} alt={label} className={styles.signatureImgPreview} />
+          </div>
+        ) : (
+          <div
+            className={`${styles.signatureDropzone} ${isDragOver ? styles.signatureDropzoneActive : ''}`}
+            onClick={() => fileInputRef.current?.click()}
+            onDrop={handleDrop}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+          >
+            <Upload size={20} style={{ color: 'var(--primary-gold)' }} />
+            <p className={styles.signatureDropzoneText}>Click to upload picture or drag & drop</p>
+            <p className={styles.signatureDropzoneSub}>PNG, JPG, JPEG, WEBP or SVG</p>
+          </div>
+        )
+      ) : (
+        <div
+          className={styles.signatureBox}
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          style={{
+            borderColor: isDragOver ? 'var(--primary-gold)' : undefined,
+            backgroundColor: '#ffffff',
+          }}
+        >
+          <canvas
+            ref={canvasRef}
+            width={400}
+            height={85}
+            onMouseDown={start}
+            onMouseMove={move}
+            onMouseUp={stop}
+            onMouseLeave={stop}
+            onTouchStart={start}
+            onTouchMove={move}
+            onTouchEnd={stop}
+            style={{ width: '100%', height: '85px', cursor: 'crosshair', display: 'block', touchAction: 'none' }}
+          />
+          {!signed && !imagePreview && (
+            <div style={{ position: 'absolute', pointerEvents: 'none', fontSize: '0.8rem', color: '#94a3b8', padding: '4px 10px', top: '6px', left: '6px' }}>
+              ✍️ Draw signature here...
+            </div>
+          )}
+        </div>
       )}
+
+      <div className={styles.signatureActions}>
+        {(signed || imagePreview) && (
+          <button type="button" onClick={clear} className={styles.signatureBtn} title="Clear signature">
+            <RotateCcw size={12} /> Clear
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          className={styles.signatureBtn}
+          title="Upload signature picture"
+        >
+          <Upload size={12} /> {imagePreview && mode === 'upload' ? 'Change Picture' : 'Upload Picture'}
+        </button>
+      </div>
     </div>
   );
 };

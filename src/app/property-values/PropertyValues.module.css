@@ -428,6 +428,138 @@
   opacity: 0.7;
 }
 
+/* Signature Field & Upload Styles */
+.signatureHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.signatureToggleGroup {
+  display: inline-flex;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.signatureToggleBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: none;
+  font-size: 0.75rem;
+  padding: 3px 8px;
+  border-radius: 4px;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-weight: 500;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.signatureToggleBtn:hover {
+  color: var(--text-primary);
+}
+
+.signatureToggleBtnActive {
+  background: var(--bg-card);
+  color: var(--primary-gold);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  font-weight: 600;
+}
+
+.signatureBox {
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  background: #ffffff;
+  position: relative;
+  min-height: 85px;
+  height: 85px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.2s ease;
+}
+
+.signatureDropzone {
+  width: 100%;
+  height: 85px;
+  border: 1.5px dashed var(--border-color);
+  border-radius: var(--border-radius);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: var(--bg-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 8px;
+  text-align: center;
+}
+
+.signatureDropzone:hover,
+.signatureDropzoneActive {
+  border-color: var(--primary-gold);
+  background: rgba(201, 168, 76, 0.06);
+}
+
+.signatureDropzoneText {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.signatureDropzoneSub {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.signatureImgPreview {
+  max-height: 75px;
+  max-width: 95%;
+  object-fit: contain;
+  display: block;
+}
+
+.signatureActions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.signatureBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  padding: 4px 10px;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.signatureBtn:hover {
+  border-color: var(--primary-gold);
+  color: var(--primary-gold);
+  background: rgba(201, 168, 76, 0.05);
+}
+
 @media (max-width: 800px) {
   .formGrid, .grid2 { grid-template-columns: 1fr; }
   .fullWidth { grid-column: span 1; }

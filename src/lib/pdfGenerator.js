@@ -579,10 +579,28 @@ export function generateValuationPdf(report) {
   doc.text('Chartered Engineers & Approved Valuers', 18, currentY + 23);
   doc.text('Authorized Signatory & Municipal Seal', 18, currentY + 27);
 
+  // Inspector / Signatory Signature
+  const inspectorSig = report.signatures?.signature_inspector;
+  if (inspectorSig && typeof inspectorSig === 'string' && inspectorSig.startsWith('data:image')) {
+    try {
+      const format = inspectorSig.includes('png') ? 'PNG' : 'JPEG';
+      doc.addImage(inspectorSig, format, 18, currentY + 11, 28, 7);
+    } catch (e) {}
+  }
+
   // Official Stamp / Logo Seal in the center of signature block
   if (logoBase64) {
     try {
       doc.addImage(logoBase64, 'PNG', 84, currentY + 13, 22, 18);
+    } catch (e) {}
+  }
+
+  // Certified Valuer Signature
+  const valuerSig = report.signatures?.signature_valuer || report.signatures?.signature_engineer;
+  if (valuerSig && typeof valuerSig === 'string' && valuerSig.startsWith('data:image')) {
+    try {
+      const format = valuerSig.includes('png') ? 'PNG' : 'JPEG';
+      doc.addImage(valuerSig, format, 120, currentY + 11, 28, 7);
     } catch (e) {}
   }
 

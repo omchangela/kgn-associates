@@ -243,6 +243,12 @@ export const initialFormData = {
       captured_at: '',
     },
   ],
+  signatures: {
+    signature_inspector: '',
+    signature_valuer: '',
+    signature_engineer: '',
+    signature_institution: '',
+  },
 };
 
 const emptyPhoto = () => ({
@@ -471,6 +477,12 @@ export const getSampleFormData = () => {
       { amenity_name: 'Lift', amenity_value: '150000' },
     ],
     photos: [emptyPhoto()],
+    signatures: {
+      signature_inspector: '',
+      signature_valuer: '',
+      signature_engineer: '',
+      signature_institution: '',
+    },
   };
 };
 

@@ -261,6 +261,12 @@ const ValuationReportSchema = new mongoose.Schema(
     },
 
     photos: [PropertyPhotoSchema],
+    signatures: {
+      signature_inspector: { type: String, default: '' },
+      signature_valuer: { type: String, default: '' },
+      signature_engineer: { type: String, default: '' },
+      signature_institution: { type: String, default: '' },
+    },
   },
   {
     timestamps: true,
