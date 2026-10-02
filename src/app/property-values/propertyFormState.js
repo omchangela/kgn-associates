@@ -422,6 +422,15 @@ export const getSampleFormData = () => {
       number_of_water_outlets: '5',
       technical_assessment: 'Construction quality is good with proper structural integrity.',
       apartment_case_note: 'In case of apartment, land measurements are as per master layout plan / reflection only.',
+      landMeasurements: {
+        document_name: 'Sale Deed No. 1234/2020',
+        shape: 'Regular',
+        apartment_case_note: 'In case of apartment, land measurements are as per master layout plan / reflection only.',
+        north: { actual: '30', document: '30', plan: '30', match: true },
+        south: { actual: '30', document: '30', plan: '30', match: true },
+        east: { actual: '40', document: '40', plan: '40', match: true },
+        west: { actual: '40', document: '40', plan: '40', match: true },
+      },
     },
     finalValuation: {
       property_type: 'Residential Apartment',

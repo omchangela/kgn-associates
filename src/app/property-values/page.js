@@ -2061,8 +2061,171 @@ const LandExtentTable = () => {
     'Final Selected (Sq Ft)',
   ];
 
+  const ORDERED_BASIS = ['as_per_documents', 'as_per_actual', 'as_per_plan', 'final_selected'];
+
+  const calculateCardArea = (card, field) => {
+    if (!card) return 0;
+    const parseDim = (v) => {
+      if (!v) return 0;
+      const num = parseFloat(String(v).replace(/,/g, '').trim());
+      return isNaN(num) || num < 0 ? 0 : num;
+    };
+
+    const n = parseDim(card.north?.[field]);
+    const s = parseDim(card.south?.[field]);
+    const e = parseDim(card.east?.[field]);
+    const w = parseDim(card.west?.[field]);
+
+    if (!n && !s && !e && !w) return 0;
+
+    const length = n > 0 && s > 0 ? (n + s) / 2 : (n || s || 0);
+    const width = e > 0 && w > 0 ? (e + w) / 2 : (e || w || 0);
+
+    if (length > 0 && width > 0) {
+      return Math.round(length * width);
+    }
+    return 0;
+  };
+
+  const getComputedExtents = (technicalDetails) => {
+    const raw = technicalDetails?.landMeasurements;
+    const cards = Array.isArray(raw) ? raw : (raw && typeof raw === 'object' ? [raw] : []);
+
+    let totalDoc = 0;
+    let totalAct = 0;
+    let totalPlan = 0;
+
+    cards.forEach((c) => {
+      totalDoc += calculateCardArea(c, 'document');
+      totalAct += calculateCardArea(c, 'actual');
+      totalPlan += calculateCardArea(c, 'plan');
+    });
+
+    return {
+      cardCount: cards.length,
+      as_per_documents: totalDoc > 0 ? String(totalDoc) : '',
+      as_per_actual: totalAct > 0 ? String(totalAct) : '',
+      as_per_plan: totalPlan > 0 ? String(totalPlan) : '',
+    };
+  };
+
+  // Ensure all 4 rows exist
+  useEffect(() => {
+    const existing = formData.landExtentValuations || [];
+    const isComplete = ORDERED_BASIS.length === existing.length && ORDERED_BASIS.every((k, i) => existing[i]?.basis_of_valuation === k);
+    if (!isComplete) {
+      setFormData((prev) => {
+        const prevList = prev.landExtentValuations || [];
+        const newList = ORDERED_BASIS.map((b) => {
+          const found = prevList.find((r) => r.basis_of_valuation === b);
+          return found
+            ? { ...found }
+            : {
+                basis_of_valuation: b,
+                land_extent_sqft: '',
+                cost_per_sqft: '',
+                total_value: '',
+              };
+        });
+        return { ...prev, landExtentValuations: newList };
+      });
+    }
+  }, []);
+
+  // Automatically reflect computed land extents when land measurements change
+  useEffect(() => {
+    const computed = getComputedExtents(formData.technicalDetails);
+    const hasAnyComputed = Boolean(computed.as_per_documents || computed.as_per_actual || computed.as_per_plan);
+    if (!hasAnyComputed) return;
+
+    setFormData((prev) => {
+      const prevList = prev.landExtentValuations || [];
+      let hasChanges = false;
+
+      const updated = prevList.map((row) => {
+        const basis = row.basis_of_valuation;
+        let newExtent = row.land_extent_sqft;
+
+        if (basis === 'as_per_documents' && computed.as_per_documents) {
+          if (row.land_extent_sqft !== computed.as_per_documents) {
+            newExtent = computed.as_per_documents;
+            hasChanges = true;
+          }
+        } else if (basis === 'as_per_actual' && computed.as_per_actual) {
+          if (row.land_extent_sqft !== computed.as_per_actual) {
+            newExtent = computed.as_per_actual;
+            hasChanges = true;
+          }
+        } else if (basis === 'as_per_plan' && computed.as_per_plan) {
+          if (row.land_extent_sqft !== computed.as_per_plan) {
+            newExtent = computed.as_per_plan;
+            hasChanges = true;
+          }
+        } else if (basis === 'final_selected' && (!row.land_extent_sqft || row.land_extent_sqft === '')) {
+          const adopt = computed.as_per_documents || computed.as_per_actual || computed.as_per_plan;
+          if (adopt) {
+            newExtent = adopt;
+            hasChanges = true;
+          }
+        }
+
+        if (newExtent !== row.land_extent_sqft) {
+          const extentNum = parseFloat(String(newExtent).replace(/,/g, '')) || 0;
+          const costNum = parseFloat(String(row.cost_per_sqft || '').replace(/,/g, '')) || 0;
+          const totalVal = extentNum > 0 && costNum > 0 ? String(Math.round(extentNum * costNum)) : row.total_value;
+          return { ...row, land_extent_sqft: newExtent, total_value: totalVal };
+        }
+        return row;
+      });
+
+      if (!hasChanges) return prev;
+      return { ...prev, landExtentValuations: updated };
+    });
+  }, [formData.technicalDetails?.landMeasurements]);
+
+  const syncFromLandMeasurements = () => {
+    const computed = getComputedExtents(formData.technicalDetails);
+    setFormData((prev) => {
+      const prevList = prev.landExtentValuations || [];
+      const updated = prevList.map((row) => {
+        const basis = row.basis_of_valuation;
+        let newExtent = row.land_extent_sqft;
+
+        if (basis === 'as_per_documents' && computed.as_per_documents) newExtent = computed.as_per_documents;
+        if (basis === 'as_per_actual' && computed.as_per_actual) newExtent = computed.as_per_actual;
+        if (basis === 'as_per_plan' && computed.as_per_plan) newExtent = computed.as_per_plan;
+        if (basis === 'final_selected' && (!row.land_extent_sqft || row.land_extent_sqft === '')) {
+          newExtent = computed.as_per_documents || computed.as_per_actual || computed.as_per_plan;
+        }
+
+        const extentNum = parseFloat(String(newExtent).replace(/,/g, '')) || 0;
+        const costNum = parseFloat(String(row.cost_per_sqft || '').replace(/,/g, '')) || 0;
+        const totalVal = extentNum > 0 && costNum > 0 ? String(Math.round(extentNum * costNum)) : row.total_value;
+        return { ...row, land_extent_sqft: newExtent, total_value: totalVal };
+      });
+      return { ...prev, landExtentValuations: updated };
+    });
+  };
+
+  const adoptForFinal = (extentVal) => {
+    if (!extentVal) return;
+    setFormData((prev) => {
+      const prevList = prev.landExtentValuations || [];
+      const updated = prevList.map((row) => {
+        if (row.basis_of_valuation === 'final_selected') {
+          const extentNum = parseFloat(String(extentVal).replace(/,/g, '')) || 0;
+          const costNum = parseFloat(String(row.cost_per_sqft || '').replace(/,/g, '')) || 0;
+          const totalVal = extentNum > 0 && costNum > 0 ? String(Math.round(extentNum * costNum)) : row.total_value;
+          return { ...row, land_extent_sqft: String(extentVal), total_value: totalVal };
+        }
+        return row;
+      });
+      return { ...prev, landExtentValuations: updated };
+    });
+  };
+
   const handleLandChange = (idx, field, value) => {
-    setFormData(prev => {
+    setFormData((prev) => {
       const list = [...(prev.landExtentValuations || [])];
       const cur = { ...(list[idx] || {}) };
       cur[field] = value;
@@ -2083,28 +2246,109 @@ const LandExtentTable = () => {
     });
   };
 
+  const computedInfo = getComputedExtents(formData.technicalDetails);
+
   return (
-    <div style={{ overflowX: 'auto', marginBottom: '5px' }}>
-      <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '10px' }}>
-        <thead>
-          <tr>
-            <th style={{ textAlign: 'left', color: 'var(--text-primary)', fontWeight: '600', paddingBottom: '10px' }}>Basis of Valuation</th>
-            <th style={{ textAlign: 'left', color: 'var(--text-primary)', fontWeight: '600', paddingBottom: '10px' }}>Land Extent</th>
-            <th style={{ textAlign: 'left', color: 'var(--text-primary)', fontWeight: '600', paddingBottom: '10px' }}>Cost Per Sqft</th>
-            <th style={{ textAlign: 'left', color: 'var(--text-primary)', fontWeight: '600', paddingBottom: '10px' }}>Total Value</th>
-          </tr>
-        </thead>
-        <tbody>
-          {(formData.landExtentValuations || []).map((row, idx) => (
-            <tr key={row.basis_of_valuation || idx}>
-              <td style={{ fontSize: '0.95rem', fontWeight: '600', color: 'var(--text-primary)', paddingRight: '15px' }}>{labels[idx] || row.basis_of_valuation}</td>
-              <td><input type="text" className={styles.inputField} placeholder="Sq Ft" value={row.land_extent_sqft || ''} onChange={(e) => handleLandChange(idx, 'land_extent_sqft', e.target.value)} /></td>
-              <td><input type="text" className={styles.inputField} placeholder="Cost" value={row.cost_per_sqft || ''} onChange={(e) => handleLandChange(idx, 'cost_per_sqft', e.target.value)} /></td>
-              <td><input type="text" className={styles.inputField} placeholder="Total" value={row.total_value || ''} onChange={(e) => handleLandChange(idx, 'total_value', e.target.value)} /></td>
+    <div style={{ marginBottom: '15px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '12px' }}>
+        <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+          {computedInfo.as_per_documents || computedInfo.as_per_actual || computedInfo.as_per_plan
+            ? `Reflecting values calculated from Land Measurements (${computedInfo.cardCount} document${computedInfo.cardCount > 1 ? 's' : ''})`
+            : 'Enter Land Measurements in Technical tab to auto-reflect extents'}
+        </span>
+        <button
+          type="button"
+          onClick={syncFromLandMeasurements}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '5px 12px',
+            borderRadius: '4px',
+            background: 'rgba(201, 168, 76, 0.12)',
+            border: '1px solid rgba(201, 168, 76, 0.4)',
+            color: 'var(--primary-gold, #C9A84C)',
+            fontSize: '0.8rem',
+            fontWeight: '600',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          ▶ Auto-fill from Land Measurements
+        </button>
+      </div>
+
+      <div style={{ overflowX: 'auto', marginBottom: '5px' }}>
+        <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '10px' }}>
+          <thead>
+            <tr>
+              <th style={{ textAlign: 'left', color: 'var(--text-primary)', fontWeight: '600', paddingBottom: '10px' }}>Basis of Valuation</th>
+              <th style={{ textAlign: 'left', color: 'var(--text-primary)', fontWeight: '600', paddingBottom: '10px' }}>Land Extent</th>
+              <th style={{ textAlign: 'left', color: 'var(--text-primary)', fontWeight: '600', paddingBottom: '10px' }}>Cost Per Sqft</th>
+              <th style={{ textAlign: 'left', color: 'var(--text-primary)', fontWeight: '600', paddingBottom: '10px' }}>Total Value</th>
+              <th style={{ textAlign: 'center', color: 'var(--text-muted)', fontWeight: '600', paddingBottom: '10px', fontSize: '0.8rem' }}>Selection</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {(formData.landExtentValuations || []).map((row, idx) => (
+              <tr key={row.basis_of_valuation || idx}>
+                <td style={{ fontSize: '0.95rem', fontWeight: '600', color: 'var(--text-primary)', paddingRight: '15px' }}>
+                  {labels[idx] || row.basis_of_valuation}
+                </td>
+                <td>
+                  <input
+                    type="text"
+                    className={styles.inputField}
+                    placeholder="Sq Ft"
+                    value={row.land_extent_sqft || ''}
+                    onChange={(e) => handleLandChange(idx, 'land_extent_sqft', e.target.value)}
+                  />
+                </td>
+                <td>
+                  <input
+                    type="text"
+                    className={styles.inputField}
+                    placeholder="Cost"
+                    value={row.cost_per_sqft || ''}
+                    onChange={(e) => handleLandChange(idx, 'cost_per_sqft', e.target.value)}
+                  />
+                </td>
+                <td>
+                  <input
+                    type="text"
+                    className={styles.inputField}
+                    placeholder="Total"
+                    value={row.total_value || ''}
+                    onChange={(e) => handleLandChange(idx, 'total_value', e.target.value)}
+                  />
+                </td>
+                <td style={{ textAlign: 'center' }}>
+                  {idx < 3 && row.land_extent_sqft ? (
+                    <button
+                      type="button"
+                      onClick={() => adoptForFinal(row.land_extent_sqft)}
+                      title="Adopt this extent for Final Valuation"
+                      style={{
+                        padding: '4px 10px',
+                        fontSize: '0.75rem',
+                        fontWeight: '600',
+                        borderRadius: '4px',
+                        border: '1px solid rgba(201, 168, 76, 0.4)',
+                        background: 'rgba(201, 168, 76, 0.08)',
+                        color: 'var(--primary-gold, #C9A84C)',
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      Adopt for Final
+                    </button>
+                  ) : null}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };
