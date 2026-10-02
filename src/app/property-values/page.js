@@ -1309,6 +1309,17 @@ const RadioYesNo = ({ label, section, field }) => {
   );
 };
 
+const defaultCardState = () => ({
+  id: `card_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+  document_name: '',
+  shape: 'Regular',
+  apartment_case_note: '',
+  north: { actual: '', document: '', plan: '', match: false },
+  south: { actual: '', document: '', plan: '', match: false },
+  east: { actual: '', document: '', plan: '', match: false },
+  west: { actual: '', document: '', plan: '', match: false },
+});
+
 const MeasurementMatchingCard = ({
   title,
   sectionKey,
@@ -1316,25 +1327,62 @@ const MeasurementMatchingCard = ({
   noteLabel = "Note : Apartment case (just reflection)",
 }) => {
   const { formData, setFormData } = useFormContext();
-  const sectionData = formData.technicalDetails?.[sectionKey] || {};
-  const currentShape = sectionData.shape || 'Regular';
+  const rawSection = formData.technicalDetails?.[sectionKey];
 
-  const updateShape = (shape) => {
-    setFormData(prev => ({
+  const cards = React.useMemo(() => {
+    if (Array.isArray(rawSection) && rawSection.length > 0) {
+      return rawSection;
+    }
+    if (rawSection && typeof rawSection === 'object') {
+      return [{
+        id: rawSection.id || 'card_1',
+        document_name: rawSection.document_name || '',
+        shape: rawSection.shape || 'Regular',
+        apartment_case_note: rawSection.apartment_case_note || '',
+        north: rawSection.north || { actual: '', document: '', plan: '', match: false },
+        south: rawSection.south || { actual: '', document: '', plan: '', match: false },
+        east: rawSection.east || { actual: '', document: '', plan: '', match: false },
+        west: rawSection.west || { actual: '', document: '', plan: '', match: false },
+      }];
+    }
+    return [defaultCardState()];
+  }, [rawSection]);
+
+  const updateCards = (newCards) => {
+    const firstCard = newCards[0] || defaultCardState();
+    const normalized = [...newCards];
+    normalized.shape = firstCard.shape;
+    normalized.document_name = firstCard.document_name;
+    normalized.apartment_case_note = firstCard.apartment_case_note;
+    normalized.north = firstCard.north;
+    normalized.south = firstCard.south;
+    normalized.east = firstCard.east;
+    normalized.west = firstCard.west;
+
+    setFormData((prev) => ({
       ...prev,
       technicalDetails: {
         ...prev.technicalDetails,
-        [sectionKey]: {
-          ...prev.technicalDetails?.[sectionKey],
-          shape,
-        },
+        apartment_case_note: firstCard.apartment_case_note || prev.technicalDetails?.apartment_case_note || '',
+        [sectionKey]: normalized,
       },
     }));
   };
 
-  const updateMeasurement = (dirKey, field, val) => {
-    setFormData(prev => {
-      const currentDirData = prev.technicalDetails?.[sectionKey]?.[dirKey] || {};
+  const updateShape = (cardIdx, shape) => {
+    const updated = cards.map((c, i) => (i === cardIdx ? { ...c, shape } : c));
+    updateCards(updated);
+  };
+
+  const updateDocumentName = (cardIdx, document_name) => {
+    const updated = cards.map((c, i) => (i === cardIdx ? { ...c, document_name } : c));
+    updateCards(updated);
+  };
+
+  const updateMeasurement = (cardIdx, dirKey, field, val) => {
+    const updated = cards.map((card, i) => {
+      if (i !== cardIdx) return card;
+      const currentDirData = card[dirKey] || {};
       const newDirData = { ...currentDirData, [field]: val };
 
       const act = field === 'actual' ? val : (newDirData.actual || '');
@@ -1347,38 +1395,45 @@ const MeasurementMatchingCard = ({
       }
 
       return {
-        ...prev,
-        technicalDetails: {
-          ...prev.technicalDetails,
-          [sectionKey]: {
-            ...prev.technicalDetails?.[sectionKey],
-            [dirKey]: {
-              ...newDirData,
-              match: autoMatch,
-            },
-          },
+        ...card,
+        [dirKey]: {
+          ...newDirData,
+          match: autoMatch,
         },
       };
     });
+    updateCards(updated);
   };
 
-  const toggleMatch = (dirKey) => {
-    setFormData(prev => {
-      const currentMatch = Boolean(prev.technicalDetails?.[sectionKey]?.[dirKey]?.match);
+  const toggleMatch = (cardIdx, dirKey) => {
+    const updated = cards.map((card, i) => {
+      if (i !== cardIdx) return card;
+      const currentMatch = Boolean(card[dirKey]?.match);
       return {
-        ...prev,
-        technicalDetails: {
-          ...prev.technicalDetails,
-          [sectionKey]: {
-            ...prev.technicalDetails?.[sectionKey],
-            [dirKey]: {
-              ...prev.technicalDetails?.[sectionKey]?.[dirKey],
-              match: !currentMatch,
-            },
-          },
+        ...card,
+        [dirKey]: {
+          ...card[dirKey],
+          match: !currentMatch,
         },
       };
     });
+    updateCards(updated);
+  };
+
+  const updateApartmentNote = (cardIdx, val) => {
+    const updated = cards.map((card, i) => (i === cardIdx ? { ...card, apartment_case_note: val } : card));
+    updateCards(updated);
+  };
+
+  const addCard = () => {
+    const newCard = defaultCardState();
+    updateCards([...cards, newCard]);
+  };
+
+  const removeCard = (cardIdx) => {
+    if (cards.length <= 1) return;
+    const updated = cards.filter((_, i) => i !== cardIdx);
+    updateCards(updated);
   };
 
   const directionsList = [
@@ -1389,267 +1444,382 @@ const MeasurementMatchingCard = ({
   ];
 
   return (
-    <div className={styles.card} style={{ marginBottom: '25px', padding: '24px' }}>
-      <h2 className={styles.sectionHeading} style={{ fontSize: '1.25rem', marginBottom: '20px' }}>
-        {title}
-      </h2>
-
-      {/* Property Shape Selector */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '24px' }}>
-        <span style={{ fontSize: '0.95rem', color: 'var(--text-secondary, #cbd5e1)', fontWeight: 500 }}>
-          Property Shape:
-        </span>
-        <div style={{ display: 'inline-flex', borderRadius: '6px', border: '1px solid #14b8a6', overflow: 'hidden' }}>
-          <button
-            type="button"
-            onClick={() => updateShape('Regular')}
-            style={{
-              padding: '6px 20px',
-              fontSize: '0.85rem',
-              fontWeight: 600,
-              border: 'none',
-              cursor: 'pointer',
-              backgroundColor: currentShape === 'Regular' ? 'rgba(20, 184, 166, 0.25)' : 'transparent',
-              color: currentShape === 'Regular' ? '#2dd4bf' : 'var(--text-muted, #94a3b8)',
-              transition: 'all 0.2s ease',
-            }}
-          >
-            Regular
-          </button>
-          <button
-            type="button"
-            onClick={() => updateShape('Irregular')}
-            style={{
-              padding: '6px 20px',
-              fontSize: '0.85rem',
-              fontWeight: 600,
-              border: 'none',
-              borderLeft: '1px solid #14b8a6',
-              cursor: 'pointer',
-              backgroundColor: currentShape === 'Irregular' ? 'rgba(20, 184, 166, 0.25)' : 'transparent',
-              color: currentShape === 'Irregular' ? '#2dd4bf' : 'var(--text-muted, #94a3b8)',
-              transition: 'all 0.2s ease',
-            }}
-          >
-            Irregular
-          </button>
-        </div>
-      </div>
-
-      {/* 4 Directions */}
-      {directionsList.map(({ key, label }, idx) => {
-        const dirData = sectionData[key] || {};
-        const isMatch = Boolean(dirData.match);
+    <>
+      {cards.map((card, cardIdx) => {
+        const currentShape = card.shape || 'Regular';
 
         return (
           <div
-            key={key}
+            key={card.id || cardIdx}
+            className={styles.card}
             style={{
-              borderBottom: idx < directionsList.length - 1 ? '1px solid rgba(255, 255, 255, 0.08)' : 'none',
-              paddingBottom: idx < directionsList.length - 1 ? '22px' : '6px',
-              marginBottom: idx < directionsList.length - 1 ? '22px' : '0',
+              marginBottom: '25px',
+              padding: '24px',
+              position: 'relative',
+              border: cards.length > 1 ? '1px solid rgba(201, 168, 76, 0.4)' : undefined,
             }}
           >
-            {/* Header: Direction Name + Toggle Pill */}
+            {/* Header: Title + Card Counter + Circular + Button & Delete Button */}
             <div
               style={{
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                marginBottom: '12px',
+                flexWrap: 'wrap',
+                gap: '12px',
+                marginBottom: '20px',
               }}
             >
-              <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary, #ffffff)' }}>
-                {label}
-              </span>
-              <button
-                type="button"
-                onClick={() => toggleMatch(key)}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  padding: '5px 14px',
-                  borderRadius: '20px',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontSize: '0.8rem',
-                  fontWeight: 600,
-                  color: '#ffffff',
-                  backgroundColor: isMatch ? '#16a34a' : '#ea580c',
-                  boxShadow: isMatch ? '0 2px 8px rgba(22, 163, 74, 0.35)' : '0 2px 8px rgba(234, 88, 12, 0.35)',
-                  transition: 'all 0.2s ease',
-                }}
-              >
-                <span
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                <h2 className={styles.sectionHeading} style={{ fontSize: '1.25rem', margin: 0 }}>
+                  {title}
+                </h2>
+                {cards.length > 1 && (
+                  <span
+                    style={{
+                      fontSize: '0.8rem',
+                      fontWeight: 700,
+                      padding: '3px 10px',
+                      borderRadius: '12px',
+                      background: 'rgba(201, 168, 76, 0.15)',
+                      color: 'var(--primary-gold, #C9A84C)',
+                      border: '1px solid rgba(201, 168, 76, 0.35)',
+                    }}
+                  >
+                    Document #{cardIdx + 1} {card.document_name ? `(${card.document_name})` : ''}
+                  </span>
+                )}
+              </div>
+
+              {/* Action Buttons: Remove (if > 1) & Circular + Button */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                {cards.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeCard(cardIdx)}
+                    title="Remove this document card"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      padding: '6px 12px',
+                      borderRadius: '6px',
+                      border: '1px solid rgba(239, 68, 68, 0.4)',
+                      background: 'rgba(239, 68, 68, 0.08)',
+                      color: '#ef4444',
+                      fontSize: '0.8rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    <Trash2 size={14} />
+                    <span>Remove</span>
+                  </button>
+                )}
+
+                {/* Circular + Button (as drawn in user screenshot) */}
+                <button
+                  type="button"
+                  onClick={addCard}
+                  title="Add one more complete measurement card"
                   style={{
-                    width: '10px',
-                    height: '10px',
+                    width: '38px',
+                    height: '38px',
                     borderRadius: '50%',
-                    backgroundColor: '#ffffff',
-                    display: 'inline-block',
+                    background: 'var(--gradient-gold, linear-gradient(135deg, #C9A84C 0%, #E0C77D 100%))',
+                    color: '#1a1a1a',
+                    border: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 10px rgba(201, 168, 76, 0.35)',
+                    transition: 'transform 0.15s ease',
                   }}
-                />
-                {isMatch ? 'Match' : 'No Match'}
-              </button>
+                  onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.08)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+                >
+                  <Plus size={22} strokeWidth={2.5} />
+                </button>
+              </div>
             </div>
 
-            {/* 3 Inputs */}
+            {/* Row with Property Shape & Document : Box (as indicated in user screenshot) */}
             <div
               style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
                 gap: '16px',
+                marginBottom: '24px',
+                paddingBottom: '16px',
+                borderBottom: '1px solid var(--border-color, #e2e8f0)',
               }}
             >
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-secondary, #94a3b8)' }}>
-                  As per Actual *
-                </label>
-                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                  <input
-                    type="text"
-                    placeholder="Enter"
-                    className={styles.inputField}
-                    style={{ width: '100%', paddingRight: '36px' }}
-                    value={dirData.actual ?? ''}
-                    onChange={(e) => updateMeasurement(key, 'actual', e.target.value)}
-                  />
-                  <span
+              {/* Property Shape Selector */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <span style={{ fontSize: '0.95rem', color: 'var(--text-secondary, #cbd5e1)', fontWeight: 500 }}>
+                  Property Shape:
+                </span>
+                <div style={{ display: 'inline-flex', borderRadius: '6px', border: '1px solid #14b8a6', overflow: 'hidden' }}>
+                  <button
+                    type="button"
+                    onClick={() => updateShape(cardIdx, 'Regular')}
                     style={{
-                      position: 'absolute',
-                      right: '12px',
+                      padding: '6px 20px',
                       fontSize: '0.85rem',
-                      color: 'var(--text-muted, #64748b)',
-                      pointerEvents: 'none',
-                      fontWeight: 500,
+                      fontWeight: 600,
+                      border: 'none',
+                      cursor: 'pointer',
+                      backgroundColor: currentShape === 'Regular' ? 'rgba(20, 184, 166, 0.25)' : 'transparent',
+                      color: currentShape === 'Regular' ? '#2dd4bf' : 'var(--text-muted, #94a3b8)',
+                      transition: 'all 0.2s ease',
                     }}
                   >
-                    ft
-                  </span>
+                    Regular
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => updateShape(cardIdx, 'Irregular')}
+                    style={{
+                      padding: '6px 20px',
+                      fontSize: '0.85rem',
+                      fontWeight: 600,
+                      border: 'none',
+                      borderLeft: '1px solid #14b8a6',
+                      cursor: 'pointer',
+                      backgroundColor: currentShape === 'Irregular' ? 'rgba(20, 184, 166, 0.25)' : 'transparent',
+                      color: currentShape === 'Irregular' ? '#2dd4bf' : 'var(--text-muted, #94a3b8)',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    Irregular
+                  </button>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-secondary, #94a3b8)' }}>
-                  As per Document Provided
+              {/* Document : Box */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: '1', minWidth: '260px', maxWidth: '440px' }}>
+                <label style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>
+                  Document :
                 </label>
-                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                  <input
-                    type="text"
-                    placeholder="Enter"
-                    className={styles.inputField}
-                    style={{ width: '100%', paddingRight: '36px' }}
-                    value={dirData.document ?? ''}
-                    onChange={(e) => updateMeasurement(key, 'document', e.target.value)}
-                  />
-                  <span
-                    style={{
-                      position: 'absolute',
-                      right: '12px',
-                      fontSize: '0.85rem',
-                      color: 'var(--text-muted, #64748b)',
-                      pointerEvents: 'none',
-                      fontWeight: 500,
-                    }}
-                  >
-                    ft
-                  </span>
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-secondary, #94a3b8)' }}>
-                  As per Plan
-                </label>
-                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                  <input
-                    type="text"
-                    placeholder="Enter"
-                    className={styles.inputField}
-                    style={{ width: '100%', paddingRight: '36px' }}
-                    value={dirData.plan ?? ''}
-                    onChange={(e) => updateMeasurement(key, 'plan', e.target.value)}
-                  />
-                  <span
-                    style={{
-                      position: 'absolute',
-                      right: '12px',
-                      fontSize: '0.85rem',
-                      color: 'var(--text-muted, #64748b)',
-                      pointerEvents: 'none',
-                      fontWeight: 500,
-                    }}
-                  >
-                    ft
-                  </span>
-                </div>
+                <input
+                  type="text"
+                  placeholder="Enter document name / no."
+                  className={styles.inputField}
+                  value={card.document_name ?? ''}
+                  onChange={(e) => updateDocumentName(cardIdx, e.target.value)}
+                  style={{ width: '100%', padding: '7px 12px' }}
+                />
               </div>
             </div>
+
+            {/* 4 Directions */}
+            {directionsList.map(({ key, label }, idx) => {
+              const dirData = card[key] || {};
+              const isMatch = Boolean(dirData.match);
+
+              return (
+                <div
+                  key={key}
+                  style={{
+                    borderBottom: idx < directionsList.length - 1 ? '1px solid var(--border-color, rgba(255, 255, 255, 0.08))' : 'none',
+                    paddingBottom: idx < directionsList.length - 1 ? '22px' : '6px',
+                    marginBottom: idx < directionsList.length - 1 ? '22px' : '0',
+                  }}
+                >
+                  {/* Header: Direction Name + Toggle Pill */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: '12px',
+                    }}
+                  >
+                    <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary, #ffffff)' }}>
+                      {label}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => toggleMatch(cardIdx, key)}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '5px 14px',
+                        borderRadius: '20px',
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontSize: '0.8rem',
+                        fontWeight: 600,
+                        color: '#ffffff',
+                        backgroundColor: isMatch ? '#16a34a' : '#ea580c',
+                        boxShadow: isMatch ? '0 2px 8px rgba(22, 163, 74, 0.35)' : '0 2px 8px rgba(234, 88, 12, 0.35)',
+                        transition: 'all 0.2s ease',
+                      }}
+                    >
+                      <span
+                        style={{
+                          width: '10px',
+                          height: '10px',
+                          borderRadius: '50%',
+                          backgroundColor: '#ffffff',
+                          display: 'inline-block',
+                        }}
+                      />
+                      {isMatch ? 'Match' : 'No Match'}
+                    </button>
+                  </div>
+
+                  {/* 3 Inputs */}
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                      gap: '16px',
+                    }}
+                  >
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <label style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-secondary, #94a3b8)' }}>
+                        As per Actual *
+                      </label>
+                      <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                        <input
+                          type="text"
+                          placeholder="Enter"
+                          className={styles.inputField}
+                          style={{ width: '100%', paddingRight: '36px' }}
+                          value={dirData.actual ?? ''}
+                          onChange={(e) => updateMeasurement(cardIdx, key, 'actual', e.target.value)}
+                        />
+                        <span
+                          style={{
+                            position: 'absolute',
+                            right: '12px',
+                            fontSize: '0.85rem',
+                            color: 'var(--text-muted, #64748b)',
+                            pointerEvents: 'none',
+                            fontWeight: 500,
+                          }}
+                        >
+                          ft
+                        </span>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <label style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-secondary, #94a3b8)' }}>
+                        As per Document Provided
+                      </label>
+                      <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                        <input
+                          type="text"
+                          placeholder="Enter"
+                          className={styles.inputField}
+                          style={{ width: '100%', paddingRight: '36px' }}
+                          value={dirData.document ?? ''}
+                          onChange={(e) => updateMeasurement(cardIdx, key, 'document', e.target.value)}
+                        />
+                        <span
+                          style={{
+                            position: 'absolute',
+                            right: '12px',
+                            fontSize: '0.85rem',
+                            color: 'var(--text-muted, #64748b)',
+                            pointerEvents: 'none',
+                            fontWeight: 500,
+                          }}
+                        >
+                          ft
+                        </span>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <label style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-secondary, #94a3b8)' }}>
+                        As per Plan
+                      </label>
+                      <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                        <input
+                          type="text"
+                          placeholder="Enter"
+                          className={styles.inputField}
+                          style={{ width: '100%', paddingRight: '36px' }}
+                          value={dirData.plan ?? ''}
+                          onChange={(e) => updateMeasurement(cardIdx, key, 'plan', e.target.value)}
+                        />
+                        <span
+                          style={{
+                            position: 'absolute',
+                            right: '12px',
+                            fontSize: '0.85rem',
+                            color: 'var(--text-muted, #64748b)',
+                            pointerEvents: 'none',
+                            fontWeight: 500,
+                          }}
+                        >
+                          ft
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Note Box for Apartment Case Reflection */}
+            {showNoteBox && (
+              <div
+                style={{
+                  marginTop: '22px',
+                  paddingTop: '18px',
+                  borderTop: '1px solid var(--border-color, #e2e8f0)',
+                }}
+              >
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                    <label
+                      style={{
+                        fontSize: '0.95rem',
+                        fontWeight: 600,
+                        fontFamily: 'var(--font-heading)',
+                        color: 'var(--text-primary)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                      }}
+                    >
+                      <span>{noteLabel}</span>
+                    </label>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                      Manual Entry
+                    </span>
+                  </div>
+                  <textarea
+                    rows={3}
+                    placeholder="Enter manual data / note for apartment case (just reflection)..."
+                    value={card.apartment_case_note ?? formData.technicalDetails?.apartment_case_note ?? ''}
+                    onChange={(e) => updateApartmentNote(cardIdx, e.target.value)}
+                    className={styles.textarea}
+                    style={{
+                      width: '100%',
+                      minHeight: '75px',
+                      padding: '10px 14px',
+                      fontSize: '0.9rem',
+                      fontFamily: 'var(--font-body)',
+                      resize: 'vertical',
+                    }}
+                  />
+                </div>
+              </div>
+            )}
           </div>
         );
       })}
-
-      {/* Note Box for Apartment Case Reflection */}
-      {showNoteBox && (
-        <div
-          style={{
-            marginTop: '22px',
-            paddingTop: '18px',
-            borderTop: '1px solid var(--border-color, #e2e8f0)',
-          }}
-        >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
-              <label
-                style={{
-                  fontSize: '0.95rem',
-                  fontWeight: 600,
-                  fontFamily: 'var(--font-heading)',
-                  color: 'var(--text-primary)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                }}
-              >
-                <span>{noteLabel}</span>
-              </label>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                Manual Entry
-              </span>
-            </div>
-            <textarea
-              rows={3}
-              placeholder="Enter manual data / note for apartment case (just reflection)..."
-              value={sectionData.apartment_case_note ?? formData.technicalDetails?.apartment_case_note ?? ''}
-              onChange={(e) => {
-                const val = e.target.value;
-                setFormData((prev) => ({
-                  ...prev,
-                  technicalDetails: {
-                    ...prev.technicalDetails,
-                    apartment_case_note: val,
-                    [sectionKey]: {
-                      ...prev.technicalDetails?.[sectionKey],
-                      apartment_case_note: val,
-                    },
-                  },
-                }));
-              }}
-              className={styles.textarea}
-              style={{
-                width: '100%',
-                minHeight: '75px',
-                padding: '10px 14px',
-                fontSize: '0.9rem',
-                fontFamily: 'var(--font-body)',
-                resize: 'vertical',
-              }}
-            />
-          </div>
-        </div>
-      )}
-    </div>
+    </>
   );
 };
 

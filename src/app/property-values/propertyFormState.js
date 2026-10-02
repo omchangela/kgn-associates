@@ -147,6 +147,7 @@ export const initialFormData = {
     technical_assessment: '',
     apartment_case_note: '',
     landMeasurements: {
+      document_name: '',
       shape: 'Regular',
       apartment_case_note: '',
       north: { actual: '', document: '', plan: '', match: false },
@@ -155,6 +156,7 @@ export const initialFormData = {
       west: { actual: '', document: '', plan: '', match: false },
     },
     buildingMeasurements: {
+      document_name: '',
       shape: 'Regular',
       north: { actual: '', document: '', plan: '', match: false },
       south: { actual: '', document: '', plan: '', match: false },
