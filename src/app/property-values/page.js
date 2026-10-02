@@ -785,8 +785,8 @@ const PropertyValues = () => {
                       );
                     })}
 
-                    <InputGroup label="Road Width (ft)" placeholder="Enter" type="number" section="infrastructureDetails" field="road_width_ft" />
-                    <InputGroup label="Number of Lifts" placeholder="Enter" type="number" section="infrastructureDetails" field="number_of_lifts" />
+                    <InputGroup label="Road Width (ft)" placeholder="Enter" section="infrastructureDetails" field="road_width_ft" />
+                    <InputGroup label="Number of Lifts" placeholder="Enter" section="infrastructureDetails" field="number_of_lifts" />
                     <div className={styles.inputStack}><RadioYesNo label="Electricity" section="infrastructureDetails" field="electricity" /></div>
                     <div className={styles.inputStack}><RadioYesNo label="Water" section="infrastructureDetails" field="water" /></div>
                     <div className={styles.inputStack}><RadioYesNo label="Drainage Connection" section="infrastructureDetails" field="drainage_connection" /></div>
@@ -960,20 +960,20 @@ const PropertyValues = () => {
                   <div className={styles.formGrid}>
                     <InputGroup label="Joint Wall – Direction" placeholder="Enter" section="propertyCharacteristics" field="joint_wall_direction" />
                     <InputGroup label="Joint Slab – Direction" placeholder="Enter" section="propertyCharacteristics" field="joint_slab_direction" />
-                    <InputGroup label="FSI" placeholder="Enter" type="number" section="propertyCharacteristics" field="fsi" />
-                    <InputGroup label="Nearest Railway Station (Km)" placeholder="Enter" type="number" section="propertyCharacteristics" field="nearest_railway_station_km" />
-                    <InputGroup label="Nearest Bus Station (Km)" placeholder="Enter" type="number" section="propertyCharacteristics" field="nearest_bus_station_km" />
-                    <InputGroup label="Nearest Connecting Road (Km)" placeholder="Enter" type="number" section="propertyCharacteristics" field="nearest_connecting_road_km" />
-                    <InputGroup label="Distance From City Centre" placeholder="Enter (Km)" type="number" section="propertyCharacteristics" field="distance_from_city_centre_km" />
-                    <InputGroup label="Distance From Branch" placeholder="Enter (Km)" type="number" section="propertyCharacteristics" field="distance_from_branch_km" />
+                    <InputGroup label="FSI" placeholder="Enter" section="propertyCharacteristics" field="fsi" />
+                    <InputGroup label="Nearest Railway Station (Km)" placeholder="Enter" section="propertyCharacteristics" field="nearest_railway_station_km" />
+                    <InputGroup label="Nearest Bus Station (Km)" placeholder="Enter" section="propertyCharacteristics" field="nearest_bus_station_km" />
+                    <InputGroup label="Nearest Connecting Road (Km)" placeholder="Enter" section="propertyCharacteristics" field="nearest_connecting_road_km" />
+                    <InputGroup label="Distance From City Centre" placeholder="Enter (Km)" section="propertyCharacteristics" field="distance_from_city_centre_km" />
+                    <InputGroup label="Distance From Branch" placeholder="Enter (Km)" section="propertyCharacteristics" field="distance_from_branch_km" />
                     <SelectField label="Valuation Methodology" section="propertyCharacteristics" field="valuation_methodology" options={[{ value: '', label: 'Select' }, { value: 'market', label: 'Market Comparison' }, { value: 'income', label: 'Income Approach' }, { value: 'cost', label: 'Cost Approach' }]} />
                     <SelectField label="Risk Of Demolition" section="propertyCharacteristics" field="risk_of_demolition" options={[{ value: '', label: 'Select' }, { value: 'low', label: 'Low' }, { value: 'medium', label: 'Medium' }, { value: 'high', label: 'High' }]} />
                     <RadioYesNo label="Negative Area As Per Local" section="propertyCharacteristics" field="negative_area_as_per_local" />
                     <SelectField label="Development Of Vicinity/Surroundings" section="propertyCharacteristics" field="development_of_vicinity" options={[{ value: '', label: 'Select' }, { value: 'developing', label: 'Developing' }, { value: 'developed', label: 'Fully Developed' }, { value: 'underdeveloped', label: 'Underdeveloped' }]} />
-                    <InputGroup label="Habitation Around The Property (%)" placeholder="Enter %" type="number" section="propertyCharacteristics" field="habitation_around_property_percent" />
+                    <InputGroup label="Habitation Around The Property (%)" placeholder="Enter %" section="propertyCharacteristics" field="habitation_around_property_percent" />
                     <SelectField label="Availability of Local Transport" section="propertyCharacteristics" field="availability_of_local_transport" options={[{ value: '', label: 'Select' }, { value: 'good', label: 'Good' }, { value: 'average', label: 'Average' }, { value: 'poor', label: 'Poor' }]} />
                     <SelectField label="Level of Land with Topographical Conditions" section="propertyCharacteristics" field="level_of_land" options={[{ value: '', label: 'Select' }, { value: 'flat', label: 'Flat' }, { value: 'sloped', label: 'Sloped' }, { value: 'hilly', label: 'Hilly' }, { value: 'undulating', label: 'Undulating' }]} />
-                    <InputGroup label="Setback Deviation (%)" placeholder="Enter %" type="number" section="propertyCharacteristics" field="setback_deviation_percent" />
+                    <InputGroup label="Setback Deviation (%)" placeholder="Enter %" section="propertyCharacteristics" field="setback_deviation_percent" />
                     <InputGroup label="Vertical Deviation" placeholder="Enter" section="propertyCharacteristics" field="vertical_deviation" />
                     <RadioYesNo label="Structure Confirming to Safety (Load Resistance)" section="propertyCharacteristics" field="structure_confirming_to_safety" />
                   </div>
