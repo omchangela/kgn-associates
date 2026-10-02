@@ -202,6 +202,7 @@ const ValuationReportSchema = new mongoose.Schema(
     },
 
     landExtentValuations: [LandExtentValuationSchema],
+    land_valuation_basis: { type: String, default: 'as_per_documents' },
     structureValuations: [StructureValuationSchema],
     structure_valuation_basis: { type: String, default: 'as_per_actual' },
     amenityValuations: [AmenityValuationSchema],

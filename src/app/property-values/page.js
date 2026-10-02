@@ -209,6 +209,7 @@ const PropertyValues = () => {
             cost_per_sqft: parseNumber(row.cost_per_sqft),
             total_value: parseNumber(row.total_value),
           })),
+        land_valuation_basis: formData.land_valuation_basis || 'as_per_documents',
         structureValuations: formData.structureValuations
           .filter((row) => row.area_sqft || row.cost_per_sqft || row.total_value)
           .map((row) => ({
@@ -904,7 +905,6 @@ const PropertyValues = () => {
                 <p className={styles.subHeading} style={{ marginBottom: '20px' }}>Land Extent Valuation:</p>
                 <div className={styles.card} style={{ padding: '20px', marginBottom: '40px' }}>
                   <LandExtentTable />
-                  <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '0 0 25px 10px' }}>Provide Selection Option For Final Valuation</p>
                   <h2 className={styles.sectionHeading} style={{ fontSize: '1.2rem', marginTop: '10px', marginBottom: '14px' }}>Structure Valuation:</h2>
                   <StructureValuationTable />
                   <h2 className={styles.sectionHeading} style={{ fontSize: '1.2rem', marginTop: '10px', marginBottom: '15px' }}>Amenities Valuation:</h2>
@@ -2052,7 +2052,7 @@ const BoundaryTable = () => {
   );
 };
 
-const LandExtentTable = () => {
+const LandExtentTable = ({ showSelectionOption = true }) => {
   const { formData, setFormData } = useFormContext();
   const labels = [
     'As Per Documents (Sq Ft)',
@@ -2062,6 +2062,14 @@ const LandExtentTable = () => {
   ];
 
   const ORDERED_BASIS = ['as_per_documents', 'as_per_actual', 'as_per_plan', 'final_selected'];
+
+  const basisLabels = {
+    as_per_documents: 'As Per Documents',
+    as_per_actual: 'As Per Actual',
+    as_per_plan: 'As Per Plan',
+  };
+
+  const currentBasis = formData.land_valuation_basis || 'as_per_documents';
 
   const calculateCardArea = (card, field) => {
     if (!card) return 0;
@@ -2109,11 +2117,13 @@ const LandExtentTable = () => {
     };
   };
 
-  // Ensure all 4 rows exist
+  // Ensure all 4 rows exist & ensure default basis
   useEffect(() => {
     const existing = formData.landExtentValuations || [];
     const isComplete = ORDERED_BASIS.length === existing.length && ORDERED_BASIS.every((k, i) => existing[i]?.basis_of_valuation === k);
-    if (!isComplete) {
+    const hasBasis = Boolean(formData.land_valuation_basis);
+
+    if (!isComplete || !hasBasis) {
       setFormData((prev) => {
         const prevList = prev.landExtentValuations || [];
         const newList = ORDERED_BASIS.map((b) => {
@@ -2127,10 +2137,51 @@ const LandExtentTable = () => {
                 total_value: '',
               };
         });
-        return { ...prev, landExtentValuations: newList };
+        return {
+          ...prev,
+          landExtentValuations: newList,
+          land_valuation_basis: prev.land_valuation_basis || 'as_per_documents',
+        };
       });
     }
   }, []);
+
+  // Reflect selection into final_selected row immediately
+  const handleSelectBasis = (basisKey) => {
+    setFormData((prev) => {
+      const list = [...(prev.landExtentValuations || [])];
+      const sourceRow = list.find((r) => r.basis_of_valuation === basisKey);
+      const finalIndex = list.findIndex((r) => r.basis_of_valuation === 'final_selected');
+
+      if (sourceRow && finalIndex !== -1) {
+        const finalRow = { ...list[finalIndex] };
+        finalRow.land_extent_sqft = sourceRow.land_extent_sqft || '';
+
+        // If source row has cost_per_sqft, mirror it; otherwise preserve existing final cost
+        if (sourceRow.cost_per_sqft) {
+          finalRow.cost_per_sqft = sourceRow.cost_per_sqft;
+        }
+
+        const extentNum = parseFloat(String(finalRow.land_extent_sqft || '').replace(/,/g, '')) || 0;
+        const costNum = parseFloat(String(finalRow.cost_per_sqft || '').replace(/,/g, '')) || 0;
+        if (extentNum > 0 && costNum > 0) {
+          finalRow.total_value = String(Math.round(extentNum * costNum));
+        } else if (sourceRow.total_value) {
+          finalRow.total_value = sourceRow.total_value;
+        } else {
+          finalRow.total_value = '';
+        }
+
+        list[finalIndex] = finalRow;
+      }
+
+      return {
+        ...prev,
+        land_valuation_basis: basisKey,
+        landExtentValuations: list,
+      };
+    });
+  };
 
   // Automatically reflect computed land extents when land measurements change
   useEffect(() => {
@@ -2140,6 +2191,7 @@ const LandExtentTable = () => {
 
     setFormData((prev) => {
       const prevList = prev.landExtentValuations || [];
+      const activeBasis = prev.land_valuation_basis || 'as_per_documents';
       let hasChanges = false;
 
       const updated = prevList.map((row) => {
@@ -2161,9 +2213,9 @@ const LandExtentTable = () => {
             newExtent = computed.as_per_plan;
             hasChanges = true;
           }
-        } else if (basis === 'final_selected' && (!row.land_extent_sqft || row.land_extent_sqft === '')) {
-          const adopt = computed.as_per_documents || computed.as_per_actual || computed.as_per_plan;
-          if (adopt) {
+        } else if (basis === 'final_selected') {
+          const adopt = computed[activeBasis] || computed.as_per_documents || computed.as_per_actual || computed.as_per_plan;
+          if (adopt && row.land_extent_sqft !== adopt) {
             newExtent = adopt;
             hasChanges = true;
           }
@@ -2181,12 +2233,13 @@ const LandExtentTable = () => {
       if (!hasChanges) return prev;
       return { ...prev, landExtentValuations: updated };
     });
-  }, [formData.technicalDetails?.landMeasurements]);
+  }, [formData.technicalDetails?.landMeasurements, formData.land_valuation_basis]);
 
   const syncFromLandMeasurements = () => {
     const computed = getComputedExtents(formData.technicalDetails);
     setFormData((prev) => {
       const prevList = prev.landExtentValuations || [];
+      const activeBasis = prev.land_valuation_basis || 'as_per_documents';
       const updated = prevList.map((row) => {
         const basis = row.basis_of_valuation;
         let newExtent = row.land_extent_sqft;
@@ -2194,31 +2247,14 @@ const LandExtentTable = () => {
         if (basis === 'as_per_documents' && computed.as_per_documents) newExtent = computed.as_per_documents;
         if (basis === 'as_per_actual' && computed.as_per_actual) newExtent = computed.as_per_actual;
         if (basis === 'as_per_plan' && computed.as_per_plan) newExtent = computed.as_per_plan;
-        if (basis === 'final_selected' && (!row.land_extent_sqft || row.land_extent_sqft === '')) {
-          newExtent = computed.as_per_documents || computed.as_per_actual || computed.as_per_plan;
+        if (basis === 'final_selected') {
+          newExtent = computed[activeBasis] || computed.as_per_documents || computed.as_per_actual || computed.as_per_plan || row.land_extent_sqft;
         }
 
         const extentNum = parseFloat(String(newExtent).replace(/,/g, '')) || 0;
         const costNum = parseFloat(String(row.cost_per_sqft || '').replace(/,/g, '')) || 0;
         const totalVal = extentNum > 0 && costNum > 0 ? String(Math.round(extentNum * costNum)) : row.total_value;
         return { ...row, land_extent_sqft: newExtent, total_value: totalVal };
-      });
-      return { ...prev, landExtentValuations: updated };
-    });
-  };
-
-  const adoptForFinal = (extentVal) => {
-    if (!extentVal) return;
-    setFormData((prev) => {
-      const prevList = prev.landExtentValuations || [];
-      const updated = prevList.map((row) => {
-        if (row.basis_of_valuation === 'final_selected') {
-          const extentNum = parseFloat(String(extentVal).replace(/,/g, '')) || 0;
-          const costNum = parseFloat(String(row.cost_per_sqft || '').replace(/,/g, '')) || 0;
-          const totalVal = extentNum > 0 && costNum > 0 ? String(Math.round(extentNum * costNum)) : row.total_value;
-          return { ...row, land_extent_sqft: String(extentVal), total_value: totalVal };
-        }
-        return row;
       });
       return { ...prev, landExtentValuations: updated };
     });
@@ -2242,6 +2278,34 @@ const LandExtentTable = () => {
       }
 
       list[idx] = cur;
+
+      // If this row is the currently selected basis, mirror it into Final Selected!
+      const activeBasis = prev.land_valuation_basis || 'as_per_documents';
+      if (cur.basis_of_valuation === activeBasis) {
+        const finalIndex = list.findIndex((r) => r.basis_of_valuation === 'final_selected');
+        if (finalIndex !== -1 && finalIndex !== idx) {
+          const finalRow = { ...list[finalIndex] };
+          if (field === 'land_extent_sqft') {
+            finalRow.land_extent_sqft = value;
+          } else if (field === 'cost_per_sqft') {
+            finalRow.cost_per_sqft = value;
+          } else if (field === 'total_value') {
+            finalRow.total_value = value;
+          }
+
+          const fExtent = parseFloat(String(finalRow.land_extent_sqft || '').replace(/,/g, '')) || 0;
+          const fCost = parseFloat(String(finalRow.cost_per_sqft || '').replace(/,/g, '')) || 0;
+          if (fExtent > 0 && fCost > 0) {
+            finalRow.total_value = String(Math.round(fExtent * fCost));
+          } else if (!finalRow.land_extent_sqft || !finalRow.cost_per_sqft) {
+            if (field === 'land_extent_sqft' && !value) finalRow.total_value = '';
+            if (field === 'cost_per_sqft' && !value) finalRow.total_value = '';
+          }
+
+          list[finalIndex] = finalRow;
+        }
+      }
+
       return { ...prev, landExtentValuations: list };
     });
   };
@@ -2278,77 +2342,233 @@ const LandExtentTable = () => {
         </button>
       </div>
 
-      <div style={{ overflowX: 'auto', marginBottom: '5px' }}>
+      <div style={{ overflowX: 'auto', marginBottom: '10px' }}>
         <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '10px' }}>
           <thead>
             <tr>
-              <th style={{ textAlign: 'left', color: 'var(--text-primary)', fontWeight: '600', paddingBottom: '10px' }}>Basis of Valuation</th>
-              <th style={{ textAlign: 'left', color: 'var(--text-primary)', fontWeight: '600', paddingBottom: '10px' }}>Land Extent</th>
-              <th style={{ textAlign: 'left', color: 'var(--text-primary)', fontWeight: '600', paddingBottom: '10px' }}>Cost Per Sqft</th>
-              <th style={{ textAlign: 'left', color: 'var(--text-primary)', fontWeight: '600', paddingBottom: '10px' }}>Total Value</th>
-              <th style={{ textAlign: 'center', color: 'var(--text-muted)', fontWeight: '600', paddingBottom: '10px', fontSize: '0.8rem' }}>Selection</th>
+              <th style={{ textAlign: 'left', color: 'var(--text-primary)', fontWeight: '600', paddingBottom: '10px', width: '38%' }}>Basis of Valuation</th>
+              <th style={{ textAlign: 'left', color: 'var(--text-primary)', fontWeight: '600', paddingBottom: '10px', width: '20%' }}>Land Extent</th>
+              <th style={{ textAlign: 'left', color: 'var(--text-primary)', fontWeight: '600', paddingBottom: '10px', width: '20%' }}>Cost Per Sqft</th>
+              <th style={{ textAlign: 'left', color: 'var(--text-primary)', fontWeight: '600', paddingBottom: '10px', width: '22%' }}>Total Value</th>
             </tr>
           </thead>
           <tbody>
-            {(formData.landExtentValuations || []).map((row, idx) => (
-              <tr key={row.basis_of_valuation || idx}>
-                <td style={{ fontSize: '0.95rem', fontWeight: '600', color: 'var(--text-primary)', paddingRight: '15px' }}>
-                  {labels[idx] || row.basis_of_valuation}
-                </td>
-                <td>
-                  <input
-                    type="text"
-                    className={styles.inputField}
-                    placeholder="Sq Ft"
-                    value={row.land_extent_sqft || ''}
-                    onChange={(e) => handleLandChange(idx, 'land_extent_sqft', e.target.value)}
-                  />
-                </td>
-                <td>
-                  <input
-                    type="text"
-                    className={styles.inputField}
-                    placeholder="Cost"
-                    value={row.cost_per_sqft || ''}
-                    onChange={(e) => handleLandChange(idx, 'cost_per_sqft', e.target.value)}
-                  />
-                </td>
-                <td>
-                  <input
-                    type="text"
-                    className={styles.inputField}
-                    placeholder="Total"
-                    value={row.total_value || ''}
-                    onChange={(e) => handleLandChange(idx, 'total_value', e.target.value)}
-                  />
-                </td>
-                <td style={{ textAlign: 'center' }}>
-                  {idx < 3 && row.land_extent_sqft ? (
-                    <button
-                      type="button"
-                      onClick={() => adoptForFinal(row.land_extent_sqft)}
-                      title="Adopt this extent for Final Valuation"
-                      style={{
-                        padding: '4px 10px',
-                        fontSize: '0.75rem',
-                        fontWeight: '600',
-                        borderRadius: '4px',
-                        border: '1px solid rgba(201, 168, 76, 0.4)',
-                        background: 'rgba(201, 168, 76, 0.08)',
-                        color: 'var(--primary-gold, #C9A84C)',
-                        cursor: 'pointer',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      Adopt for Final
-                    </button>
-                  ) : null}
-                </td>
-              </tr>
-            ))}
+            {(formData.landExtentValuations || []).map((row, idx) => {
+              const isFinal = row.basis_of_valuation === 'final_selected';
+              const isSelected = !isFinal && currentBasis === row.basis_of_valuation;
+
+              return (
+                <tr
+                  key={row.basis_of_valuation || idx}
+                  style={{
+                    background: isSelected
+                      ? 'rgba(201, 168, 76, 0.08)'
+                      : isFinal
+                      ? 'rgba(59, 130, 246, 0.05)'
+                      : 'transparent',
+                    borderRadius: '6px',
+                    transition: 'background 0.2s ease',
+                  }}
+                >
+                  <td style={{ fontSize: '0.95rem', fontWeight: '600', color: 'var(--text-primary)', paddingRight: '15px' }}>
+                    {!isFinal ? (
+                      <label
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '10px',
+                          cursor: 'pointer',
+                          width: '100%',
+                          userSelect: 'none',
+                        }}
+                      >
+                        <input
+                          type="radio"
+                          name="land_valuation_basis_table_select"
+                          checked={isSelected}
+                          onChange={() => handleSelectBasis(row.basis_of_valuation)}
+                          style={{
+                            width: '18px',
+                            height: '18px',
+                            accentColor: '#C9A84C',
+                            cursor: 'pointer',
+                            flexShrink: 0,
+                          }}
+                        />
+                        <span style={{ color: isSelected ? 'var(--primary-gold, #C9A84C)' : 'inherit', fontWeight: isSelected ? '700' : '600' }}>
+                          {labels[idx] || row.basis_of_valuation}
+                        </span>
+                        {isSelected && (
+                          <span
+                            style={{
+                              fontSize: '0.7rem',
+                              padding: '2px 8px',
+                              borderRadius: '12px',
+                              background: 'rgba(201, 168, 76, 0.2)',
+                              border: '1px solid rgba(201, 168, 76, 0.5)',
+                              color: 'var(--primary-gold, #C9A84C)',
+                              fontWeight: '700',
+                              marginLeft: '4px',
+                            }}
+                          >
+                            Selected
+                          </span>
+                        )}
+                      </label>
+                    ) : (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                        <span
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: '18px',
+                            height: '18px',
+                            borderRadius: '50%',
+                            background: 'var(--primary-gold, #C9A84C)',
+                            color: '#000',
+                            fontSize: '11px',
+                            fontWeight: 'bold',
+                            flexShrink: 0,
+                          }}
+                        >
+                          ✓
+                        </span>
+                        <span style={{ fontWeight: '700', color: 'var(--primary-gold, #C9A84C)' }}>
+                          Final Selected (Sq Ft)
+                        </span>
+                        <span
+                          style={{
+                            fontSize: '0.72rem',
+                            padding: '2px 8px',
+                            borderRadius: '12px',
+                            background: 'rgba(59, 130, 246, 0.15)',
+                            border: '1px solid rgba(59, 130, 246, 0.4)',
+                            color: '#60a5fa',
+                            fontWeight: '600',
+                          }}
+                        >
+                          ✦ Reflected from {basisLabels[currentBasis] || 'Selected'}
+                        </span>
+                      </div>
+                    )}
+                  </td>
+                  <td>
+                    <input
+                      type="text"
+                      className={styles.inputField}
+                      placeholder="Sq Ft"
+                      value={row.land_extent_sqft || ''}
+                      onChange={(e) => handleLandChange(idx, 'land_extent_sqft', e.target.value)}
+                      style={
+                        isFinal
+                          ? { borderColor: 'rgba(201, 168, 76, 0.6)', fontWeight: '600' }
+                          : undefined
+                      }
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="text"
+                      className={styles.inputField}
+                      placeholder="Cost"
+                      value={row.cost_per_sqft || ''}
+                      onChange={(e) => handleLandChange(idx, 'cost_per_sqft', e.target.value)}
+                      style={
+                        isFinal
+                          ? { borderColor: 'rgba(201, 168, 76, 0.6)', fontWeight: '600' }
+                          : undefined
+                      }
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="text"
+                      className={styles.inputField}
+                      placeholder="Total"
+                      value={row.total_value || ''}
+                      onChange={(e) => handleLandChange(idx, 'total_value', e.target.value)}
+                      style={
+                        isFinal
+                          ? { borderColor: 'rgba(201, 168, 76, 0.6)', fontWeight: '700', color: 'var(--primary-gold, #C9A84C)' }
+                          : undefined
+                      }
+                    />
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
+
+      {/* Interactive "Provide Selection Option For Final Valuation" component */}
+      {showSelectionOption && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '14px',
+            marginTop: '10px',
+            marginBottom: '15px',
+            padding: '12px 18px',
+            borderRadius: '8px',
+            background: 'rgba(201, 168, 76, 0.08)',
+            border: '1px solid rgba(201, 168, 76, 0.3)',
+            flexWrap: 'wrap',
+          }}
+        >
+          <span style={{ fontSize: '0.9rem', fontWeight: '700', color: 'var(--text-primary)' }}>
+            Provide Selection Option For Final Valuation:
+          </span>
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+            {[
+              { id: 'as_per_documents', label: 'As Per Documents' },
+              { id: 'as_per_actual', label: 'As Per Actual' },
+              { id: 'as_per_plan', label: 'As Per Plan' },
+            ].map((opt) => {
+              const active = currentBasis === opt.id;
+              return (
+                <label
+                  key={opt.id}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    cursor: 'pointer',
+                    padding: '6px 14px',
+                    borderRadius: '20px',
+                    fontSize: '0.85rem',
+                    fontWeight: active ? '700' : '500',
+                    border: active ? '1px solid #C9A84C' : '1px solid rgba(255, 255, 255, 0.15)',
+                    background: active ? 'rgba(201, 168, 76, 0.22)' : 'rgba(255, 255, 255, 0.04)',
+                    color: active ? 'var(--primary-gold, #C9A84C)' : 'var(--text-secondary)',
+                    transition: 'all 0.2s ease',
+                    userSelect: 'none',
+                  }}
+                >
+                  <input
+                    type="radio"
+                    name="land_valuation_basis_bottom_radio"
+                    checked={active}
+                    onChange={() => handleSelectBasis(opt.id)}
+                    style={{
+                      accentColor: '#C9A84C',
+                      cursor: 'pointer',
+                      width: '15px',
+                      height: '15px',
+                    }}
+                  />
+                  <span>{opt.label}</span>
+                </label>
+              );
+            })}
+          </div>
+          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginLeft: 'auto' }}>
+            Reflected into: <strong style={{ color: 'var(--primary-gold, #C9A84C)' }}>Final Selected (Sq Ft)</strong>
+          </span>
+        </div>
+      )}
     </div>
   );
 };
