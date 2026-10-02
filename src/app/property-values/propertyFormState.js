@@ -96,6 +96,7 @@ export const initialFormData = {
     actual_usage_of_property: '',
     approved_usage_of_property: '',
     class_of_locality: '',
+    other_class_of_locality: '',
     number_of_floors: '',
   },
   infrastructureDetails: {
@@ -355,7 +356,8 @@ export const getSampleFormData = () => {
       occupant_details: 'Owner occupied',
       actual_usage_of_property: 'residential',
       approved_usage_of_property: 'residential',
-      class_of_locality: 'prime',
+      class_of_locality: 'Prime',
+      other_class_of_locality: '',
       number_of_floors: '4',
     },
     infrastructureDetails: {

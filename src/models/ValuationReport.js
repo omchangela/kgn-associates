@@ -144,6 +144,7 @@ const ValuationReportSchema = new mongoose.Schema(
       actual_usage_of_property: { type: String, default: 'residential' },
       approved_usage_of_property: { type: String, default: 'residential' },
       class_of_locality: { type: String, default: 'good' },
+      other_class_of_locality: { type: String, default: '' },
       number_of_floors: { type: mongoose.Schema.Types.Mixed, default: '' },
     },
 

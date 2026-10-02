@@ -316,7 +316,7 @@ export function generateValuationPdf(report) {
       ['Roof & Ceiling Type', sched.roof_type === 'others' && sched.other_roof_type ? sched.other_roof_type : fmtVal(sched.roof_type, 'RCC Flat Slab'), 'Flooring & Staircase', `${sched.flooring_type === 'others' && sched.other_flooring_type ? sched.other_flooring_type : fmtVal(sched.flooring_type, 'Vitrified')} / ${sched.stair_type === 'others' && sched.other_stair_type ? sched.other_stair_type : fmtVal(sched.stair_type, 'Internal RCC')}`],
       ['Floors Approved / Exist', `Appr: ${fmtVal(sched.no_of_floors_approved, 'G+1')} | Exist: ${fmtVal(sched.no_of_floors_existing || sched.number_of_floors, 'G+1')}`, 'Construction Quality', fmtVal(sched.construction_quality, 'Superior / Good')],
       ['Property Maintenance', fmtVal(sched.maintenance_of_property, 'Well Maintained'), 'Occupancy Details', `${fmtVal(sched.occupancy_status, 'Occupied')} (${fmtVal(sched.occupant_details, 'Owner')})`],
-      ['Actual Usage at Site', fmtVal(sched.actual_usage_of_property, 'Residential House'), 'Locality Classification', fmtVal(sched.class_of_locality, 'High / Middle Income')],
+      ['Actual Usage at Site', fmtVal(sched.actual_usage_of_property, 'Residential House'), 'Locality Classification', (sched.class_of_locality === 'others' || sched.class_of_locality === 'Others') && sched.other_class_of_locality ? sched.other_class_of_locality : fmtVal(sched.class_of_locality, 'Middle')],
     ],
     theme: 'grid',
     headStyles: sectionHeaderStyles,

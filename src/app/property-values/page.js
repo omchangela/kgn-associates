@@ -682,7 +682,43 @@ const PropertyValues = () => {
                   <div className={styles.formGrid}>
                     <SelectField label="Occupancy Status" section="scheduleDetails" field="occupancy_status" options={[{ value: '', label: 'Select' }, { value: 'fully_occupied', label: 'Fully Occupied' }, { value: 'partly_occupied', label: 'Partly Occupied' }, { value: 'occupied', label: 'Occupied' }, { value: 'vacant', label: 'Vacant' }]} />
                     <InputGroup label="Occupant Details" placeholder="Input / Textarea" section="scheduleDetails" field="occupant_details" />
-                    <InputGroup label="Class of Locality" placeholder="e.g. Prime / High Income / Middle Income" section="scheduleDetails" field="class_of_locality" />
+                    <SelectField
+                      label="Class of Locality"
+                      section="scheduleDetails"
+                      field="class_of_locality"
+                      options={[
+                        { value: '', label: 'Select' },
+                        { value: 'Prime', label: 'Prime' },
+                        { value: 'High', label: 'High' },
+                        { value: 'Middle', label: 'Middle' },
+                        { value: 'Low', label: 'Low' },
+                        { value: 'others', label: 'Others' },
+                      ]}
+                    />
+                    {(formData.scheduleDetails?.class_of_locality === 'others' ||
+                      formData.scheduleDetails?.class_of_locality === 'Others' ||
+                      (Boolean(formData.scheduleDetails?.class_of_locality) &&
+                        !['prime', 'high', 'middle', 'low', ''].some((k) =>
+                          String(formData.scheduleDetails?.class_of_locality).toLowerCase().includes(k)
+                        ))) && (
+                      <div className={styles.inputStack}>
+                        <label className={styles.label}>Class of Locality (Others)</label>
+                        <div className={styles.fieldWrapper}>
+                          <input
+                            type="text"
+                            placeholder="Please specify class of locality"
+                            className={styles.inputField}
+                            value={
+                              formData.scheduleDetails?.other_class_of_locality ||
+                              (!['others', 'Others'].includes(formData.scheduleDetails?.class_of_locality)
+                                ? formData.scheduleDetails?.class_of_locality || ''
+                                : '')
+                            }
+                            onChange={(e) => updateField('scheduleDetails', 'other_class_of_locality', e.target.value)}
+                          />
+                        </div>
+                      </div>
+                    )}
                     <InputGroup label="Number of Floors Valued" placeholder="Enter" section="scheduleDetails" field="number_of_floors" />
                   </div>
                 </div>
@@ -1107,7 +1143,17 @@ const InputGroup = ({ label, placeholder, isDate, fullWidth, type = "text", sect
 const SelectField = ({ label, section, field, options, fullWidth }) => {
   const { formData, updateField } = useFormContext();
   const rawValue = formData[section]?.[field] ?? '';
-  const matchedOpt = options.find((opt) => String(opt.value).toLowerCase() === String(rawValue).toLowerCase());
+  let matchedOpt = options.find((opt) => String(opt.value).toLowerCase() === String(rawValue).toLowerCase());
+
+  if (!matchedOpt && rawValue && field === 'class_of_locality') {
+    const rawLower = String(rawValue).toLowerCase().trim();
+    if (rawLower.includes('prime')) matchedOpt = options.find((opt) => opt.value.toLowerCase() === 'prime');
+    else if (rawLower.includes('high')) matchedOpt = options.find((opt) => opt.value.toLowerCase() === 'high');
+    else if (rawLower.includes('middle')) matchedOpt = options.find((opt) => opt.value.toLowerCase() === 'middle');
+    else if (rawLower.includes('low')) matchedOpt = options.find((opt) => opt.value.toLowerCase() === 'low');
+    else matchedOpt = options.find((opt) => opt.value.toLowerCase() === 'others');
+  }
+
   const value = matchedOpt ? matchedOpt.value : rawValue;
 
   return (
