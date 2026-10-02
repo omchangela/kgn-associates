@@ -41,6 +41,12 @@ const approachRoadOptions = [
   { value: 'others', label: 'Others' },
 ];
 
+const accessOptions = [
+  { value: '', label: 'Select' },
+  { value: 'public', label: 'Public' },
+  { value: 'private', label: 'Private' },
+];
+
 const PropertyValues = () => {
   const tabs = ["Institution Details", "Property", "Schedule", "Infrastructure", "Technical", "Property Market Value","Final Valuation", "Location", "Characteristics", "Photos"];
   const [activeTab, setActiveTab] = useState("Institution Details");
@@ -168,7 +174,28 @@ const PropertyValues = () => {
         verifiedDocuments: formData.verifiedDocuments || [],
         propertyIdentification: formData.propertyIdentification,
         scheduleDetails: formData.scheduleDetails,
-        infrastructureDetails: formData.infrastructureDetails,
+        infrastructureDetails: {
+          ...formData.infrastructureDetails,
+          roads_details: Array.from(
+            {
+              length: (() => {
+                const r = parseInt(formData.infrastructureDetails?.number_of_roads, 10);
+                return Number.isNaN(r) ? 1 : Math.max(0, Math.min(10, r));
+              })(),
+            },
+            (_, idx) => {
+              const roadNum = idx + 1;
+              return {
+                road_number: roadNum,
+                type_of_access: roadNum === 1 ? formData.infrastructureDetails?.type_of_access : formData.infrastructureDetails?.[`type_of_access_${roadNum}`],
+                road_direction: roadNum === 1 ? formData.infrastructureDetails?.road_direction : formData.infrastructureDetails?.[`road_direction_${roadNum}`],
+                approach_road_type: roadNum === 1 ? formData.infrastructureDetails?.approach_road_type : formData.infrastructureDetails?.[`approach_road_type_${roadNum}`],
+                other_approach_road_type: roadNum === 1 ? formData.infrastructureDetails?.other_approach_road_type : formData.infrastructureDetails?.[`other_approach_road_type_${roadNum}`],
+                road_width_ft: roadNum === 1 ? formData.infrastructureDetails?.road_width_ft : formData.infrastructureDetails?.[`road_width_ft_${roadNum}`],
+              };
+            }
+          ),
+        },
         technicalDetails: formData.technicalDetails,
         finalValuation: formData.finalValuation,
         locationDetails: formData.locationDetails,
@@ -739,53 +766,90 @@ const PropertyValues = () => {
                     <div className={styles.inputStack}><RadioYesNo label="Land Locked" section="infrastructureDetails" field="land_locked" /></div>
                     <div></div>
                     <InputGroup label="Description" placeholder="Enter" section="infrastructureDetails" field="land_locked_description" fullWidth />
-                    <div></div>
                     <InputGroup label="Number of Roads" placeholder="Enter" section="infrastructureDetails" field="number_of_roads" />
-                    <SelectField label="Type of Access" section="infrastructureDetails" field="type_of_access" options={[{ value: '', label: 'Select' }, { value: 'public', label: 'Public' }, { value: 'private', label: 'Private' }]} />
+                    <div></div>
 
-                    {Array.from({ length: Math.max(1, Math.min(10, parseInt(formData.infrastructureDetails?.number_of_roads, 10) || 1)) }, (_, idx) => {
-                      const roadNum = idx + 1;
-                      const dirField = roadNum === 1 ? 'road_direction' : `road_direction_${roadNum}`;
-                      const approachField = roadNum === 1 ? 'approach_road_type' : `approach_road_type_${roadNum}`;
-                      const otherApproachField = roadNum === 1 ? 'other_approach_road_type' : `other_approach_road_type_${roadNum}`;
-                      const totalRoads = Math.max(1, Math.min(10, parseInt(formData.infrastructureDetails?.number_of_roads, 10) || 1));
-                      const isOther = formData.infrastructureDetails?.[approachField] === 'others';
+                    {(() => {
+                      const rawRoads = formData.infrastructureDetails?.number_of_roads;
+                      const parsedRoads = parseInt(rawRoads, 10);
+                      const totalRoads = (rawRoads === '0' || parsedRoads === 0)
+                        ? 0
+                        : (Number.isNaN(parsedRoads) ? 1 : Math.max(1, Math.min(10, parsedRoads)));
 
-                      return (
-                        <React.Fragment key={roadNum}>
-                          <SelectField
-                            label={totalRoads > 1 ? `Direction (Road ${roadNum})` : "Direction"}
-                            section="infrastructureDetails"
-                            field={dirField}
-                            options={directionOptions}
-                          />
-                          <SelectField
-                            label={totalRoads > 1 ? `Approach Road Type to Property (Road ${roadNum})` : "Approach Road Type to Property"}
-                            section="infrastructureDetails"
-                            field={approachField}
-                            options={approachRoadOptions}
-                          />
-                          {isOther && (
-                            <div className={`${styles.inputStack} ${styles.fullWidth}`}>
-                              <label className={styles.label}>
-                                Approach Road Type to Property (Others{totalRoads > 1 ? ` - Road ${roadNum}` : ''})
-                              </label>
-                              <div className={styles.fieldWrapper}>
-                                <input
-                                  type="text"
-                                  placeholder="Please specify approach road type"
-                                  className={styles.inputField}
-                                  value={formData.infrastructureDetails?.[otherApproachField] || ''}
-                                  onChange={(e) => updateField('infrastructureDetails', otherApproachField, e.target.value)}
-                                />
+                      return Array.from({ length: totalRoads }, (_, idx) => {
+                        const roadNum = idx + 1;
+                        const accessField = roadNum === 1 ? 'type_of_access' : `type_of_access_${roadNum}`;
+                        const dirField = roadNum === 1 ? 'road_direction' : `road_direction_${roadNum}`;
+                        const approachField = roadNum === 1 ? 'approach_road_type' : `approach_road_type_${roadNum}`;
+                        const otherApproachField = roadNum === 1 ? 'other_approach_road_type' : `other_approach_road_type_${roadNum}`;
+                        const widthField = roadNum === 1 ? 'road_width_ft' : `road_width_ft_${roadNum}`;
+                        const isOther = formData.infrastructureDetails?.[approachField] === 'others';
+
+                        return (
+                          <React.Fragment key={roadNum}>
+                            {totalRoads > 1 && (
+                              <div
+                                className={styles.fullWidth}
+                                style={{
+                                  marginTop: idx === 0 ? '5px' : '15px',
+                                  marginBottom: '5px',
+                                  padding: '8px 12px',
+                                  background: 'rgba(201, 168, 76, 0.08)',
+                                  borderLeft: '3px solid var(--primary-gold, #C9A84C)',
+                                  borderRadius: '4px',
+                                  fontWeight: '600',
+                                  fontSize: '0.9rem',
+                                  color: 'var(--text-primary)',
+                                }}
+                              >
+                                Road {roadNum} Details
                               </div>
-                            </div>
-                          )}
-                        </React.Fragment>
-                      );
-                    })}
+                            )}
+                            <SelectField
+                              label={totalRoads > 1 ? `Type of Access (Road ${roadNum})` : "Type of Access"}
+                              section="infrastructureDetails"
+                              field={accessField}
+                              options={accessOptions}
+                            />
+                            <SelectField
+                              label={totalRoads > 1 ? `Direction (Road ${roadNum})` : "Direction"}
+                              section="infrastructureDetails"
+                              field={dirField}
+                              options={directionOptions}
+                            />
+                            <SelectField
+                              label={totalRoads > 1 ? `Approach Road Type to Property (Road ${roadNum})` : "Approach Road Type to Property"}
+                              section="infrastructureDetails"
+                              field={approachField}
+                              options={approachRoadOptions}
+                            />
+                            <InputGroup
+                              label={totalRoads > 1 ? `Road Width (ft) (Road ${roadNum})` : "Road Width (ft)"}
+                              placeholder="Enter"
+                              section="infrastructureDetails"
+                              field={widthField}
+                            />
+                            {isOther && (
+                              <div className={`${styles.inputStack} ${styles.fullWidth}`}>
+                                <label className={styles.label}>
+                                  Approach Road Type to Property (Others{totalRoads > 1 ? ` - Road ${roadNum}` : ''})
+                                </label>
+                                <div className={styles.fieldWrapper}>
+                                  <input
+                                    type="text"
+                                    placeholder="Please specify approach road type"
+                                    className={styles.inputField}
+                                    value={formData.infrastructureDetails?.[otherApproachField] || ''}
+                                    onChange={(e) => updateField('infrastructureDetails', otherApproachField, e.target.value)}
+                                  />
+                                </div>
+                              </div>
+                            )}
+                          </React.Fragment>
+                        );
+                      });
+                    })()}
 
-                    <InputGroup label="Road Width (ft)" placeholder="Enter" section="infrastructureDetails" field="road_width_ft" />
                     <InputGroup label="Number of Lifts" placeholder="Enter" section="infrastructureDetails" field="number_of_lifts" />
                     <div className={styles.inputStack}><RadioYesNo label="Electricity" section="infrastructureDetails" field="electricity" /></div>
                     <div className={styles.inputStack}><RadioYesNo label="Water" section="infrastructureDetails" field="water" /></div>

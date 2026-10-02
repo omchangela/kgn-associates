@@ -327,17 +327,47 @@ export function generateValuationPdf(report) {
   currentY = doc.lastAutoTable.finalY + 4;
 
   // 4.0 INFRASTRUCTURE & CIVIC AMENITIES
+  const numRoads = Math.max(1, Math.min(10, parseInt(infra.number_of_roads, 10) || 1));
+  const infraBody = [
+    ['Land Locked Status', infra.land_locked ? 'Yes (Restricted Access)' : 'No (Direct Street Access)', 'Number of Facing Roads', fmtVal(infra.number_of_roads, `${numRoads} Road${numRoads > 1 ? 's' : ''}`)],
+  ];
+
+  if (numRoads <= 1) {
+    infraBody.push([
+      'Approach Road Type',
+      infra.approach_road_type === 'others' && infra.other_approach_road_type ? infra.other_approach_road_type : fmtVal(infra.approach_road_type, 'Black Top Road'),
+      'Facing Road Width / Access',
+      `${fmtVal(infra.road_width_ft, '30')} Feet (${fmtVal(infra.road_direction, 'East')} Facing / ${fmtVal(infra.type_of_access, 'Public')})`,
+    ]);
+  } else {
+    for (let r = 1; r <= numRoads; r++) {
+      const aType = r === 1 ? infra.approach_road_type : (infra[`approach_road_type_${r}`] || (infra.roads_details?.[r - 1]?.approach_road_type));
+      const oType = r === 1 ? infra.other_approach_road_type : (infra[`other_approach_road_type_${r}`] || (infra.roads_details?.[r - 1]?.other_approach_road_type));
+      const rWidth = r === 1 ? infra.road_width_ft : (infra[`road_width_ft_${r}`] || (infra.roads_details?.[r - 1]?.road_width_ft));
+      const rDir = r === 1 ? infra.road_direction : (infra[`road_direction_${r}`] || (infra.roads_details?.[r - 1]?.road_direction));
+      const rAcc = r === 1 ? infra.type_of_access : (infra[`type_of_access_${r}`] || (infra.roads_details?.[r - 1]?.type_of_access));
+      const approachText = aType === 'others' && oType ? oType : fmtVal(aType, 'Black Top Road');
+
+      infraBody.push([
+        `Road ${r} Approach Type`,
+        approachText,
+        `Road ${r} Width / Access`,
+        `${fmtVal(rWidth, '30')} Feet (${fmtVal(rDir, 'East')} Facing / ${fmtVal(rAcc, 'Public')})`,
+      ]);
+    }
+  }
+
+  infraBody.push(
+    ['Electricity Connection', infra.electricity ? 'Connected (State Discom Grid)' : 'Not Connected', 'Water Supply', infra.water ? 'Available (Municipal + Borewell)' : 'Not Available'],
+    ['Drainage & Sewerage', infra.drainage_connection ? 'Underground Drainage System' : 'Septic Tank', 'Lifts / Elevators', `${fmtVal(infra.number_of_lifts, '0')} Operational Lift(s)`],
+  );
+
   autoTable(doc, {
     startY: currentY,
     margin: { left: 14, right: 14 },
     tableWidth: 182,
     head: [['4.0 INFRASTRUCTURE & ACCESS ROAD AMENITIES', '', '', '']],
-    body: [
-      ['Land Locked Status', infra.land_locked ? 'Yes (Restricted Access)' : 'No (Direct Street Access)', 'Approach Road Type', infra.approach_road_type === 'others' && infra.other_approach_road_type ? infra.other_approach_road_type : fmtVal(infra.approach_road_type, 'Black Top Road')],
-      ['Number of Facing Roads', fmtVal(infra.number_of_roads, '1 Road'), 'Facing Road Width / Access', `${fmtVal(infra.road_width_ft, '30')} Feet (${fmtVal(infra.road_direction, 'East')} Facing / ${fmtVal(infra.type_of_access, 'Public')})`],
-      ['Electricity Connection', infra.electricity ? 'Connected (State Discom Grid)' : 'Not Connected', 'Water Supply', infra.water ? 'Available (Municipal + Borewell)' : 'Not Available'],
-      ['Drainage & Sewerage', infra.drainage_connection ? 'Underground Drainage System' : 'Septic Tank', 'Lifts / Elevators', `${fmtVal(infra.number_of_lifts, '0')} Operational Lift(s)`],
-    ],
+    body: infraBody,
     theme: 'grid',
     headStyles: sectionHeaderStyles,
     styles: bodyStyles,

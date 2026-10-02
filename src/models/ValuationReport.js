@@ -274,6 +274,7 @@ const ValuationReportSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+    strict: false,
   }
 );
 
