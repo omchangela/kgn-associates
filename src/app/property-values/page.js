@@ -1524,42 +1524,72 @@ const MeasurementMatchingCard = ({ title, sectionKey }) => {
 
 const BoundaryTable = () => {
   const { formData, updateField } = useFormContext();
-  const sched = formData.scheduleDetails;
+  const sched = formData.scheduleDetails || {};
   const directions = ['east', 'west', 'north', 'south'];
 
-  // Extra rows state: { docs: [[...4 values]], actual: [[...4 values]], plan: [[...4 values]] }
-  const [extraRows, setExtraRows] = React.useState({ docs: [], actual: [], plan: [] });
-
-  const getFieldName = (prefix, direction) => `${direction}_boundary_${prefix}`;
+  const extraBoundaries = sched.extra_boundaries || { docs: [], actual: [], plan: [] };
 
   const addExtraRow = (key) => {
-    setExtraRows(prev => ({ ...prev, [key]: [...prev[key], ['', '', '', '']] }));
-  };
-
-  const updateExtraCell = (key, rowIdx, colIdx, val) => {
-    setExtraRows(prev => {
-      const updated = prev[key].map((row, ri) =>
-        ri === rowIdx ? row.map((cell, ci) => ci === colIdx ? val : cell) : row
-      );
-      return { ...prev, [key]: updated };
-    });
+    const currentList = Array.isArray(extraBoundaries[key]) ? extraBoundaries[key] : [];
+    const updatedList = [...currentList, { title: '', values: ['', '', '', ''] }];
+    updateField('scheduleDetails', 'extra_boundaries', { ...extraBoundaries, [key]: updatedList });
   };
 
   const removeExtraRow = (key, rowIdx) => {
-    setExtraRows(prev => ({ ...prev, [key]: prev[key].filter((_, i) => i !== rowIdx) }));
+    const currentList = Array.isArray(extraBoundaries[key]) ? extraBoundaries[key] : [];
+    const updatedList = currentList.filter((_, i) => i !== rowIdx);
+    updateField('scheduleDetails', 'extra_boundaries', { ...extraBoundaries, [key]: updatedList });
+  };
+
+  const updateExtraTitle = (key, rowIdx, val) => {
+    const currentList = Array.isArray(extraBoundaries[key]) ? extraBoundaries[key] : [];
+    const updatedList = currentList.map((row, ri) => {
+      if (ri !== rowIdx) return row;
+      if (typeof row === 'object' && !Array.isArray(row)) {
+        return { ...row, title: val };
+      }
+      return { title: val, values: Array.isArray(row) ? row : ['', '', '', ''] };
+    });
+    updateField('scheduleDetails', 'extra_boundaries', { ...extraBoundaries, [key]: updatedList });
+  };
+
+  const updateExtraCell = (key, rowIdx, colIdx, val) => {
+    const currentList = Array.isArray(extraBoundaries[key]) ? extraBoundaries[key] : [];
+    const updatedList = currentList.map((row, ri) => {
+      if (ri !== rowIdx) return row;
+      const currentValues = Array.isArray(row)
+        ? [...row]
+        : (Array.isArray(row?.values) ? [...row.values] : ['', '', '', '']);
+      currentValues[colIdx] = val;
+      if (typeof row === 'object' && !Array.isArray(row)) {
+        return { ...row, values: currentValues };
+      }
+      return { title: '', values: currentValues };
+    });
+    updateField('scheduleDetails', 'extra_boundaries', { ...extraBoundaries, [key]: updatedList });
+  };
+
+  const getRowTitle = (r) => (r && typeof r === 'object' && !Array.isArray(r) ? r.title || '' : '');
+  const getRowValue = (r, ci) => {
+    if (Array.isArray(r)) return r[ci] || '';
+    if (r && Array.isArray(r.values)) return r.values[ci] || '';
+    return '';
   };
 
   const staticRows = [
-    { label: 'As per Documents', prefix: 'docs', extraKey: 'docs' },
-    { label: 'As Per Actual Visit', prefix: 'actual', extraKey: 'actual' },
-    { label: 'As Per Plan', prefix: 'plan', extraKey: 'plan' },
+    { label: 'As per Documents', prefix: 'docs', extraKey: 'docs', titlePlaceholder: 'Enter Document Title / No.' },
+    { label: 'As Per Actual Visit', prefix: 'actual', extraKey: 'actual', titlePlaceholder: 'Enter Visit Description' },
+    { label: 'As Per Plan', prefix: 'plan', extraKey: 'plan', titlePlaceholder: 'Enter Plan Description' },
     { label: 'Boundary Matching Status', prefix: 'status', extraKey: null },
     { label: 'Property Identification Status', prefix: 'identification', single: true, extraKey: null },
   ];
 
   const labelCellStyle = {
-    fontSize: '0.9rem', fontWeight: '600', color: 'var(--text-primary)',
-    whiteSpace: 'nowrap', paddingRight: '8px',
+    fontSize: '0.9rem',
+    fontWeight: '600',
+    color: 'var(--text-primary)',
+    whiteSpace: 'nowrap',
+    paddingRight: '8px',
   };
 
   const plusBtnStyle = {
@@ -1603,7 +1633,9 @@ const BoundaryTable = () => {
       <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '10px 15px' }}>
         <thead>
           <tr>
-            <th style={{ textAlign: 'left', width: '22%' }}></th>
+            <th style={{ textAlign: 'left', width: '24%', fontWeight: '600', fontSize: '0.9rem', color: 'var(--text-primary)' }}>
+              Source / Description
+            </th>
             {directions.map((dir) => (
               <th key={dir} style={{ textAlign: 'left', fontWeight: '600', fontSize: '0.9rem', color: 'var(--text-primary)' }}>
                 {dir.charAt(0).toUpperCase() + dir.slice(1)}
@@ -1613,41 +1645,51 @@ const BoundaryTable = () => {
         </thead>
         <tbody>
           {staticRows.map((row) => {
-            const extra = row.extraKey ? extraRows[row.extraKey] : [];
+            const extra = row.extraKey && Array.isArray(extraBoundaries[row.extraKey]) ? extraBoundaries[row.extraKey] : [];
             return (
               <React.Fragment key={row.label}>
                 {/* Main row */}
                 <tr>
-                  <td style={labelCellStyle}>
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                      <span>{row.label}</span>
+                  <td style={{ ...labelCellStyle, verticalAlign: 'bottom' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span>{row.label}</span>
+                        {row.extraKey && (
+                          <button
+                            type="button"
+                            style={plusBtnStyle}
+                            title={`Add another ${row.label} row`}
+                            onClick={() => addExtraRow(row.extraKey)}
+                          >+</button>
+                        )}
+                      </div>
                       {row.extraKey && (
-                        <button
-                          type="button"
-                          style={plusBtnStyle}
-                          title={`Add another ${row.label} row`}
-                          onClick={() => addExtraRow(row.extraKey)}
-                        >+</button>
+                        <input
+                          type="text"
+                          className={styles.inputField}
+                          style={{ padding: '8px 10px', fontSize: '0.85rem', width: '100%' }}
+                          placeholder={row.titlePlaceholder || 'Enter description / title'}
+                          value={sched[`${row.prefix}_title`] || ''}
+                          onChange={(e) => updateField('scheduleDetails', `${row.prefix}_title`, e.target.value)}
+                        />
                       )}
                     </div>
                   </td>
                   {row.single ? (
-                    <td colSpan={4}>
+                    <td colSpan={4} style={{ verticalAlign: 'bottom' }}>
                       <input
                         type="text"
                         className={styles.inputField}
                         style={{ padding: '10px', fontSize: '0.9rem', width: '100%' }}
-                        value={sched.property_identification_status}
+                        value={sched.property_identification_status || ''}
                         onChange={(e) => updateField('scheduleDetails', 'property_identification_status', e.target.value)}
                       />
                     </td>
                   ) : (
                     directions.map((dir) => {
-                      const fieldName = row.prefix === 'identification'
-                        ? 'property_identification_status'
-                        : `${dir}_boundary_${row.prefix}`;
+                      const fieldName = `${dir}_boundary_${row.prefix}`;
                       return (
-                        <td key={fieldName}>
+                        <td key={fieldName} style={{ verticalAlign: 'bottom' }}>
                           <input
                             type="text"
                             className={styles.inputField}
@@ -1660,27 +1702,40 @@ const BoundaryTable = () => {
                     })
                   )}
                 </tr>
+
                 {/* Extra rows */}
-                {extra.map((extraRowValues, ri) => (
+                {extra.map((extraRow, ri) => (
                   <tr key={`${row.extraKey}-extra-${ri}`}>
-                    <td style={labelCellStyle}>
-                      <div style={{ display: 'flex', alignItems: 'center', paddingLeft: '12px' }}>
-                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{row.label} {ri + 2}</span>
-                        <button
-                          type="button"
-                          style={minusBtnStyle}
-                          title="Remove row"
-                          onClick={() => removeExtraRow(row.extraKey, ri)}
-                        >−</button>
+                    <td style={{ ...labelCellStyle, verticalAlign: 'bottom' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <span style={{ fontSize: '0.82rem', fontWeight: '600', color: 'var(--text-muted)' }}>
+                            {row.label} {ri + 2}
+                          </span>
+                          <button
+                            type="button"
+                            style={minusBtnStyle}
+                            title="Remove row"
+                            onClick={() => removeExtraRow(row.extraKey, ri)}
+                          >−</button>
+                        </div>
+                        <input
+                          type="text"
+                          className={styles.inputField}
+                          style={{ padding: '8px 10px', fontSize: '0.85rem', width: '100%' }}
+                          placeholder={row.titlePlaceholder || 'Enter description / title'}
+                          value={getRowTitle(extraRow)}
+                          onChange={(e) => updateExtraTitle(row.extraKey, ri, e.target.value)}
+                        />
                       </div>
                     </td>
                     {directions.map((dir, ci) => (
-                      <td key={`${row.extraKey}-${ri}-${ci}`}>
+                      <td key={`${row.extraKey}-${ri}-${ci}`} style={{ verticalAlign: 'bottom' }}>
                         <input
                           type="text"
                           className={styles.inputField}
                           style={{ padding: '10px', fontSize: '0.9rem', width: '100%' }}
-                          value={extraRowValues[ci]}
+                          value={getRowValue(extraRow, ci)}
                           onChange={(e) => updateExtraCell(row.extraKey, ri, ci, e.target.value)}
                         />
                       </td>
