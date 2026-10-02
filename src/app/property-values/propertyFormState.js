@@ -145,8 +145,10 @@ export const initialFormData = {
     number_of_electrical_points: '',
     number_of_water_outlets: '',
     technical_assessment: '',
+    apartment_case_note: '',
     landMeasurements: {
       shape: 'Regular',
+      apartment_case_note: '',
       north: { actual: '', document: '', plan: '', match: false },
       south: { actual: '', document: '', plan: '', match: false },
       east: { actual: '', document: '', plan: '', match: false },
@@ -417,6 +419,7 @@ export const getSampleFormData = () => {
       number_of_electrical_points: '20',
       number_of_water_outlets: '5',
       technical_assessment: 'Construction quality is good with proper structural integrity.',
+      apartment_case_note: 'In case of apartment, land measurements are as per master layout plan / reflection only.',
     },
     finalValuation: {
       property_type: 'Residential Apartment',

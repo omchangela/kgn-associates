@@ -879,6 +879,8 @@ const PropertyValues = () => {
                 <MeasurementMatchingCard
                   title="Land Measurements & Matching Status"
                   sectionKey="landMeasurements"
+                  showNoteBox={true}
+                  noteLabel="Note : Apartment case (just reflection)"
                 />
 
                 <MeasurementMatchingCard
@@ -1307,7 +1309,12 @@ const RadioYesNo = ({ label, section, field }) => {
   );
 };
 
-const MeasurementMatchingCard = ({ title, sectionKey }) => {
+const MeasurementMatchingCard = ({
+  title,
+  sectionKey,
+  showNoteBox = (sectionKey === 'landMeasurements'),
+  noteLabel = "Note : Apartment case (just reflection)",
+}) => {
   const { formData, setFormData } = useFormContext();
   const sectionData = formData.technicalDetails?.[sectionKey] || {};
   const currentShape = sectionData.shape || 'Regular';
@@ -1582,6 +1589,66 @@ const MeasurementMatchingCard = ({ title, sectionKey }) => {
           </div>
         );
       })}
+
+      {/* Note Box for Apartment Case Reflection */}
+      {showNoteBox && (
+        <div
+          style={{
+            marginTop: '22px',
+            paddingTop: '18px',
+            borderTop: '1px solid var(--border-color, #e2e8f0)',
+          }}
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+              <label
+                style={{
+                  fontSize: '0.95rem',
+                  fontWeight: 600,
+                  fontFamily: 'var(--font-heading)',
+                  color: 'var(--text-primary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                }}
+              >
+                <span>{noteLabel}</span>
+              </label>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                Manual Entry
+              </span>
+            </div>
+            <textarea
+              rows={3}
+              placeholder="Enter manual data / note for apartment case (just reflection)..."
+              value={sectionData.apartment_case_note ?? formData.technicalDetails?.apartment_case_note ?? ''}
+              onChange={(e) => {
+                const val = e.target.value;
+                setFormData((prev) => ({
+                  ...prev,
+                  technicalDetails: {
+                    ...prev.technicalDetails,
+                    apartment_case_note: val,
+                    [sectionKey]: {
+                      ...prev.technicalDetails?.[sectionKey],
+                      apartment_case_note: val,
+                    },
+                  },
+                }));
+              }}
+              className={styles.textarea}
+              style={{
+                width: '100%',
+                minHeight: '75px',
+                padding: '10px 14px',
+                fontSize: '0.9rem',
+                fontFamily: 'var(--font-body)',
+                resize: 'vertical',
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

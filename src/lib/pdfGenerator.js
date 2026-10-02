@@ -390,6 +390,9 @@ export function generateValuationPdf(report) {
       ['Structural Elements', `Wall: ${fmtVal(tech.wall_thickness, '9"')} | Slab: ${fmtVal(tech.slab_thickness, '5"')}`, 'Beams & Columns', `Beam: ${fmtVal(tech.beam_size, '9"x12"')} | Col: ${fmtVal(tech.column_size, '9"x12"')}`],
       ['Internal Installations', `Wiring: ${tech.electrical_wiring_done ? 'Concealed Copper' : 'No'} | Plumb: ${tech.plumbing_work_done ? 'CPVC / PVC' : 'No'}`, 'Fire & AC Points', `AC: ${tech.ac_points_provided ? 'Concealed' : 'No'} | Fire: ${tech.fire_fighting_system ? 'Provided' : 'Standard'}`],
       ['Structural Safety', char.structure_confirming_to_safety ? 'Confirmed Conforming to NBC Building Codes' : 'Non-Conforming', 'Technical Assessment', fmtVal(tech.technical_assessment, 'Structure is physically sound, stable and free from structural cracks.')],
+      ...((tech.apartment_case_note || tech.landMeasurements?.apartment_case_note)
+        ? [['Apartment Case Note (Reflection)', tech.apartment_case_note || tech.landMeasurements?.apartment_case_note, '', '']]
+        : []),
     ],
     theme: 'grid',
     headStyles: sectionHeaderStyles,
