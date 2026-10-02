@@ -216,7 +216,7 @@ export function generateValuationPdf(report) {
       ['Person Met at Site', fmtVal(inst.person_met_at_site), 'Contact & Relationship', `${fmtVal(inst.person_met_contact_number)} (${fmtVal(inst.relationship_with_applicant)})`],
       ['Property Holding Type', fmtVal(inst.property_holding_type).toUpperCase(), 'Property Category', (inst.property_type === 'others' && inst.other_property_type ? inst.other_property_type : fmtVal(inst.property_type)).toUpperCase()],
       ['Assessing Engineer', fmtVal(inst.site_engineer_name, 'Rajesh Kumar'), 'Engineer Contact', fmtVal(inst.site_engineer_contact_number, '+91 98765 43211')],
-      ['Valuer / Firm Name', fmtVal(inst.vendor_engineer_institution_name, 'KGN Associates'), 'Valuer Contact', fmtVal(inst.vendor_contact_number, '+91 98765 43210')],
+      ['Engineer / Firm Name', fmtVal(inst.vendor_engineer_institution_name, 'KGN Associates'), 'Contact', fmtVal(inst.vendor_contact_number, '+91 98765 43210')],
     ],
     theme: 'grid',
     headStyles: sectionHeaderStyles,
@@ -519,7 +519,7 @@ export function generateValuationPdf(report) {
       ['Gross Structural Replacement Cost', `Rs. ${replaceCost.toLocaleString('en-IN')}`],
       ['Net Depreciated Structural Replacement Value', `Rs. ${depCost.toLocaleString('en-IN')}`],
       ['Valuation Purpose & Methodology', `${fmtVal(finalVal.valuation_purpose, 'Bank Credit & Mortgage Assessment')} | ${fmtVal(char.valuation_methodology, 'Cost & Market Comparison Approach')}`],
-      [{ content: `Valuer Observations & Remarks: ${fmtVal(finalVal.valuer_remarks, 'The subject property possesses good title, clearly demarcated boundaries, sound physical structure and is recommended as secure collateral for financial facilities.')}`, colSpan: 2, styles: { fontStyle: 'italic', textColor: [30, 41, 59] } }],
+      [{ content: `Engineer Observations & Remarks: ${fmtVal(finalVal.valuer_remarks, 'The subject property possesses good title, clearly demarcated boundaries, sound physical structure and is recommended as secure collateral for financial facilities.')}`, colSpan: 2, styles: { fontStyle: 'italic', textColor: [30, 41, 59] } }],
     ],
     theme: 'grid',
     headStyles: {
@@ -565,8 +565,7 @@ export function generateValuationPdf(report) {
     { maxWidth: 174 }
   );
 
-  const valuerName = fmtVal(finalVal.valuer_name, 'Er. M. A. Khan, B.E. (Civil), F.I.V., M.I.E.');
-  const valuerLicense = fmtVal(finalVal.valuer_license_no, 'IBBI Reg. No: IBBI/RV/02/2019/11245');
+  const engineerName = fmtVal(finalVal.valuer_name, 'Er. M. A. Khan, B.E. (Civil), F.I.V., M.I.E.');
 
   doc.setFontSize(8);
   doc.setFont('helvetica', 'bold');
@@ -595,25 +594,25 @@ export function generateValuationPdf(report) {
     } catch (e) {}
   }
 
-  // Certified Valuer Signature
-  const valuerSig = report.signatures?.signature_valuer || report.signatures?.signature_engineer;
-  if (valuerSig && typeof valuerSig === 'string' && valuerSig.startsWith('data:image')) {
+  // Engineer Signature
+  const engineerSig = report.signatures?.signature_engineer || report.signatures?.signature_valuer;
+  if (engineerSig && typeof engineerSig === 'string' && engineerSig.startsWith('data:image')) {
     try {
-      const format = valuerSig.includes('png') ? 'PNG' : 'JPEG';
-      doc.addImage(valuerSig, format, 120, currentY + 11, 28, 7);
+      const format = engineerSig.includes('png') ? 'PNG' : 'JPEG';
+      doc.addImage(engineerSig, format, 120, currentY + 11, 28, 7);
     } catch (e) {}
   }
 
-  // Right side: Certified Valuer Name & License
+  // Right side: Chartered Engineer Name
   doc.setFontSize(8);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...navyDark);
-  doc.text(valuerName, 120, currentY + 19);
+  doc.text(engineerName, 120, currentY + 19);
 
   doc.setFontSize(7.2);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(71, 85, 105);
-  doc.text(valuerLicense, 120, currentY + 23);
+  doc.text('Chartered Engineer', 120, currentY + 23);
   doc.text(`Report Certified On: ${fmtVal(finalVal.report_date || inst.date_of_report, new Date().toISOString().split('T')[0])}`, 120, currentY + 27);
 
   // ==========================================

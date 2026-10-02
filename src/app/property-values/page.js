@@ -876,13 +876,12 @@ const PropertyValues = () => {
                 </div>
 
                 <div className={styles.card}>
-                  <h2 className={styles.sectionHeading}>Valuer Details</h2>
+                  <h2 className={styles.sectionHeading}>Engineer Details</h2>
                   <div className={styles.formGrid}>
                     <InputGroup label="Engineer Name" placeholder="Enter" section="finalValuation" field="valuer_name" />
-                    <InputGroup label="Valuer License No" placeholder="Enter" section="finalValuation" field="valuer_license_no" />
                     <InputGroup label="Signature Date" placeholder="Enter" isDate section="finalValuation" field="report_date" />
                   </div>
-                  <TextAreaField label="Valuer Remarks" section="finalValuation" field="valuer_remarks" placeholder="Enter valuer remarks" />
+                  <TextAreaField label="Engineer Remarks" section="finalValuation" field="valuer_remarks" placeholder="Enter engineer remarks" />
                 </div>
                 <div className={styles.footerActions}>
                   <button className={styles.nextBtn} onClick={handleNext}>Next <ChevronRight size={18} /></button>
@@ -1037,7 +1036,6 @@ const PropertyValues = () => {
                   <h2 className={styles.sectionHeading}>Signatures</h2>
                   <div className={styles.formGrid}>
                     <SignatureField label="Signature Of Inspector" section="signatures" field="signature_inspector" />
-                    <SignatureField label="Signature Of Valuer" section="signatures" field="signature_valuer" />
                     <SignatureField label="Signature Of Engineer" section="signatures" field="signature_engineer" />
                     <SignatureField label="Signature Of Institution" section="signatures" field="signature_institution" />
                   </div>
