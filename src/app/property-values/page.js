@@ -2743,6 +2743,7 @@ const StructureValuationTable = () => {
     slab_area: 'Slab Area (Sq Ft)',
   };
 
+  // Maps floor_details key → technicalDetails field name
   const techMapping = {
     carpet_area: 'carpet_area',
     plinth_area: 'plinth_area',
@@ -2753,14 +2754,94 @@ const StructureValuationTable = () => {
 
   const ORDERED_KEYS = ['carpet_area', 'plinth_area', 'built_up_area', 'super_built', 'slab_area'];
 
+  // Helper: compute total area from buildingMeasurements for a given measurement field (actual/document/plan)
+  // Uses average of opposite sides × average of adjacent sides (same formula as LandExtentTable)
+  const computeBuildingArea = (tech, measureField) => {
+    const raw = tech?.buildingMeasurements;
+    const cards = Array.isArray(raw) ? raw : (raw && typeof raw === 'object' ? [raw] : []);
+    if (cards.length === 0) return '';
+    const parseDim = (v) => {
+      if (!v) return 0;
+      const n = parseFloat(String(v).replace(/,/g, '').trim());
+      return isNaN(n) || n < 0 ? 0 : n;
+    };
+    let totalArea = 0;
+    cards.forEach((c) => {
+      const n = parseDim(c.north?.[measureField]);
+      const s = parseDim(c.south?.[measureField]);
+      const e = parseDim(c.east?.[measureField]);
+      const w = parseDim(c.west?.[measureField]);
+      if (!n && !s && !e && !w) return;
+      const length = n > 0 && s > 0 ? (n + s) / 2 : (n || s || 0);
+      const width = e > 0 && w > 0 ? (e + w) / 2 : (e || w || 0);
+      if (length > 0 && width > 0) totalArea += Math.round(length * width);
+    });
+    return totalArea > 0 ? String(totalArea) : '';
+  };
+
+  // Helper: get the area for a floor_details key from the chosen basis.
+  // Priority: (1) buildingMeasurements computed area for the basis, (2) buildingSpecCards first card, (3) technicalDetails flat fields.
+  const getAreaForBasis = (key, basis, prev) => {
+    const tech = prev.technicalDetails || {};
+    const flatKey = techMapping[key];
+
+    // Map basis to measurement field
+    const measureField = basis === 'as_per_actual' ? 'actual' : basis === 'as_per_documents' ? 'document' : 'plan';
+
+    // For carpet/plinth/built_up/super_built/slab: these are distinct floor-level areas,
+    // not directly in N/S/E/W measurements. Use buildingMeasurements computed total area
+    // only for built_up_area (the primary area field); for others fall back to tech fields.
+    // This gives a real auto-fill for built_up_area and tech-based for the rest.
+    const computedBuildingArea = computeBuildingArea(tech, measureField);
+
+    // Try per-card buildingSpecCards (repeat-mode) – use first card
+    const specCards = tech.buildingSpecCards;
+    const firstCard = Array.isArray(specCards) && specCards.length > 0 ? specCards[0] : null;
+
+    // For built_up_area, use the computed building measurement area
+    if (key === 'built_up_area' && computedBuildingArea) return computedBuildingArea;
+
+    // Otherwise use the value stored in the BuildingSpecifications card or flat tech field
+    return firstCard?.[flatKey] || tech[flatKey] || '';
+  };
+
+  // Expose computed building areas for display
+  const computedBuildingAreas = {
+    as_per_actual: computeBuildingArea(formData.technicalDetails, 'actual'),
+    as_per_documents: computeBuildingArea(formData.technicalDetails, 'document'),
+    as_per_plan: computeBuildingArea(formData.technicalDetails, 'plan'),
+  };
+
+  const applyBasisFill = (prev, basis) => {
+    const updated = (prev.structureValuations || []).map(row => {
+      const areaVal = getAreaForBasis(row.floor_details, basis, prev);
+      const area = parseFloat(String(areaVal).replace(/,/g, '')) || 0;
+      const cost = parseFloat(String(row.cost_per_sqft || '').replace(/,/g, '')) || 0;
+      let total = row.total_value;
+      if (area > 0 && cost > 0) {
+        const fundingStr = String(row.recommendation_of_funding || '').replace('%', '').trim();
+        let pct = 1;
+        if (fundingStr !== '') {
+          const num = parseFloat(fundingStr);
+          if (!isNaN(num) && num >= 0) pct = num / 100;
+        }
+        total = String(Math.round(area * cost * pct));
+      }
+      return { ...row, area_sqft: areaVal, total_value: total };
+    });
+    return { ...prev, structureValuations: updated };
+  };
+
+  const ORDERED_KEYS_CONST = ORDERED_KEYS;
+
   // Ensure all 5 rows exist in formData.structureValuations in exact order
   useEffect(() => {
     const existing = formData.structureValuations || [];
-    const isComplete = ORDERED_KEYS.length === existing.length && ORDERED_KEYS.every((k, i) => existing[i]?.floor_details === k);
+    const isComplete = ORDERED_KEYS_CONST.length === existing.length && ORDERED_KEYS_CONST.every((k, i) => existing[i]?.floor_details === k);
     if (!isComplete) {
       setFormData(prev => {
         const prevList = prev.structureValuations || [];
-        const newList = ORDERED_KEYS.map(k => {
+        const newList = ORDERED_KEYS_CONST.map(k => {
           const found = prevList.find(r => r.floor_details === k);
           const defaultArea = prev.technicalDetails?.[techMapping[k]] || '';
           return found ? { ...found } : {
@@ -2776,45 +2857,18 @@ const StructureValuationTable = () => {
     }
   }, []);
 
-  // Auto-populate empty areas from technical details when available
+  // Auto-reflect areas whenever the basis changes, tech values change, or buildingMeasurements change
   useEffect(() => {
-    const tech = formData.technicalDetails || {};
-    const hasEmptyToFill = (formData.structureValuations || []).some(row => {
-      const techVal = tech[techMapping[row.floor_details]];
-      return techVal && !row.area_sqft;
-    });
-
-    if (hasEmptyToFill) {
-      setFormData(prev => {
-        const techDetails = prev.technicalDetails || {};
-        const updated = (prev.structureValuations || []).map(row => {
-          const techVal = techDetails[techMapping[row.floor_details]];
-          if (techVal && !row.area_sqft) {
-            const area = parseFloat(String(techVal).replace(/,/g, '')) || 0;
-            const cost = parseFloat(String(row.cost_per_sqft || '').replace(/,/g, '')) || 0;
-            let total = row.total_value;
-            if (area > 0 && cost > 0) {
-              const fundingStr = String(row.recommendation_of_funding || '').replace('%', '').trim();
-              let pct = 1;
-              if (fundingStr !== '') {
-                const num = parseFloat(fundingStr);
-                if (!isNaN(num) && num >= 0) pct = num / 100;
-              }
-              total = String(Math.round(area * cost * pct));
-            }
-            return { ...row, area_sqft: techVal, total_value: total };
-          }
-          return row;
-        });
-        return { ...prev, structureValuations: updated };
-      });
-    }
+    const basis = formData.structure_valuation_basis || 'as_per_actual';
+    setFormData(prev => applyBasisFill(prev, basis));
   }, [
+    formData.structure_valuation_basis,
     formData.technicalDetails?.carpet_area,
     formData.technicalDetails?.plinth_area,
     formData.technicalDetails?.built_up_area,
     formData.technicalDetails?.super_built_up_area,
     formData.technicalDetails?.slab_area,
+    formData.technicalDetails?.buildingMeasurements,
   ]);
 
   const handleCellChange = (idx, field, val) => {
@@ -2848,93 +2902,86 @@ const StructureValuationTable = () => {
     });
   };
 
-  const syncAllFromTechnical = () => {
+  const handleBasisSelect = (basis) => {
     setFormData(prev => {
-      const tech = prev.technicalDetails || {};
-      const updated = (prev.structureValuations || []).map(row => {
-        const techVal = tech[techMapping[row.floor_details]] || row.area_sqft || '';
-        const area = parseFloat(String(techVal).replace(/,/g, '')) || 0;
-        const cost = parseFloat(String(row.cost_per_sqft || '').replace(/,/g, '')) || 0;
-        let total = row.total_value;
-        if (area > 0 && cost > 0) {
-          const fundingStr = String(row.recommendation_of_funding || '').replace('%', '').trim();
-          let pct = 1;
-          if (fundingStr !== '') {
-            const num = parseFloat(fundingStr);
-            if (!isNaN(num) && num >= 0) pct = num / 100;
-          }
-          total = String(Math.round(area * cost * pct));
-        }
-        return { ...row, area_sqft: techVal, total_value: total };
-      });
-      return { ...prev, structureValuations: updated };
+      const withBasis = { ...prev, structure_valuation_basis: basis };
+      return applyBasisFill(withBasis, basis);
     });
   };
 
-  const handleBasisSelect = (basis) => {
-    setFormData(prev => ({
-      ...prev,
-      structure_valuation_basis: basis,
-    }));
+  const syncAllFromTechnical = () => {
+    const basis = formData.structure_valuation_basis || 'as_per_actual';
+    setFormData(prev => applyBasisFill(prev, basis));
   };
 
   const currentBasis = formData.structure_valuation_basis || 'as_per_actual';
 
+  const basisOptions = [
+    { id: 'as_per_actual', label: 'As Per Actual' },
+    { id: 'as_per_documents', label: 'As Per Documents' },
+    { id: 'as_per_plan', label: 'As Per Plan' },
+  ];
+
   return (
     <div style={{ marginBottom: '10px' }}>
-      {/* Basis selection & Auto-fill controls */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', marginBottom: '12px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: '600' }}>Basis:</span>
-          {[
-            { id: 'as_per_actual', label: 'As Per Actual' },
-            { id: 'as_per_documents', label: 'As Per Documents' },
-            { id: 'as_per_plan', label: 'As Per Plan' },
-          ].map(opt => {
-            const active = currentBasis === opt.id;
-            return (
-              <button
-                key={opt.id}
-                type="button"
-                onClick={() => handleBasisSelect(opt.id)}
-                style={{
-                  padding: '5px 12px',
-                  borderRadius: '16px',
-                  fontSize: '0.8rem',
-                  fontWeight: '600',
-                  cursor: 'pointer',
-                  border: active ? '1px solid #3b82f6' : '1px solid rgba(255,255,255,0.15)',
-                  background: active ? '#2563eb' : 'rgba(255,255,255,0.06)',
-                  color: active ? '#ffffff' : 'var(--text-secondary)',
-                  transition: 'all 0.2s ease',
-                }}
-              >
-                {opt.label}
-              </button>
-            );
-          })}
-        </div>
-
+      {/* Status line */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '10px' }}>
+        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+          {computedBuildingAreas.as_per_actual || computedBuildingAreas.as_per_documents || computedBuildingAreas.as_per_plan
+            ? `Built-Up area auto-computed from Building Measurements · Actual: ${computedBuildingAreas.as_per_actual || '—'} · Docs: ${computedBuildingAreas.as_per_documents || '—'} · Plan: ${computedBuildingAreas.as_per_plan || '—'} sq ft`
+            : 'Enter Building Measurements in Technical tab to auto-compute Built-Up area'}
+        </span>
         <button
           type="button"
           onClick={syncAllFromTechnical}
-          style={{
-            padding: '5px 12px',
-            borderRadius: '8px',
-            fontSize: '0.8rem',
-            fontWeight: '500',
-            background: 'rgba(59, 130, 246, 0.15)',
-            color: '#60a5fa',
-            border: '1px solid rgba(59, 130, 246, 0.3)',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-          }}
-          title="Auto-fill Area values from Technical Details"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '5px 12px', borderRadius: '4px', background: 'rgba(201,168,76,0.12)', border: '1px solid rgba(201,168,76,0.4)', color: 'var(--primary-gold,#C9A84C)', fontSize: '0.8rem', fontWeight: '600', cursor: 'pointer' }}
+          title="Re-apply areas from current basis selection"
         >
-          <span>⚡ Auto-fill Area from Technical</span>
+          ▶ Reflect Now
         </button>
+      </div>
+
+      {/* Basis selection pills */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '14px' }}>
+        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: '600' }}>Basis:</span>
+        {basisOptions.map(opt => {
+          const active = currentBasis === opt.id;
+          const computedArea = computedBuildingAreas[opt.id];
+          return (
+            <button
+              key={opt.id}
+              type="button"
+              onClick={() => handleBasisSelect(opt.id)}
+              title={computedArea ? `Auto-computed Built-Up Area: ${computedArea} sq ft` : ''}
+              style={{
+                padding: '5px 14px',
+                borderRadius: '16px',
+                fontSize: '0.8rem',
+                fontWeight: '600',
+                cursor: 'pointer',
+                border: active ? '1px solid #3b82f6' : '1px solid rgba(255,255,255,0.15)',
+                background: active ? '#2563eb' : 'rgba(255,255,255,0.06)',
+                color: active ? '#ffffff' : 'var(--text-secondary)',
+                transition: 'all 0.2s ease',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+              }}
+            >
+              {opt.label}
+              {computedArea && (
+                <span style={{ fontSize: '0.7rem', opacity: 0.8, fontWeight: 500 }}>
+                  ({computedArea} ft²)
+                </span>
+              )}
+            </button>
+          );
+        })}
+        {currentBasis && (
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginLeft: '4px' }}>
+            → Areas reflected automatically
+          </span>
+        )}
       </div>
 
       <div style={{ overflowX: 'auto', marginBottom: '10px' }}>
@@ -2942,7 +2989,7 @@ const StructureValuationTable = () => {
           <thead>
             <tr>
               <th style={{ textAlign: 'left', color: 'var(--text-primary)', fontWeight: '600', paddingBottom: '10px' }}>Floor Details</th>
-              <th style={{ textAlign: 'left', color: 'var(--text-primary)', fontWeight: '600', paddingBottom: '10px' }}>Area</th>
+              <th style={{ textAlign: 'left', color: 'var(--text-primary)', fontWeight: '600', paddingBottom: '10px' }}>Area (Sq Ft)</th>
               <th style={{ textAlign: 'left', color: 'var(--text-primary)', fontWeight: '600', paddingBottom: '10px' }}>Recommendation<br/>Of Funding</th>
               <th style={{ textAlign: 'left', color: 'var(--text-primary)', fontWeight: '600', paddingBottom: '10px' }}>Cost Per Sft</th>
               <th style={{ textAlign: 'left', color: 'var(--text-primary)', fontWeight: '600', paddingBottom: '10px' }}>Total Value</th>
