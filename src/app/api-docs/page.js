@@ -112,7 +112,83 @@ export default function ApiDocsPage() {
 
         #swagger-wrapper .swagger-ui .markdown p, #swagger-wrapper .swagger-ui .markdown li { color: #475569 !important; }
         #swagger-wrapper .swagger-ui .markdown code { background: #e2e8f0 !important; color: #0f172a !important; }
-        #swagger-wrapper .swagger-ui .highlight-code pre, #swagger-wrapper .swagger-ui .microlight { background: #f1f5f9 !important; color: #0f172a !important; border-radius: 6px !important; }
+
+        /* ── Response / Code blocks – KEY FIX ── */
+        #swagger-wrapper .swagger-ui .highlight-code,
+        #swagger-wrapper .swagger-ui .microlight,
+        #swagger-wrapper .swagger-ui pre,
+        #swagger-wrapper .swagger-ui code,
+        #swagger-wrapper .swagger-ui .response-col_description pre,
+        #swagger-wrapper .swagger-ui .body-param__text,
+        #swagger-wrapper .swagger-ui .curl,
+        #swagger-wrapper .swagger-ui .request-url {
+          background: #f1f5f9 !important;
+          color: #0f172a !important;
+          font-family: 'Consolas', 'Courier New', monospace !important;
+          font-size: 0.82rem !important;
+          line-height: 1.65 !important;
+          border-radius: 8px !important;
+          padding: 14px 16px !important;
+          white-space: pre-wrap !important;
+          word-break: break-word !important;
+          overflow-wrap: break-word !important;
+          overflow-x: auto !important;
+          max-width: 100% !important;
+        }
+
+        /* JSON syntax colors in response body */
+        #swagger-wrapper .swagger-ui .microlight .string { color: #15803d !important; }
+        #swagger-wrapper .swagger-ui .microlight .number { color: #b45309 !important; }
+        #swagger-wrapper .swagger-ui .microlight .boolean { color: #7c3aed !important; }
+        #swagger-wrapper .swagger-ui .microlight .null { color: #dc2626 !important; }
+        #swagger-wrapper .swagger-ui .microlight .key { color: #1d4ed8 !important; font-weight: 600 !important; }
+
+        /* Curl command block */
+        #swagger-wrapper .swagger-ui .curl-command {
+          background: #1e293b !important;
+          border-radius: 8px !important;
+          padding: 2px !important;
+        }
+        #swagger-wrapper .swagger-ui .curl {
+          background: #1e293b !important;
+          color: #e2e8f0 !important;
+          border-radius: 8px !important;
+        }
+
+        /* Request URL box */
+        #swagger-wrapper .swagger-ui .request-url {
+          background: #eff6ff !important;
+          color: #1d4ed8 !important;
+          border: 1px solid #bfdbfe !important;
+          font-weight: 600 !important;
+        }
+
+        /* Response body wrapper */
+        #swagger-wrapper .swagger-ui .responses-inner {
+          padding: 12px !important;
+          background: #ffffff !important;
+        }
+        #swagger-wrapper .swagger-ui .response-col_description .response-col_description__inner {
+          background: #f8fafc !important;
+          border-radius: 8px !important;
+          padding: 12px !important;
+          border: 1px solid #e2e8f0 !important;
+        }
+
+        /* Make body param textarea readable */
+        #swagger-wrapper .swagger-ui .body-param__text {
+          background: #ffffff !important;
+          color: #0f172a !important;
+          border: 1px solid #cbd5e1 !important;
+          min-height: 180px !important;
+        }
+
+        /* Live response status */
+        #swagger-wrapper .swagger-ui .live-responses-table .response-col_status {
+          font-size: 1rem !important;
+          font-weight: 800 !important;
+          color: #15803d !important;
+        }
       `}</style>
     </div>
   );
