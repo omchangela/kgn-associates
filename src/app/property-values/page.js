@@ -1078,12 +1078,15 @@ const PropertyValues = () => {
                 {/* Remarks */}
                 <div className={styles.card}>
                   <h2 className={styles.sectionHeading}>Remarks</h2>
-                  <textarea
-                    className={styles.textarea}
+                  <TextOrImageField
+                    label=""
+                    textField="remarks"
+                    imageField="remarks_image"
                     placeholder="Enter remarks here..."
-                    rows="4"
-                    style={{ width: '100%' }}
-                  ></textarea>
+                    isTextarea
+                    rows={4}
+                    sectionOverride="photoRemarks"
+                  />
                 </div>
 
                 {/* Signatures */}
@@ -1168,20 +1171,22 @@ const PropertyValues = () => {
 --------------------------------------------------- */
 
 /* Dual-mode field: Text typing OR Picture upload */
-const TextOrImageField = ({ label, textField, imageField, placeholder, isTextarea = false, rows = 4 }) => {
+const TextOrImageField = ({ label, textField, imageField, placeholder, isTextarea = false, rows = 4, sectionOverride }) => {
   const { formData, updateField } = useFormContext();
   const [mode, setMode] = useState('text'); // 'text' | 'picture'
   const fileInputRef = React.useRef(null);
+  
+  const section = sectionOverride || 'finalValuation';
 
-  const textValue = formData.finalValuation?.[textField] ?? '';
-  const imageValue = formData.finalValuation?.[imageField] ?? '';
+  const textValue = formData[section]?.[textField] ?? '';
+  const imageValue = formData[section]?.[imageField] ?? '';
 
   const handleImageUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (ev) => {
-      updateField('finalValuation', imageField, ev.target.result);
+      updateField(section, imageField, ev.target.result);
     };
     reader.readAsDataURL(file);
   };
@@ -1201,6 +1206,7 @@ const TextOrImageField = ({ label, textField, imageField, placeholder, isTextare
   return (
     <div style={{ marginBottom: '18px' }}>
       {/* Label + tab switcher */}
+      {label && (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
         <label className={styles.label} style={{ margin: 0 }}>{label}</label>
         <div style={{ display: 'inline-flex', gap: '4px', padding: '3px', borderRadius: '8px', background: 'rgba(255,255,255,0.06)', border: '1px solid var(--border-color)' }}>
@@ -1212,6 +1218,19 @@ const TextOrImageField = ({ label, textField, imageField, placeholder, isTextare
           </button>
         </div>
       </div>
+      )}
+      {!label && (
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '8px' }}>
+          <div style={{ display: 'inline-flex', gap: '4px', padding: '3px', borderRadius: '8px', background: 'rgba(255,255,255,0.06)', border: '1px solid var(--border-color)' }}>
+            <button type="button" style={tabStyle(mode === 'text')} onClick={() => setMode('text')}>
+              ✏️ Text
+            </button>
+            <button type="button" style={tabStyle(mode === 'picture')} onClick={() => setMode('picture')}>
+              🖼️ Picture
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Text mode */}
       {mode === 'text' && (
@@ -1221,7 +1240,7 @@ const TextOrImageField = ({ label, textField, imageField, placeholder, isTextare
             placeholder={placeholder}
             rows={rows}
             value={textValue}
-            onChange={(e) => updateField('finalValuation', textField, e.target.value)}
+            onChange={(e) => updateField(section, textField, e.target.value)}
           />
         ) : (
           <div className={styles.fieldWrapper}>
@@ -1230,7 +1249,7 @@ const TextOrImageField = ({ label, textField, imageField, placeholder, isTextare
               placeholder={placeholder}
               className={styles.inputField}
               value={textValue}
-              onChange={(e) => updateField('finalValuation', textField, e.target.value)}
+              onChange={(e) => updateField(section, textField, e.target.value)}
             />
           </div>
         )
@@ -1243,12 +1262,12 @@ const TextOrImageField = ({ label, textField, imageField, placeholder, isTextare
             <div style={{ position: 'relative', display: 'inline-block', maxWidth: '100%' }}>
               <img
                 src={imageValue}
-                alt={label}
+                alt={label || 'Uploaded Image'}
                 style={{ maxWidth: '100%', maxHeight: '220px', borderRadius: '8px', border: '1px solid var(--border-color)', objectFit: 'contain', display: 'block' }}
               />
               <button
                 type="button"
-                onClick={() => updateField('finalValuation', imageField, '')}
+                onClick={() => updateField(section, imageField, '')}
                 title="Remove image"
                 style={{ position: 'absolute', top: '6px', right: '6px', width: '26px', height: '26px', borderRadius: '50%', background: 'rgba(239,68,68,0.85)', border: 'none', color: '#fff', cursor: 'pointer', fontWeight: 700, fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >

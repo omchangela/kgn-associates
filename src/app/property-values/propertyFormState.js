@@ -259,6 +259,10 @@ export const initialFormData = {
       captured_at: '',
     },
   ],
+  photoRemarks: {
+    remarks: '',
+    remarks_image: '',
+  },
   signatures: {
     signature_inspector: '',
     signature_valuer: '',
