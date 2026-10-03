@@ -437,6 +437,97 @@ Use the **Authorize** button above and paste your JWT token as:
           },
         },
       },
+      '/api/upload': {
+        post: {
+          tags: ['Upload'],
+          summary: 'Upload Image / File (Multipart)',
+          description: 'Upload an image file using multipart/form-data. Returns both the hosted URL path (/uploads/...) and the Base64 Data URL.',
+          security: [],
+          requestBody: {
+            required: true,
+            content: {
+              'multipart/form-data': {
+                schema: {
+                  type: 'object',
+                  required: ['file'],
+                  properties: {
+                    file: {
+                      type: 'string',
+                      format: 'binary',
+                      description: 'The image file to upload (JPEG, PNG, WEBP, etc.)',
+                    },
+                    description: { type: 'string', example: 'Exterior Front Elevation' },
+                    latitude: { type: 'string', example: '17.385044' },
+                    longitude: { type: 'string', example: '78.486671' },
+                    locality: { type: 'string', example: 'Banjara Hills' },
+                    region: { type: 'string', example: 'Telangana' },
+                  },
+                },
+              },
+            },
+          },
+          responses: {
+            201: {
+              description: 'Image uploaded successfully',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      success: { type: 'boolean', example: true },
+                      filename: { type: 'string', example: '1741234567_photo.jpg' },
+                      url: { type: 'string', example: '/uploads/1741234567_photo.jpg' },
+                      size: { type: 'integer', example: 245000 },
+                      mimetype: { type: 'string', example: 'image/jpeg' },
+                      dataUrl: { type: 'string', example: 'data:image/jpeg;base64,...' },
+                    },
+                  },
+                },
+              },
+            },
+            400: { description: 'No file provided' },
+          },
+        },
+      },
+      '/api/valuations/{id}/add_photo': {
+        post: {
+          tags: ['Valuations'],
+          summary: 'Add Photo to Valuation (Multipart)',
+          description: 'Directly upload and append a site inspection photo to a specific valuation report using multipart/form-data.',
+          security: [{ BearerAuth: [] }],
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' }, example: 'val_001' }],
+          requestBody: {
+            required: true,
+            content: {
+              'multipart/form-data': {
+                schema: {
+                  type: 'object',
+                  required: ['photo'],
+                  properties: {
+                    photo: {
+                      type: 'string',
+                      format: 'binary',
+                      description: 'Site inspection photo file',
+                    },
+                    description: { type: 'string', example: 'Front elevation view' },
+                    latitude: { type: 'number', example: 17.385044 },
+                    longitude: { type: 'number', example: 78.486671 },
+                    locality: { type: 'string', example: 'Banjara Hills' },
+                    region: { type: 'string', example: 'Telangana' },
+                    bearing_degrees: { type: 'string', example: '180' },
+                    bearing_direction: { type: 'string', example: 'South' },
+                    captured_at: { type: 'string', example: '2026-10-03T10:00:00.000Z' },
+                  },
+                },
+              },
+            },
+          },
+          responses: {
+            200: { description: 'Photo added successfully' },
+            404: { description: 'Valuation not found' },
+          },
+        },
+      },
     },
   },
   apis: [],

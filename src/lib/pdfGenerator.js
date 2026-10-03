@@ -671,8 +671,17 @@ export function generateValuationPdf(report) {
       doc.roundedRect(x, y, 88, 88, 2, 2, 'FD');
 
       try {
-        if (imgData && imgData.startsWith('data:image')) {
-          doc.addImage(imgData, 'JPEG', x + 2, y + 2, 84, 58);
+        let finalImage = imgData;
+        if (typeof imgData === 'string' && imgData.startsWith('/uploads/')) {
+          const diskPath = path.join(process.cwd(), 'public', imgData);
+          if (fs.existsSync(diskPath)) {
+            const ext = path.extname(diskPath).toLowerCase().replace('.', '') || 'jpeg';
+            const buf = fs.readFileSync(diskPath);
+            finalImage = `data:image/${ext === 'jpg' ? 'jpeg' : ext};base64,${buf.toString('base64')}`;
+          }
+        }
+        if (finalImage && finalImage.startsWith('data:image')) {
+          doc.addImage(finalImage, 'JPEG', x + 2, y + 2, 84, 58);
         } else {
           doc.setFillColor(226, 232, 240);
           doc.rect(x + 2, y + 2, 84, 58, 'F');
