@@ -3845,12 +3845,14 @@ const PhotoUploadList = () => {
   );
 };
 
-/* Freehand drawing canvas */
+/* Freehand drawing canvas with picture upload */
 const DrawingCanvas = () => {
   const canvasRef = React.useRef(null);
+  const fileInputRef = React.useRef(null);
   const [drawing, setDrawing] = React.useState(false);
   const [color, setColor] = React.useState('#C9A84C');
   const [size, setSize] = React.useState(3);
+  const [hasImage, setHasImage] = React.useState(false);
   const lastPos = React.useRef(null);
 
   const getPos = (e, canvas) => {
@@ -3885,7 +3887,44 @@ const DrawingCanvas = () => {
 
   const clearCanvas = () => {
     const canvas = canvasRef.current;
+    if (!canvas) return;
     canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+    setHasImage(false);
+  };
+
+  const handlePictureUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+
+        // Clear canvas before drawing image
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Scale to fit canvas preserving aspect ratio
+        const hRatio = canvas.width / img.width;
+        const vRatio = canvas.height / img.height;
+        const ratio = Math.min(hRatio, vRatio);
+
+        const drawWidth = img.width * ratio;
+        const drawHeight = img.height * ratio;
+        const x = (canvas.width - drawWidth) / 2;
+        const y = (canvas.height - drawHeight) / 2;
+
+        ctx.drawImage(img, x, y, drawWidth, drawHeight);
+        setHasImage(true);
+      };
+      img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+
+    e.target.value = '';
   };
 
   return (
@@ -3900,7 +3939,54 @@ const DrawingCanvas = () => {
           <input type="range" min="1" max="20" value={size} onChange={e => setSize(Number(e.target.value))} style={{ width: '80px' }} />
           <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{size}px</span>
         </div>
-        <button onClick={clearCanvas} style={{ background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-muted)', padding: '6px 14px', borderRadius: 'var(--border-radius)', cursor: 'pointer', fontSize: '0.85rem', fontFamily: 'var(--font-body)' }}>Clear</button>
+        <button
+          type="button"
+          onClick={clearCanvas}
+          style={{ background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-muted)', padding: '6px 14px', borderRadius: 'var(--border-radius)', cursor: 'pointer', fontSize: '0.85rem', fontFamily: 'var(--font-body)' }}
+        >
+          Clear
+        </button>
+        {/* Upload Picture button */}
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            background: 'rgba(201, 168, 76, 0.15)',
+            border: '1px solid rgba(201, 168, 76, 0.5)',
+            color: 'var(--primary-gold, #C9A84C)',
+            padding: '6px 14px',
+            borderRadius: 'var(--border-radius)',
+            cursor: 'pointer',
+            fontSize: '0.85rem',
+            fontWeight: '600',
+            fontFamily: 'var(--font-body)',
+            transition: 'all 0.2s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'rgba(201, 168, 76, 0.25)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'rgba(201, 168, 76, 0.15)';
+          }}
+          title="Upload a picture to draw over or display on the canvas"
+        >
+          <Upload size={14} /> Upload Picture
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          style={{ display: 'none' }}
+          onChange={handlePictureUpload}
+        />
+        {hasImage && (
+          <span style={{ fontSize: '0.78rem', color: '#16a34a', fontWeight: '600' }}>
+            ✓ Picture loaded
+          </span>
+        )}
       </div>
       <canvas
         ref={canvasRef}
