@@ -1059,114 +1059,43 @@ const PropertyValues = () => {
             {/* TAB 10: PHOTOS */}
             {activeTab === "Photos" && (
               <>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap', marginBottom: '20px' }}>
-                  <h1 className={styles.pageTitle} style={{ margin: 0, whiteSpace: 'nowrap' }}>Photo Graphs</h1>
-                  
-                  {/* + Symbol and Empty Box for Manual Typing */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: '1 1 360px', maxWidth: '750px', flexWrap: 'wrap' }}>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setFormData(prev => {
-                          const currentNotes = Array.isArray(prev.photo_graphs_notes) ? prev.photo_graphs_notes : [prev.photo_graphs_note || ''];
-                          const nextNotes = [...currentNotes, ''];
-                          return {
-                            ...prev,
-                            photo_graphs_notes: nextNotes,
-                            photo_graphs_note: nextNotes[0] || '',
-                          };
-                        });
-                      }}
-                      title="Add another box for manual typing"
-                      style={{
-                        width: '38px',
-                        height: '38px',
-                        borderRadius: '50%',
-                        background: 'var(--gradient-gold, linear-gradient(135deg, #C9A84C 0%, #E0C77D 100%))',
-                        color: '#1a1a1a',
-                        border: 'none',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        boxShadow: '0 2px 10px rgba(201, 168, 76, 0.35)',
-                        flexShrink: 0,
-                        transition: 'transform 0.15s ease',
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.08)')}
-                      onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-                    >
-                      <Plus size={22} strokeWidth={2.5} />
-                    </button>
-
-                    {(Array.isArray(formData.photo_graphs_notes) && formData.photo_graphs_notes.length > 0
-                      ? formData.photo_graphs_notes
-                      : [formData.photo_graphs_note || '']
-                    ).map((note, noteIdx, arr) => (
-                      <div key={noteIdx} style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: '1 1 260px', minWidth: '220px' }}>
-                        <input
-                          type="text"
-                          placeholder="Enter manual details / note..."
-                          className={styles.inputField}
-                          value={note}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            setFormData(prev => {
-                              const currentNotes = Array.isArray(prev.photo_graphs_notes) && prev.photo_graphs_notes.length > 0
-                                ? [...prev.photo_graphs_notes]
-                                : [prev.photo_graphs_note || ''];
-                              currentNotes[noteIdx] = val;
-                              return {
-                                ...prev,
-                                photo_graphs_notes: currentNotes,
-                                photo_graphs_note: currentNotes[0] || '',
-                              };
-                            });
-                          }}
-                          style={{ width: '100%', padding: '9px 14px', fontSize: '0.92rem' }}
-                        />
-                        {arr.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setFormData(prev => {
-                                const currentNotes = Array.isArray(prev.photo_graphs_notes) ? prev.photo_graphs_notes : [prev.photo_graphs_note || ''];
-                                const nextNotes = currentNotes.filter((_, i) => i !== noteIdx);
-                                const finalNotes = nextNotes.length > 0 ? nextNotes : [''];
-                                return {
-                                  ...prev,
-                                  photo_graphs_notes: finalNotes,
-                                  photo_graphs_note: finalNotes[0] || '',
-                                };
-                              });
-                            }}
-                            title="Remove this box"
-                            style={{
-                              background: 'rgba(239, 68, 68, 0.1)',
-                              border: '1px solid rgba(239, 68, 68, 0.35)',
-                              color: '#ef4444',
-                              borderRadius: '50%',
-                              width: '28px',
-                              height: '28px',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              fontSize: '1rem',
-                              flexShrink: 0,
-                            }}
-                          >
-                            ×
-                          </button>
-                        )}
-                      </div>
-                    ))}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap', marginBottom: '20px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                    <h1 className={styles.pageTitle} style={{ margin: 0, whiteSpace: 'nowrap' }}>Photo Graphs</h1>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)' }}>
+                      ({formData.photos?.length || 1} {formData.photos?.length === 1 ? 'Photo' : 'Photos'})
+                    </span>
                   </div>
+
+                  {/* Circular + button next to Photo Graphs: adds a COMPLETE photo + description box */}
+                  <button
+                    type="button"
+                    onClick={addPhotoRow}
+                    title="Add another Complete Photo Box (Upload + Description)"
+                    style={{
+                      width: '38px',
+                      height: '38px',
+                      borderRadius: '50%',
+                      background: 'var(--gradient-gold, linear-gradient(135deg, #C9A84C 0%, #E0C77D 100%))',
+                      color: '#1a1a1a',
+                      border: 'none',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 10px rgba(201, 168, 76, 0.35)',
+                      flexShrink: 0,
+                      transition: 'transform 0.15s ease',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.08)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+                  >
+                    <Plus size={22} strokeWidth={2.5} />
+                  </button>
                 </div>
 
                 {/* Photo Upload with Description Box per Photo */}
                 <div className={styles.card}>
-
                   <PhotoUploadList />
                 </div>
 
