@@ -144,6 +144,9 @@ export const initialFormData = {
     fire_fighting_system: true,
     number_of_electrical_points: '',
     number_of_water_outlets: '',
+    property_age: '',
+    residual_age: '',
+    description: '',
     technical_assessment: '',
     apartment_case_note: '',
     landMeasurements: {
@@ -421,6 +424,9 @@ export const getSampleFormData = () => {
       fire_fighting_system: true,
       number_of_electrical_points: '20',
       number_of_water_outlets: '5',
+      property_age: '10',
+      residual_age: '40',
+      description: 'RCC framed structure with brick masonry infill walls.',
       technical_assessment: 'Construction quality is good with proper structural integrity.',
       apartment_case_note: 'In case of apartment, land measurements are as per master layout plan / reflection only.',
       landMeasurements: {

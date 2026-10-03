@@ -867,16 +867,7 @@ const PropertyValues = () => {
             {activeTab === "Technical" && (
               <>
                 <h1 className={styles.pageTitle}>Technical Details</h1>
-                <div className={styles.card}>
-                  <h2 className={styles.sectionHeading}>Building Specifications</h2>
-                  <div className={styles.formGrid}>
-                    <InputGroup label="Carpet Area" placeholder="Enter" section="technicalDetails" field="carpet_area" />
-                    <InputGroup label="Plinth Area" placeholder="Enter" section="technicalDetails" field="plinth_area" />
-                    <InputGroup label="Built-Up-Area" placeholder="Enter" section="technicalDetails" field="built_up_area" />
-                    <InputGroup label="Super-Built-Up Area" placeholder="Enter" section="technicalDetails" field="super_built_up_area" />
-                    <InputGroup label="Slab Area" placeholder="Enter" section="technicalDetails" field="slab_area" />
-                  </div>
-                </div>
+                <BuildingSpecificationsSection />
                 <MeasurementMatchingCard
                   title="Land Measurements & Matching Status"
                   sectionKey="landMeasurements"
@@ -1306,6 +1297,172 @@ const RadioYesNo = ({ label, section, field }) => {
         </label>
       </div>
     </div>
+  );
+};
+
+const defaultBuildingSpecCard = () => ({
+  id: `bspec_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+  carpet_area: '',
+  plinth_area: '',
+  built_up_area: '',
+  super_built_up_area: '',
+  slab_area: '',
+  property_age: '',
+  residual_age: '',
+  description: '',
+});
+
+const BuildingSpecificationsSection = () => {
+  const { formData, setFormData } = useFormContext();
+  const td = formData.technicalDetails || {};
+
+  // Support repeat mode: store cards in td.buildingSpecCards array
+  const [cards, setCards] = React.useState(() => {
+    if (Array.isArray(td.buildingSpecCards) && td.buildingSpecCards.length > 0) {
+      return td.buildingSpecCards;
+    }
+    return [defaultBuildingSpecCard()];
+  });
+
+  // Sync cards into formData on every change
+  const syncCards = (newCards) => {
+    setCards(newCards);
+    setFormData((prev) => ({
+      ...prev,
+      technicalDetails: {
+        ...prev.technicalDetails,
+        buildingSpecCards: newCards,
+        // keep top-level fields in sync with first card for backwards compat
+        carpet_area: newCards[0]?.carpet_area ?? prev.technicalDetails?.carpet_area ?? '',
+        plinth_area: newCards[0]?.plinth_area ?? prev.technicalDetails?.plinth_area ?? '',
+        built_up_area: newCards[0]?.built_up_area ?? prev.technicalDetails?.built_up_area ?? '',
+        super_built_up_area: newCards[0]?.super_built_up_area ?? prev.technicalDetails?.super_built_up_area ?? '',
+        slab_area: newCards[0]?.slab_area ?? prev.technicalDetails?.slab_area ?? '',
+        property_age: newCards[0]?.property_age ?? prev.technicalDetails?.property_age ?? '',
+        residual_age: newCards[0]?.residual_age ?? prev.technicalDetails?.residual_age ?? '',
+        description: newCards[0]?.description ?? prev.technicalDetails?.description ?? '',
+      },
+    }));
+  };
+
+  const updateCard = (cardIdx, field, value) => {
+    const updated = cards.map((c, i) => (i === cardIdx ? { ...c, [field]: value } : c));
+    syncCards(updated);
+  };
+
+  const addCard = () => syncCards([...cards, defaultBuildingSpecCard()]);
+
+  const removeCard = (cardIdx) => {
+    if (cards.length <= 1) return;
+    syncCards(cards.filter((_, i) => i !== cardIdx));
+  };
+
+  const fieldPairs = [
+    [{ label: 'Carpet Area', key: 'carpet_area' }, { label: 'Plinth Area', key: 'plinth_area' }],
+    [{ label: 'Built-Up Area', key: 'built_up_area' }, { label: 'Super-Built-Up Area', key: 'super_built_up_area' }],
+    [{ label: 'Slab Area', key: 'slab_area' }, null],
+    [{ label: 'Property Age (years)', key: 'property_age' }, { label: 'Residual Age (years)', key: 'residual_age' }],
+  ];
+
+  return (
+    <>
+      {cards.map((card, cardIdx) => (
+        <div
+          key={card.id}
+          className={styles.card}
+          style={{
+            marginBottom: '25px',
+            padding: '24px',
+            border: cards.length > 1 ? '1px solid rgba(201, 168, 76, 0.4)' : undefined,
+          }}
+        >
+          {/* Card header */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+              <h2 className={styles.sectionHeading} style={{ fontSize: '1.25rem', margin: 0 }}>
+                Building Specifications
+              </h2>
+              {cards.length > 1 && (
+                <span style={{ fontSize: '0.8rem', fontWeight: 700, padding: '3px 10px', borderRadius: '12px', background: 'rgba(201,168,76,0.15)', color: 'var(--primary-gold,#C9A84C)', border: '1px solid rgba(201,168,76,0.35)' }}>
+                  #{cardIdx + 1}
+                </span>
+              )}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              {cards.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => removeCard(cardIdx)}
+                  title="Remove this card"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '6px 12px', borderRadius: '6px', border: '1px solid rgba(239,68,68,0.4)', background: 'rgba(239,68,68,0.08)', color: '#ef4444', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}
+                >
+                  <Trash2 size={14} /> Remove
+                </button>
+              )}
+              {/* Circular + button for repeat mode */}
+              <button
+                type="button"
+                onClick={addCard}
+                title="Add another Building Specifications card"
+                style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'var(--gradient-gold, linear-gradient(135deg,#C9A84C 0%,#E0C77D 100%))', color: '#1a1a1a', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 10px rgba(201,168,76,0.35)', transition: 'transform 0.15s ease' }}
+                onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.08)')}
+                onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+              >
+                <Plus size={22} strokeWidth={2.5} />
+              </button>
+            </div>
+          </div>
+
+          {/* Area fields in pairs */}
+          <div className={styles.formGrid}>
+            {fieldPairs.map(([left, right]) => (
+              <React.Fragment key={left.key}>
+                <div className={styles.inputStack}>
+                  <label className={styles.label}>{left.label}</label>
+                  <div className={styles.fieldWrapper}>
+                    <input
+                      type="text"
+                      placeholder="Enter"
+                      className={styles.inputField}
+                      value={card[left.key] ?? ''}
+                      onChange={(e) => updateCard(cardIdx, left.key, e.target.value)}
+                    />
+                  </div>
+                </div>
+                {right ? (
+                  <div className={styles.inputStack}>
+                    <label className={styles.label}>{right.label}</label>
+                    <div className={styles.fieldWrapper}>
+                      <input
+                        type="text"
+                        placeholder="Enter"
+                        className={styles.inputField}
+                        value={card[right.key] ?? ''}
+                        onChange={(e) => updateCard(cardIdx, right.key, e.target.value)}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div />
+                )}
+              </React.Fragment>
+            ))}
+          </div>
+
+          {/* Description box */}
+          <div style={{ marginTop: '20px' }}>
+            <label className={styles.label}>Description</label>
+            <textarea
+              className={styles.textarea}
+              placeholder="Enter building description (e.g. RCC framed structure with brick masonry infill walls…)"
+              rows={3}
+              value={card.description ?? ''}
+              onChange={(e) => updateCard(cardIdx, 'description', e.target.value)}
+            />
+          </div>
+        </div>
+      ))}
+    </>
   );
 };
 
