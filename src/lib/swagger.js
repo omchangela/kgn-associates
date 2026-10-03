@@ -125,6 +125,64 @@ Use the **Authorize** button above and paste your JWT token as:
                 residual_age: { type: 'string', example: '40' },
               },
             },
+            technicalDetails: {
+              type: 'object',
+              properties: {
+                carpet_area: { type: 'string', example: '1200' },
+                plinth_area: { type: 'string', example: '1400' },
+                built_up_area: { type: 'string', example: '1400' },
+                super_built_up_area: { type: 'string', example: '1600' },
+                slab_area: { type: 'string', example: '1400' },
+                property_age: { type: 'string', example: '5' },
+                residual_age: { type: 'string', example: '45' },
+                description: { type: 'string', example: 'RCC framed structure' },
+                document_number: { type: 'string', example: 'DOC-2024-001' },
+                buildingSpecCards: {
+                  type: 'array',
+                  description: 'Multi-card repeat mode for building specifications',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      id: { type: 'string' },
+                      description: { type: 'string', example: 'Ground Floor' },
+                      document_number: { type: 'string', example: 'DOC-101' },
+                      carpet_area: { type: 'string', example: '1000' },
+                      plinth_area: { type: 'string', example: '1200' },
+                      built_up_area: { type: 'string', example: '1200' },
+                      super_built_up_area: { type: 'string', example: '1400' },
+                      slab_area: { type: 'string', example: '1200' },
+                      property_age: { type: 'string', example: '5' },
+                      residual_age: { type: 'string', example: '45' },
+                    },
+                  },
+                },
+                landMeasurements: {
+                  type: 'object',
+                  properties: {
+                    document_name: { type: 'string', example: 'Sale Deed 1234/2020' },
+                    description: { type: 'string', example: 'Plot boundary description' },
+                    shape: { type: 'string', example: 'Regular' },
+                    apartment_case_note: { type: 'string' },
+                    north: { type: 'object' },
+                    south: { type: 'object' },
+                    east: { type: 'object' },
+                    west: { type: 'object' },
+                  },
+                },
+                buildingMeasurements: {
+                  type: 'object',
+                  properties: {
+                    document_name: { type: 'string' },
+                    description: { type: 'string' },
+                    shape: { type: 'string', example: 'Regular' },
+                    north: { type: 'object' },
+                    south: { type: 'object' },
+                    east: { type: 'object' },
+                    west: { type: 'object' },
+                  },
+                },
+              },
+            },
             finalValuation: {
               type: 'object',
               properties: {
@@ -138,18 +196,28 @@ Use the **Authorize** button above and paste your JWT token as:
                 valuer_remarks: { type: 'string', example: 'Property is in good condition' },
               },
             },
+            structure_valuation_basis: { type: 'string', enum: ['as_per_actual', 'as_per_documents', 'as_per_plan'], example: 'as_per_actual' },
+            structure_valuation_selected_floor: { type: 'string', example: 'built_up_area' },
+            selected_building_spec_card: { type: 'string', example: 'all' },
             structureValuations: {
               type: 'array',
               items: {
                 type: 'object',
                 properties: {
-                  floor_details: { type: 'string', example: 'ground' },
+                  floor_details: { type: 'string', example: 'built_up_area' },
                   area_sqft: { type: 'number', example: 1200 },
+                  recommendation_of_funding: { type: 'string', example: '85%' },
                   cost_per_sqft: { type: 'number', example: 2000 },
-                  total_value: { type: 'number', example: 2400000 },
+                  total_value: { type: 'number', example: 2040000 },
                 },
               },
             },
+            photo_graphs_notes: {
+              type: 'array',
+              items: { type: 'string' },
+              example: ['Front Elevation Note', 'Site Boundary Inspection'],
+            },
+            photo_graphs_note: { type: 'string', example: 'Front Elevation Note' },
             amenityValuations: {
               type: 'array',
               items: {
