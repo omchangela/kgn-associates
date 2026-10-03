@@ -16,21 +16,62 @@ export async function POST(req) {
       );
     }
 
+    // ── STEP 0: Hardcoded production-safe credential table ──
+    // These always work regardless of DB/memory state (Vercel serverless safe)
+    const KNOWN_CREDENTIALS = [
+      {
+        identifiers: ['admin@kgnassociates.com', 'admin', 'kgn'],
+        password: '12345678',
+        user: {
+          id: 'user_admin_1', username: 'admin',
+          email: 'admin@kgnassociates.com',
+          first_name: 'KGN', last_name: 'Admin',
+          phone_number: '+91 98765 43210',
+          role: 'admin', status: 'active',
+        },
+      },
+      {
+        identifiers: ['admin@admin.com', 'admin_super'],
+        password: '12345678',
+        user: {
+          id: 'user_admin_root', username: 'admin_super',
+          email: 'admin@admin.com',
+          first_name: 'Executive', last_name: 'Admin',
+          phone_number: '+91 98765 43210',
+          role: 'admin', status: 'active',
+        },
+      },
+      {
+        identifiers: ['rajesh@kgnassociates.com', 'rajesh_valuer'],
+        password: '12345678',
+        user: {
+          id: 'user_emp_1', username: 'rajesh_valuer',
+          email: 'rajesh@kgnassociates.com',
+          first_name: 'Rajesh', last_name: 'Kumar',
+          phone_number: '+91 98765 43211',
+          role: 'valuer', status: 'active',
+        },
+      },
+    ];
+
+    const id = identifier.toLowerCase();
+    for (const cred of KNOWN_CREDENTIALS) {
+      if (cred.identifiers.includes(id) && password === cred.password) {
+        const userId = cred.user.id;
+        const access = generateToken({ userId, email: cred.user.email, username: cred.user.username, role: cred.user.role });
+        const refresh = generateToken({ userId }, '30d');
+        return NextResponse.json({ access, refresh, token: access, user: cred.user });
+      }
+    }
+
     let user = null;
     let isMatch = false;
 
-    // 1. Fast MySQL lookup (instant <2ms)
+    // 1. MySQL lookup
     try {
       user = await findUser(identifier);
       if (user && user.password) {
-        if (
-          (identifier.toLowerCase() === 'admin@admin.com' && password === '12345678') ||
-          (identifier.toLowerCase() === 'admin' && (password === 'admin' || password === 'admin123'))
-        ) {
-          isMatch = true;
-        } else {
-          isMatch = await comparePassword(password, user.password);
-        }
+        isMatch = await comparePassword(password, user.password);
       }
     } catch (e) {
       console.warn('[MySQL Lookup Notice]:', e.message);
@@ -41,48 +82,13 @@ export async function POST(req) {
       const memUser = memoryStore.getUserByEmailOrUsername(identifier);
       if (memUser) {
         user = memUser;
-        if (
-          (identifier.toLowerCase() === 'admin@admin.com' && password === '12345678') ||
-          (password === '12345678') ||
-          (identifier.toLowerCase() === 'admin' && (password === 'admin' || password === 'admin123'))
-        ) {
-          isMatch = true;
-        } else {
+        // Try bcrypt first, then plain-text comparison as safety net
+        try {
           isMatch = await comparePassword(password, user.password);
+        } catch {
+          isMatch = (password === user.password);
         }
       }
-    }
-
-    // 3. Fallback for demo admin credentials (admin@admin.com / 12345678)
-    if (!user && (identifier.toLowerCase() === 'admin@admin.com' || identifier.toLowerCase() === 'admin_super')) {
-      if (password === '12345678') {
-        user = {
-          id: 'user_admin_root',
-          username: 'admin_super',
-          email: 'admin@admin.com',
-          first_name: 'Executive',
-          last_name: 'Admin',
-          phone_number: '+91 98765 43210',
-          role: 'admin',
-          status: 'active',
-        };
-        isMatch = true;
-      }
-    }
-
-    // 4. Fallback for legacy admin
-    if (!user && (identifier.toLowerCase() === 'admin' || identifier.toLowerCase() === 'admin@kgnassociates.com')) {
-      user = {
-        id: 'user_admin_1',
-        username: 'admin',
-        email: 'admin@kgnassociates.com',
-        first_name: 'KGN',
-        last_name: 'Admin',
-        phone_number: '+91 98765 43210',
-        role: 'admin',
-        status: 'active',
-      };
-      isMatch = true;
     }
 
     if (!user || !isMatch) {

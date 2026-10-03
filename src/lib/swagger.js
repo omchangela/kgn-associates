@@ -16,8 +16,9 @@ Use the **Authorize** button above and paste your JWT token as:
 \`Bearer <your_token>\`
 
 **Test Credentials:**
-- Email: \`admin@kgnassociates.com\`
-- Password: \`12345678\`
+- Email: \`admin@kgnassociates.com\` / Password: \`12345678\`
+- Email: \`admin@admin.com\` / Password: \`12345678\`
+- Email: \`rajesh@kgnassociates.com\` / Password: \`12345678\`
       `,
       contact: {
         name: 'KGN Associates',
