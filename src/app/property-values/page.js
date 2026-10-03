@@ -2056,8 +2056,23 @@ const MeasurementMatchingCard = ({
                 </div>
               </div>
 
+              {/* Description : Box (Added right before Document) */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: '1', minWidth: '220px', maxWidth: '380px' }}>
+                <label style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>
+                  Description :
+                </label>
+                <input
+                  type="text"
+                  placeholder="Enter description"
+                  className={styles.inputField}
+                  value={card.description ?? ''}
+                  onChange={(e) => updateDescription(cardIdx, e.target.value)}
+                  style={{ width: '100%', padding: '7px 12px' }}
+                />
+              </div>
+
               {/* Document : Box */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: '1', minWidth: '260px', maxWidth: '440px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: '1', minWidth: '220px', maxWidth: '380px' }}>
                 <label style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>
                   Document :
                 </label>
