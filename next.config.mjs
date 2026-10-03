@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  /* config options here */
+  transpilePackages: ['swagger-ui-react', 'swagger-client', 'react-syntax-highlighter'],
 };
 
 export default nextConfig;
