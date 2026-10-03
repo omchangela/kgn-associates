@@ -161,17 +161,14 @@ export function generateValuationPdf(report) {
   doc.setFont('helvetica', 'bold');
   doc.text('KGN ASSOCIATES', 14, 13);
 
-  // Subtitle & Authority Details
+  // Subtitle
   doc.setTextColor(255, 255, 255);
-  doc.setFontSize(8);
-  doc.setFont('helvetica', 'bold');
-  doc.text('CHARTERED ENGINEERS • APPROVED PROPERTY VALUERS • MUNICIPAL ASSESSORS', 14, 19);
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Engineers and Valuers', 14, 20);
 
   doc.setTextColor(203, 213, 225);
-  doc.setFontSize(7.2);
-  doc.setFont('helvetica', 'normal');
-  doc.text('Registered with IBBI (Insolvency and Bankruptcy Board of India) & Institution of Valuers (IOV)', 14, 24.5);
-  doc.text('Approved Panel Valuers for State Bank of India, HDFC Bank, ICICI Bank, Axis Bank & National Housing Banks', 14, 29.5);
+  doc.setFontSize(7.5);
   doc.text('Office: Hyderabad, Telangana | Tel: +91 98765 43210 | info@kgnassociates.com', 14, 34.5);
 
   // Official Logo on the ending side (top right of header banner)
@@ -608,8 +605,8 @@ export function generateValuationPdf(report) {
   doc.setFontSize(7.2);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(71, 85, 105);
-  doc.text('Chartered Engineers & Approved Valuers', 18, currentY + 23);
-  doc.text('Authorized Signatory & Municipal Seal', 18, currentY + 27);
+  doc.text('Engineers and Valuers', 18, currentY + 23);
+  doc.text('Authorized Signatory', 18, currentY + 27);
 
   // Inspector / Signatory Signature
   const inspectorSig = report.signatures?.signature_inspector;
