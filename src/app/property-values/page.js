@@ -1062,8 +1062,7 @@ const PropertyValues = () => {
 
                 {/* Photo Upload with Description Box per Photo */}
                 <div className={styles.card}>
-                  <h2 className={styles.sectionHeading}>Photos</h2>
-                  <p className={styles.subHeading}>Upload photos and add a description for each picture. Use the + button to add more photo entries.</p>
+
                   <PhotoUploadList />
                 </div>
 
@@ -3328,47 +3327,59 @@ const PhotoUploadList = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      {/* Header with circular + button */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '10px' }}>
+        <div>
+          <h2 className={styles.sectionHeading} style={{ margin: 0 }}>Photos</h2>
+          <p className={styles.subHeading} style={{ margin: '4px 0 0 0' }}>Upload photos and add a description for each picture.</p>
+        </div>
+        <button
+          type="button"
+          onClick={addPhotoRow}
+          title="Add another Photo"
+          style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'var(--gradient-gold, linear-gradient(135deg,#C9A84C 0%,#E0C77D 100%))', color: '#1a1a1a', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 10px rgba(201,168,76,0.35)', transition: 'transform 0.15s ease' }}
+          onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.08)')}
+          onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+        >
+          <Plus size={22} strokeWidth={2.5} />
+        </button>
+      </div>
+
       {photos.map((photo, idx) => (
         <div key={photo.id} style={{ display: 'flex', gap: '16px', alignItems: 'flex-start', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: 'var(--border-radius)', padding: '16px' }}>
           <div style={{ position: 'relative', width: '120px', height: '100px', flexShrink: 0, border: '2px dashed var(--border-color)', borderRadius: 'var(--border-radius)', overflow: 'hidden', cursor: 'pointer', background: 'var(--bg-secondary)' }}>
             {photo.preview
               ? <img src={photo.preview} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               : <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-muted)', fontSize: '0.75rem', textAlign: 'center', padding: '8px' }}>
-                  <span style={{ fontSize: '1.5rem', marginBottom: '4px' }}>ðŸ“·</span>
+                  <span style={{ fontSize: '1.5rem', marginBottom: '4px' }}>📷</span>
                   <span>Click to upload</span>
                 </div>
             }
             <input type="file" accept="image/*" capture="environment" onChange={(e) => handleFile(photo.id, e)} style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }} />
           </div>
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <label style={{ fontSize: '0.85rem', fontWeight: '600', color: 'var(--text-muted)' }}>Photo {idx + 1}</label>
+            <label style={{ fontSize: '0.85rem', fontWeight: '600', color: 'var(--text-primary)' }}>Photo {idx + 1}</label>
             <textarea
               value={photo.description}
               onChange={(e) => handleDesc(photo.id, e.target.value)}
-              placeholder="Description Box â€” enter description for this picture..."
+              placeholder="Enter description..."
               rows="3"
               style={{ width: '100%', padding: '10px 12px', background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--border-radius)', fontSize: '0.9rem', fontFamily: 'var(--font-body)', color: 'var(--text-primary)', outline: 'none', resize: 'vertical' }}
             />
             {(photo.latitude || photo.longitude) && (
               <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0 }}>
                 GPS: {photo.latitude}N {photo.longitude}E
-                {photo.bearing_degrees ? ` Â· ${photo.bearing_degrees}Â° ${photo.bearing_direction}` : ''}
-                {photo.locality ? ` Â· ${photo.locality}` : ''}
+                {photo.bearing_degrees ? ` · ${photo.bearing_degrees}° ${photo.bearing_direction}` : ''}
+                {photo.locality ? ` · ${photo.locality}` : ''}
                 {photo.region ? `, ${photo.region}` : ''}
               </p>
             )}
           </div>
           {photos.length > 1 && (
-            <button onClick={() => removePhotoRow(photo.id)} style={{ background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-muted)', borderRadius: '50%', width: '28px', height: '28px', cursor: 'pointer', fontSize: '1rem', flexShrink: 0 }}>Ã—</button>
+            <button onClick={() => removePhotoRow(photo.id)} style={{ background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-muted)', borderRadius: '50%', width: '28px', height: '28px', cursor: 'pointer', fontSize: '1rem', flexShrink: 0 }}>×</button>
           )}
         </div>
       ))}
-      <button
-        onClick={addPhotoRow}
-        style={{ alignSelf: 'flex-start', background: 'var(--gradient-gold)', color: 'var(--bg-primary)', border: 'none', padding: '10px 20px', borderRadius: 'var(--border-radius)', fontWeight: '700', fontFamily: 'var(--font-heading)', cursor: 'pointer', boxShadow: 'var(--shadow-gold)', display: 'flex', alignItems: 'center', gap: '8px' }}
-      >
-        + Add More Photos
-      </button>
     </div>
   );
 };
