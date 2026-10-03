@@ -244,6 +244,8 @@ export const initialFormData = {
     { floor_details: 'slab_area', area_sqft: '', recommendation_of_funding: '', cost_per_sqft: '', total_value: '' },
   ],
   structure_valuation_basis: 'as_per_actual',
+  structure_valuation_selected_floor: 'built_up_area',
+  selected_building_spec_card: 'all',
   amenityValuations: [
     { amenity_name: '', amenity_value: '' },
   ],
@@ -520,6 +522,8 @@ export const getSampleFormData = () => {
       { floor_details: 'slab_area', area_sqft: '1100', recommendation_of_funding: '80%', cost_per_sqft: '1500', total_value: '1320000' },
     ],
     structure_valuation_basis: 'as_per_actual',
+    structure_valuation_selected_floor: 'built_up_area',
+    selected_building_spec_card: 'all',
     amenityValuations: [
       { amenity_name: 'Car Parking', amenity_value: '200000' },
       { amenity_name: 'Lift', amenity_value: '150000' },

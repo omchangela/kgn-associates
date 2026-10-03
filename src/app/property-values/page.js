@@ -2997,8 +2997,14 @@ const StructureValuationTable = () => {
 
   const ORDERED_KEYS = ['carpet_area', 'plinth_area', 'built_up_area', 'super_built', 'slab_area'];
 
+  const specCards = Array.isArray(formData.technicalDetails?.buildingSpecCards)
+    ? formData.technicalDetails.buildingSpecCards
+    : [];
+
+  const activeCardChoice = formData.selected_building_spec_card || (specCards.length > 1 ? 'all' : '0');
+  const selectedFloor = formData.structure_valuation_selected_floor || 'built_up_area';
+
   // Helper: compute total area from buildingMeasurements for a given measurement field (actual/document/plan)
-  // Uses average of opposite sides × average of adjacent sides (same formula as LandExtentTable)
   const computeBuildingArea = (tech, measureField) => {
     const raw = tech?.buildingMeasurements;
     const cards = Array.isArray(raw) ? raw : (raw && typeof raw === 'object' ? [raw] : []);
@@ -3022,29 +3028,45 @@ const StructureValuationTable = () => {
     return totalArea > 0 ? String(totalArea) : '';
   };
 
-  // Helper: get the area for a floor_details key from the chosen basis.
-  // Priority: (1) buildingMeasurements computed area for the basis, (2) buildingSpecCards first card, (3) technicalDetails flat fields.
-  const getAreaForBasis = (key, basis, prev) => {
+  // Helper: get the area for a floor_details key from the chosen basis and chosen card
+  const getAreaForBasis = (key, basis, prev, cardChoice) => {
     const tech = prev.technicalDetails || {};
     const flatKey = techMapping[key];
+    const specList = Array.isArray(tech.buildingSpecCards) ? tech.buildingSpecCards : [];
+    const choice = cardChoice !== undefined ? cardChoice : (prev.selected_building_spec_card || (specList.length > 1 ? 'all' : '0'));
 
     // Map basis to measurement field
     const measureField = basis === 'as_per_actual' ? 'actual' : basis === 'as_per_documents' ? 'document' : 'plan';
-
-    // For carpet/plinth/built_up/super_built/slab: these are distinct floor-level areas,
-    // not directly in N/S/E/W measurements. Use buildingMeasurements computed total area
-    // only for built_up_area (the primary area field); for others fall back to tech fields.
-    // This gives a real auto-fill for built_up_area and tech-based for the rest.
     const computedBuildingArea = computeBuildingArea(tech, measureField);
 
-    // Try per-card buildingSpecCards (repeat-mode) – use first card
-    const specCards = tech.buildingSpecCards;
-    const firstCard = Array.isArray(specCards) && specCards.length > 0 ? specCards[0] : null;
+    // If 'all' (combined sum across all cards)
+    if (choice === 'all' && specList.length > 0) {
+      if (key === 'built_up_area' && computedBuildingArea) {
+        return computedBuildingArea;
+      }
+      let sum = 0;
+      let hasAny = false;
+      specList.forEach((c) => {
+        const val = parseFloat(String(c[flatKey] || '').replace(/,/g, '').trim());
+        if (!isNaN(val) && val > 0) {
+          sum += val;
+          hasAny = true;
+        }
+      });
+      if (hasAny) return String(Math.round(sum));
+      return tech[flatKey] || '';
+    }
 
-    // For built_up_area, use the computed building measurement area
+    // Specific card index chosen (e.g. '0', '1', etc.)
+    const cardIdx = parseInt(choice, 10);
+    if (!isNaN(cardIdx) && specList[cardIdx]) {
+      const cardVal = specList[cardIdx][flatKey];
+      if (cardVal !== undefined && cardVal !== '') return String(cardVal);
+    }
+
+    // Fallback: built_up_area computed area or first card or flat tech field
+    const firstCard = specList[0];
     if (key === 'built_up_area' && computedBuildingArea) return computedBuildingArea;
-
-    // Otherwise use the value stored in the BuildingSpecifications card or flat tech field
     return firstCard?.[flatKey] || tech[flatKey] || '';
   };
 
@@ -3055,9 +3077,11 @@ const StructureValuationTable = () => {
     as_per_plan: computeBuildingArea(formData.technicalDetails, 'plan'),
   };
 
-  const applyBasisFill = (prev, basis) => {
+  const applyBasisFill = (prev, basis, cardChoice) => {
+    const specList = Array.isArray(prev.technicalDetails?.buildingSpecCards) ? prev.technicalDetails.buildingSpecCards : [];
+    const choice = cardChoice !== undefined ? cardChoice : (prev.selected_building_spec_card || (specList.length > 1 ? 'all' : '0'));
     const updated = (prev.structureValuations || []).map(row => {
-      const areaVal = getAreaForBasis(row.floor_details, basis, prev);
+      const areaVal = getAreaForBasis(row.floor_details, basis, prev, choice);
       const area = parseFloat(String(areaVal).replace(/,/g, '')) || 0;
       const cost = parseFloat(String(row.cost_per_sqft || '').replace(/,/g, '')) || 0;
       let total = row.total_value;
@@ -3072,7 +3096,7 @@ const StructureValuationTable = () => {
       }
       return { ...row, area_sqft: areaVal, total_value: total };
     });
-    return { ...prev, structureValuations: updated };
+    return { ...prev, structureValuations: updated, selected_building_spec_card: choice };
   };
 
   const ORDERED_KEYS_CONST = ORDERED_KEYS;
@@ -3100,17 +3124,20 @@ const StructureValuationTable = () => {
     }
   }, []);
 
-  // Auto-reflect areas whenever the basis changes, tech values change, or buildingMeasurements change
+  // Auto-reflect areas whenever basis, card selection, or tech values change
   useEffect(() => {
     const basis = formData.structure_valuation_basis || 'as_per_actual';
-    setFormData(prev => applyBasisFill(prev, basis));
+    const cardChoice = formData.selected_building_spec_card || (specCards.length > 1 ? 'all' : '0');
+    setFormData(prev => applyBasisFill(prev, basis, cardChoice));
   }, [
     formData.structure_valuation_basis,
+    formData.selected_building_spec_card,
     formData.technicalDetails?.carpet_area,
     formData.technicalDetails?.plinth_area,
     formData.technicalDetails?.built_up_area,
     formData.technicalDetails?.super_built_up_area,
     formData.technicalDetails?.slab_area,
+    formData.technicalDetails?.buildingSpecCards,
     formData.technicalDetails?.buildingMeasurements,
   ]);
 
@@ -3152,9 +3179,24 @@ const StructureValuationTable = () => {
     });
   };
 
+  const handleCardSelect = (cardChoice) => {
+    setFormData(prev => {
+      const basis = prev.structure_valuation_basis || 'as_per_actual';
+      return applyBasisFill(prev, basis, cardChoice);
+    });
+  };
+
+  const handleSelectFloor = (floorKey) => {
+    setFormData(prev => ({
+      ...prev,
+      structure_valuation_selected_floor: floorKey,
+    }));
+  };
+
   const syncAllFromTechnical = () => {
     const basis = formData.structure_valuation_basis || 'as_per_actual';
-    setFormData(prev => applyBasisFill(prev, basis));
+    const cardChoice = formData.selected_building_spec_card || (specCards.length > 1 ? 'all' : '0');
+    setFormData(prev => applyBasisFill(prev, basis, cardChoice));
   };
 
   const currentBasis = formData.structure_valuation_basis || 'as_per_actual';
@@ -3178,14 +3220,14 @@ const StructureValuationTable = () => {
           type="button"
           onClick={syncAllFromTechnical}
           style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '5px 12px', borderRadius: '4px', background: 'rgba(201,168,76,0.12)', border: '1px solid rgba(201,168,76,0.4)', color: 'var(--primary-gold,#C9A84C)', fontSize: '0.8rem', fontWeight: '600', cursor: 'pointer' }}
-          title="Re-apply areas from current basis selection"
+          title="Re-apply areas from current basis & specification selection"
         >
           ▶ Reflect Now
         </button>
       </div>
 
       {/* Basis selection pills */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '14px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '12px' }}>
         <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: '600' }}>Basis:</span>
         {basisOptions.map(opt => {
           const active = currentBasis === opt.id;
@@ -3222,11 +3264,83 @@ const StructureValuationTable = () => {
         })}
         {currentBasis && (
           <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginLeft: '4px' }}>
-            → Areas reflected automatically
+            — Areas reflected automatically
           </span>
         )}
       </div>
 
+      {/* Building Specification selection option (when more than 1 card is added in Technical tab) */}
+      {specCards.length > 1 && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            flexWrap: 'wrap',
+            marginBottom: '16px',
+            padding: '10px 16px',
+            borderRadius: '8px',
+            background: 'rgba(201, 168, 76, 0.08)',
+            border: '1px solid rgba(201, 168, 76, 0.35)',
+          }}
+        >
+          <span style={{ fontSize: '0.85rem', fontWeight: '700', color: 'var(--primary-gold, #C9A84C)' }}>
+            Building Specification ({specCards.length} Added):
+          </span>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+            <button
+              type="button"
+              onClick={() => handleCardSelect('all')}
+              style={{
+                padding: '5px 14px',
+                borderRadius: '16px',
+                fontSize: '0.8rem',
+                fontWeight: '700',
+                cursor: 'pointer',
+                border: activeCardChoice === 'all' ? '1px solid #C9A84C' : '1px solid rgba(255,255,255,0.15)',
+                background: activeCardChoice === 'all' ? 'var(--primary-gold, #C9A84C)' : 'rgba(255,255,255,0.06)',
+                color: activeCardChoice === 'all' ? '#000000' : 'var(--text-secondary)',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              ✦ All Cards (Combined Sum)
+            </button>
+            {specCards.map((c, idx) => {
+              const isActive = activeCardChoice === String(idx);
+              const label = c.description
+                ? `Card #${idx + 1}: ${c.description}`
+                : c.document_number
+                ? `Card #${idx + 1}: ${c.document_number}`
+                : `Card #${idx + 1}`;
+              return (
+                <button
+                  key={c.id || idx}
+                  type="button"
+                  onClick={() => handleCardSelect(String(idx))}
+                  style={{
+                    padding: '5px 14px',
+                    borderRadius: '16px',
+                    fontSize: '0.8rem',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    border: isActive ? '1px solid #3b82f6' : '1px solid rgba(255,255,255,0.15)',
+                    background: isActive ? '#2563eb' : 'rgba(255,255,255,0.06)',
+                    color: isActive ? '#ffffff' : 'var(--text-secondary)',
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginLeft: 'auto' }}>
+            Reflecting into rows below
+          </span>
+        </div>
+      )}
+
+      {/* Structure Valuation Table */}
       <div style={{ overflowX: 'auto', marginBottom: '10px' }}>
         <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '10px' }}>
           <thead>
@@ -3239,51 +3353,170 @@ const StructureValuationTable = () => {
             </tr>
           </thead>
           <tbody>
-            {(formData.structureValuations || []).map((row, idx) => (
-              <tr key={row.floor_details || idx}>
-                <td style={{ fontSize: '0.95rem', fontWeight: '600', color: 'var(--text-primary)', paddingRight: '15px', whiteSpace: 'nowrap' }}>
-                  {labels[row.floor_details] || row.floor_details}
-                </td>
-                <td>
-                  <input
-                    type="text"
-                    className={styles.inputField}
-                    placeholder="Area"
-                    value={row.area_sqft || ''}
-                    onChange={(e) => handleCellChange(idx, 'area_sqft', e.target.value)}
-                  />
-                </td>
-                <td>
-                  <input
-                    type="text"
-                    className={styles.inputField}
-                    placeholder="%"
-                    value={row.recommendation_of_funding || ''}
-                    onChange={(e) => handleCellChange(idx, 'recommendation_of_funding', e.target.value)}
-                  />
-                </td>
-                <td>
-                  <input
-                    type="text"
-                    className={styles.inputField}
-                    placeholder="Cost"
-                    value={row.cost_per_sqft || ''}
-                    onChange={(e) => handleCellChange(idx, 'cost_per_sqft', e.target.value)}
-                  />
-                </td>
-                <td>
-                  <input
-                    type="text"
-                    className={styles.inputField}
-                    placeholder="Total"
-                    value={row.total_value || ''}
-                    onChange={(e) => handleCellChange(idx, 'total_value', e.target.value)}
-                  />
-                </td>
-              </tr>
-            ))}
+            {(formData.structureValuations || []).map((row, idx) => {
+              const isSelected = selectedFloor === row.floor_details;
+              return (
+                <tr
+                  key={row.floor_details || idx}
+                  style={{
+                    background: isSelected ? 'rgba(201, 168, 76, 0.08)' : 'transparent',
+                    borderRadius: '6px',
+                    transition: 'background 0.2s ease',
+                  }}
+                >
+                  <td style={{ fontSize: '0.95rem', fontWeight: '600', color: 'var(--text-primary)', paddingRight: '15px', whiteSpace: 'nowrap' }}>
+                    <label
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        cursor: 'pointer',
+                        width: '100%',
+                        userSelect: 'none',
+                      }}
+                    >
+                      <input
+                        type="radio"
+                        name="structure_valuation_floor_select"
+                        checked={isSelected}
+                        onChange={() => handleSelectFloor(row.floor_details)}
+                        style={{
+                          width: '18px',
+                          height: '18px',
+                          accentColor: '#C9A84C',
+                          cursor: 'pointer',
+                          flexShrink: 0,
+                        }}
+                      />
+                      <span style={{ color: isSelected ? 'var(--primary-gold, #C9A84C)' : 'inherit', fontWeight: isSelected ? '700' : '600' }}>
+                        {labels[row.floor_details] || row.floor_details}
+                      </span>
+                      {isSelected && (
+                        <span
+                          style={{
+                            fontSize: '0.7rem',
+                            padding: '2px 8px',
+                            borderRadius: '12px',
+                            background: 'rgba(201, 168, 76, 0.2)',
+                            border: '1px solid rgba(201, 168, 76, 0.5)',
+                            color: 'var(--primary-gold, #C9A84C)',
+                            fontWeight: '700',
+                            marginLeft: '4px',
+                          }}
+                        >
+                          Selected
+                        </span>
+                      )}
+                    </label>
+                  </td>
+                  <td>
+                    <input
+                      type="text"
+                      className={styles.inputField}
+                      placeholder="Area"
+                      value={row.area_sqft || ''}
+                      onChange={(e) => handleCellChange(idx, 'area_sqft', e.target.value)}
+                      style={isSelected ? { borderColor: 'rgba(201, 168, 76, 0.6)', fontWeight: '600' } : undefined}
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="text"
+                      className={styles.inputField}
+                      placeholder="%"
+                      value={row.recommendation_of_funding || ''}
+                      onChange={(e) => handleCellChange(idx, 'recommendation_of_funding', e.target.value)}
+                      style={isSelected ? { borderColor: 'rgba(201, 168, 76, 0.6)' } : undefined}
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="text"
+                      className={styles.inputField}
+                      placeholder="Cost"
+                      value={row.cost_per_sqft || ''}
+                      onChange={(e) => handleCellChange(idx, 'cost_per_sqft', e.target.value)}
+                      style={isSelected ? { borderColor: 'rgba(201, 168, 76, 0.6)' } : undefined}
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="text"
+                      className={styles.inputField}
+                      placeholder="Total"
+                      value={row.total_value || ''}
+                      onChange={(e) => handleCellChange(idx, 'total_value', e.target.value)}
+                      style={
+                        isSelected
+                          ? { borderColor: 'rgba(201, 168, 76, 0.6)', fontWeight: '700', color: 'var(--primary-gold, #C9A84C)' }
+                          : undefined
+                      }
+                    />
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
+      </div>
+
+      {/* Interactive "Provide Selection Option For Structure Valuation" component */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '14px',
+          marginTop: '12px',
+          marginBottom: '15px',
+          padding: '12px 18px',
+          borderRadius: '8px',
+          background: 'rgba(201, 168, 76, 0.08)',
+          border: '1px solid rgba(201, 168, 76, 0.3)',
+          flexWrap: 'wrap',
+        }}
+      >
+        <span style={{ fontSize: '0.9rem', fontWeight: '700', color: 'var(--text-primary)' }}>
+          Provide Selection Option For Structure Valuation:
+        </span>
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+          {ORDERED_KEYS.map((key) => {
+            const active = selectedFloor === key;
+            return (
+              <label
+                key={key}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  cursor: 'pointer',
+                  padding: '6px 14px',
+                  borderRadius: '20px',
+                  fontSize: '0.85rem',
+                  fontWeight: active ? '700' : '500',
+                  border: active ? '1px solid #C9A84C' : '1px solid rgba(255, 255, 255, 0.15)',
+                  background: active ? 'rgba(201, 168, 76, 0.22)' : 'rgba(255, 255, 255, 0.04)',
+                  color: active ? 'var(--primary-gold, #C9A84C)' : 'var(--text-secondary)',
+                  transition: 'all 0.2s ease',
+                  userSelect: 'none',
+                }}
+              >
+                <input
+                  type="radio"
+                  name="structure_valuation_bottom_radio"
+                  checked={active}
+                  onChange={() => handleSelectFloor(key)}
+                  style={{
+                    accentColor: '#C9A84C',
+                    cursor: 'pointer',
+                    width: '15px',
+                    height: '15px',
+                  }}
+                />
+                <span>{labels[key]}</span>
+              </label>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
