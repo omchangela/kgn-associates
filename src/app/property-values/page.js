@@ -1656,11 +1656,9 @@ const BuildingSpecificationsSection = () => {
               <h2 className={styles.sectionHeading} style={{ fontSize: '1.25rem', margin: 0, whiteSpace: 'nowrap' }}>
                 Building Specifications
               </h2>
-              {cards.length > 1 && (
-                <span style={{ fontSize: '0.8rem', fontWeight: 700, padding: '3px 10px', borderRadius: '12px', background: 'rgba(201,168,76,0.15)', color: 'var(--primary-gold,#C9A84C)', border: '1px solid rgba(201,168,76,0.35)' }}>
-                  #{cardIdx + 1}
-                </span>
-              )}
+              <span style={{ fontSize: '0.8rem', fontWeight: 700, padding: '3px 10px', borderRadius: '12px', background: 'rgba(201,168,76,0.15)', color: 'var(--primary-gold,#C9A84C)', border: '1px solid rgba(201,168,76,0.35)' }}>
+                Floor #{cardIdx + 1}
+              </span>
             </div>
 
             {/* 2 Empty Boxes: 1 for Description, 2 for Document Number */}
@@ -1694,7 +1692,7 @@ const BuildingSpecificationsSection = () => {
                 <button
                   type="button"
                   onClick={() => removeCard(cardIdx)}
-                  title="Remove this card"
+                  title="Remove this floor"
                   style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '6px 12px', borderRadius: '6px', border: '1px solid rgba(239,68,68,0.4)', background: 'rgba(239,68,68,0.08)', color: '#ef4444', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}
                 >
                   <Trash2 size={14} /> Remove
@@ -1704,7 +1702,7 @@ const BuildingSpecificationsSection = () => {
               <button
                 type="button"
                 onClick={addCard}
-                title="Add another Building Specifications card"
+                title="Add another Floor"
                 style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'var(--gradient-gold, linear-gradient(135deg,#C9A84C 0%,#E0C77D 100%))', color: '#1a1a1a', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 10px rgba(201,168,76,0.35)', transition: 'transform 0.15s ease' }}
                 onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.08)')}
                 onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
@@ -3131,18 +3129,18 @@ const StructureValuationTable = () => {
     return totalArea > 0 ? String(totalArea) : '';
   };
 
-  // Helper: get the area for a floor_details key from the chosen basis and chosen card
-  const getAreaForBasis = (key, basis, prev, cardChoice) => {
+  // Helper: get the area for a floor_details key from the chosen basis and chosen floor
+  const getAreaForBasis = (key, basis, prev, floorChoice) => {
     const tech = prev.technicalDetails || {};
     const flatKey = techMapping[key];
     const specList = Array.isArray(tech.buildingSpecCards) ? tech.buildingSpecCards : [];
-    const choice = cardChoice !== undefined ? cardChoice : (prev.selected_building_spec_card || (specList.length > 1 ? 'all' : '0'));
+    const choice = floorChoice !== undefined ? floorChoice : (prev.selected_building_spec_card || (specList.length > 1 ? 'all' : '0'));
 
     // Map basis to measurement field
     const measureField = basis === 'as_per_actual' ? 'actual' : basis === 'as_per_documents' ? 'document' : 'plan';
     const computedBuildingArea = computeBuildingArea(tech, measureField);
 
-    // If 'all' (combined sum across all cards)
+    // If 'all' (combined sum across all floors)
     if (choice === 'all' && specList.length > 0) {
       if (key === 'built_up_area' && computedBuildingArea) {
         return computedBuildingArea;
@@ -3157,20 +3155,23 @@ const StructureValuationTable = () => {
         }
       });
       if (hasAny) return String(Math.round(sum));
-      return tech[flatKey] || '';
+      return '';
     }
 
-    // Specific card index chosen (e.g. '0', '1', etc.)
-    const cardIdx = parseInt(choice, 10);
-    if (!isNaN(cardIdx) && specList[cardIdx]) {
-      const cardVal = specList[cardIdx][flatKey];
-      if (cardVal !== undefined && cardVal !== '') return String(cardVal);
+    // Specific floor index chosen (e.g. '0', '1', etc.)
+    const floorIdx = parseInt(choice, 10);
+    if (!isNaN(floorIdx) && specList[floorIdx]) {
+      const floorVal = specList[floorIdx][flatKey];
+      // Return that specific floor's own value. NEVER fall back to 1st floor!
+      return floorVal !== undefined && floorVal !== null && floorVal !== '' ? String(floorVal) : '';
     }
 
-    // Fallback: built_up_area computed area or first card or flat tech field
-    const firstCard = specList[0];
-    if (key === 'built_up_area' && computedBuildingArea) return computedBuildingArea;
-    return firstCard?.[flatKey] || tech[flatKey] || '';
+    // Default fallback if only 1 floor exists or flat fields
+    if (specList.length > 0) {
+      const floorVal = specList[0]?.[flatKey];
+      return floorVal !== undefined && floorVal !== null && floorVal !== '' ? String(floorVal) : '';
+    }
+    return tech[flatKey] || '';
   };
 
   // Expose computed building areas for display
@@ -3180,9 +3181,9 @@ const StructureValuationTable = () => {
     as_per_plan: computeBuildingArea(formData.technicalDetails, 'plan'),
   };
 
-  const applyBasisFill = (prev, basis, cardChoice) => {
+  const applyBasisFill = (prev, basis, floorChoice) => {
     const specList = Array.isArray(prev.technicalDetails?.buildingSpecCards) ? prev.technicalDetails.buildingSpecCards : [];
-    const choice = cardChoice !== undefined ? cardChoice : (prev.selected_building_spec_card || (specList.length > 1 ? 'all' : '0'));
+    const choice = floorChoice !== undefined ? floorChoice : (prev.selected_building_spec_card || (specList.length > 1 ? 'all' : '0'));
     const updated = (prev.structureValuations || []).map(row => {
       const areaVal = getAreaForBasis(row.floor_details, basis, prev, choice);
       const area = parseFloat(String(areaVal).replace(/,/g, '')) || 0;
@@ -3213,10 +3214,9 @@ const StructureValuationTable = () => {
         const prevList = prev.structureValuations || [];
         const newList = ORDERED_KEYS_CONST.map(k => {
           const found = prevList.find(r => r.floor_details === k);
-          const defaultArea = prev.technicalDetails?.[techMapping[k]] || '';
           return found ? { ...found } : {
             floor_details: k,
-            area_sqft: defaultArea,
+            area_sqft: '',
             recommendation_of_funding: '',
             cost_per_sqft: '',
             total_value: '',
@@ -3226,23 +3226,6 @@ const StructureValuationTable = () => {
       });
     }
   }, []);
-
-  // Auto-reflect areas whenever basis, card selection, or tech values change
-  useEffect(() => {
-    const basis = formData.structure_valuation_basis || 'as_per_actual';
-    const cardChoice = formData.selected_building_spec_card || (specCards.length > 1 ? 'all' : '0');
-    setFormData(prev => applyBasisFill(prev, basis, cardChoice));
-  }, [
-    formData.structure_valuation_basis,
-    formData.selected_building_spec_card,
-    formData.technicalDetails?.carpet_area,
-    formData.technicalDetails?.plinth_area,
-    formData.technicalDetails?.built_up_area,
-    formData.technicalDetails?.super_built_up_area,
-    formData.technicalDetails?.slab_area,
-    formData.technicalDetails?.buildingSpecCards,
-    formData.technicalDetails?.buildingMeasurements,
-  ]);
 
   const handleCellChange = (idx, field, val) => {
     setFormData(prev => {
@@ -3282,10 +3265,10 @@ const StructureValuationTable = () => {
     });
   };
 
-  const handleCardSelect = (cardChoice) => {
+  const handleFloorSelect = (floorChoice) => {
     setFormData(prev => {
       const basis = prev.structure_valuation_basis || 'as_per_actual';
-      return applyBasisFill(prev, basis, cardChoice);
+      return applyBasisFill(prev, basis, floorChoice);
     });
   };
 
@@ -3298,8 +3281,8 @@ const StructureValuationTable = () => {
 
   const syncAllFromTechnical = () => {
     const basis = formData.structure_valuation_basis || 'as_per_actual';
-    const cardChoice = formData.selected_building_spec_card || (specCards.length > 1 ? 'all' : '0');
-    setFormData(prev => applyBasisFill(prev, basis, cardChoice));
+    const floorChoice = formData.selected_building_spec_card || (specCards.length > 1 ? 'all' : '0');
+    setFormData(prev => applyBasisFill(prev, basis, floorChoice));
   };
 
   const currentBasis = formData.structure_valuation_basis || 'as_per_actual';
@@ -3316,8 +3299,8 @@ const StructureValuationTable = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '10px' }}>
         <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
           {computedBuildingAreas.as_per_actual || computedBuildingAreas.as_per_documents || computedBuildingAreas.as_per_plan
-            ? `Built-Up area auto-computed from Building Measurements · Actual: ${computedBuildingAreas.as_per_actual || '—'} · Docs: ${computedBuildingAreas.as_per_documents || '—'} · Plan: ${computedBuildingAreas.as_per_plan || '—'} sq ft`
-            : 'Enter Building Measurements in Technical tab to auto-compute Built-Up area'}
+            ? `Built-Up area computed from Building Measurements · Actual: ${computedBuildingAreas.as_per_actual || '—'} · Docs: ${computedBuildingAreas.as_per_documents || '—'} · Plan: ${computedBuildingAreas.as_per_plan || '—'} sq ft`
+            : 'Enter Building Measurements in Technical tab or type Area directly below'}
         </span>
         <button
           type="button"
@@ -3365,14 +3348,12 @@ const StructureValuationTable = () => {
             </button>
           );
         })}
-        {currentBasis && (
-          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginLeft: '4px' }}>
-            — Areas reflected automatically
-          </span>
-        )}
+        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginLeft: '4px' }}>
+          — Manual entry allowed · Click "Reflect Now" to auto-fill
+        </span>
       </div>
 
-      {/* Building Specification selection option (when more than 1 card is added in Technical tab) */}
+      {/* Building Specification selection option (when more than 1 floor is added in Technical tab) */}
       {specCards.length > 1 && (
         <div
           style={{
@@ -3388,12 +3369,12 @@ const StructureValuationTable = () => {
           }}
         >
           <span style={{ fontSize: '0.85rem', fontWeight: '700', color: 'var(--primary-gold, #C9A84C)' }}>
-            Building Specification ({specCards.length} Added):
+            Building Specification ({specCards.length} Floors Added):
           </span>
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
             <button
               type="button"
-              onClick={() => handleCardSelect('all')}
+              onClick={() => handleFloorSelect('all')}
               style={{
                 padding: '5px 14px',
                 borderRadius: '16px',
@@ -3406,20 +3387,20 @@ const StructureValuationTable = () => {
                 transition: 'all 0.2s ease',
               }}
             >
-              ✦ All Cards (Combined Sum)
+              ✦ All Floors (Combined Sum)
             </button>
             {specCards.map((c, idx) => {
               const isActive = activeCardChoice === String(idx);
               const label = c.description
-                ? `Card #${idx + 1}: ${c.description}`
+                ? `Floor #${idx + 1}: ${c.description}`
                 : c.document_number
-                ? `Card #${idx + 1}: ${c.document_number}`
-                : `Card #${idx + 1}`;
+                ? `Floor #${idx + 1}: ${c.document_number}`
+                : `Floor #${idx + 1}`;
               return (
                 <button
                   key={c.id || idx}
                   type="button"
-                  onClick={() => handleCardSelect(String(idx))}
+                  onClick={() => handleFloorSelect(String(idx))}
                   style={{
                     padding: '5px 14px',
                     borderRadius: '16px',
@@ -3438,7 +3419,7 @@ const StructureValuationTable = () => {
             })}
           </div>
           <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginLeft: 'auto' }}>
-            Reflecting into rows below
+            Click a floor to load its values
           </span>
         </div>
       )}
