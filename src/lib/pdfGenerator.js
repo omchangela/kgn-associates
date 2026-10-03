@@ -127,7 +127,7 @@ export function generateValuationPdf(report) {
     doc.setTextColor(...goldLight);
     doc.setFontSize(7.5);
     doc.setFont('helvetica', 'bold');
-    doc.text('KGN ASSOCIATES • CHARTERED ENGINEERS & APPROVED VALUERS', 14, 6.8);
+    doc.text('KGN ASSOCIATES • ENGINEERS AND VALUERS', 14, 6.8);
     
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(7);
@@ -721,7 +721,7 @@ export function generateValuationPdf(report) {
     doc.setFontSize(6.8);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(100, 116, 139);
-    doc.text('Confidential Banking Document • KGN Associates Chartered Engineers & Approved Valuers', 14, 291);
+    doc.text('Confidential Banking Document • KGN Associates Engineers and Valuers', 14, 291);
     doc.text(`Page ${i} of ${totalPages}`, 180, 291);
   }
 

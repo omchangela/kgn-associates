@@ -97,7 +97,7 @@ const Login = () => {
                   ESTD. &amp; REGISTERED
                 </span>
                 <h2 style={{ fontFamily: 'var(--font-heading)', color: 'var(--primary-gold)', margin: 0, fontSize: '1.4rem' }}>
-                  CHARTERED VALUERS
+                  ENGINEERS AND VALUERS
                 </h2>
               </div>
             </div>
@@ -108,8 +108,7 @@ const Login = () => {
             </div>
 
             <p className={styles.brandDescription}>
-              Government Approved Valuers, Chartered Engineers, and Municipal Property Assessors. 
-              Comprehensive land, building, and commercial valuation certification platform.
+              Engineers and Valuers
             </p>
 
             {/* Feature highlights with animated SVG icons */}

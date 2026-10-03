@@ -22,7 +22,7 @@ const Sidebar = ({ isOpen, onClose }) => {
               <KgnCrest size={42} />
               <div className={styles.brandText}>
                 <span className={styles.brandTitle}>KGN ASSOCIATES</span>
-                <span className={styles.brandSub}>Approved Valuers</span>
+                <span className={styles.brandSub}>Engineers and Valuers</span>
               </div>
             </Link>
           </div>

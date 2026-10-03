@@ -116,8 +116,7 @@ const Signup = () => {
             </div>
 
             <p className={styles.brandDescription}>
-              Join the registered roster of Chartered Engineers and Approved Property Valuers.
-              Access advanced valuation matrices, bank-compliant reporting, and instant digital certification.
+              Engineers and Valuers
             </p>
           </div>
         </div>

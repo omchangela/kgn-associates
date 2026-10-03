@@ -113,7 +113,7 @@ export default function Home() {
               fontWeight: 600,
             }}
           >
-            Chartered Engineers &amp; Approved Valuers Portal
+            Engineers and Valuers
           </p>
         </div>
 
