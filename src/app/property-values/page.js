@@ -936,12 +936,9 @@ const PropertyValues = () => {
 
                 <div className={styles.card}>
                   <h2 className={styles.sectionHeading}>Engineer Details</h2>
-                  <div className={styles.formGrid}>
-                    <InputGroup label="Engineer Name" placeholder="Enter" section="finalValuation" field="valuer_name" />
-                    <InputGroup label="Signature Date" placeholder="Enter" isDate section="finalValuation" field="report_date" />
-                  </div>
-                  <TextAreaField label="Engineer Remarks" section="finalValuation" field="valuer_remarks" placeholder="Enter engineer remarks" />
+                  <EngineerDetailsFields />
                 </div>
+
                 <div className={styles.footerActions}>
                   <button className={styles.nextBtn} onClick={handleNext}>Next <ChevronRight size={18} /></button>
                 </div>
@@ -1170,6 +1167,169 @@ const PropertyValues = () => {
 /* ---------------------------------------------------
     INTERNAL REUSABLE COMPONENTS
 --------------------------------------------------- */
+
+/* Dual-mode field: Text typing OR Picture upload */
+const TextOrImageField = ({ label, textField, imageField, placeholder, isTextarea = false, rows = 4 }) => {
+  const { formData, updateField } = useFormContext();
+  const [mode, setMode] = useState('text'); // 'text' | 'picture'
+  const fileInputRef = React.useRef(null);
+
+  const textValue = formData.finalValuation?.[textField] ?? '';
+  const imageValue = formData.finalValuation?.[imageField] ?? '';
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      updateField('finalValuation', imageField, ev.target.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const tabStyle = (active) => ({
+    padding: '5px 16px',
+    fontSize: '0.8rem',
+    fontWeight: 600,
+    cursor: 'pointer',
+    border: 'none',
+    borderRadius: '6px',
+    background: active ? 'var(--gradient-gold, linear-gradient(135deg,#C9A84C,#E0C77D))' : 'rgba(255,255,255,0.06)',
+    color: active ? '#1a1a1a' : 'var(--text-secondary)',
+    transition: 'all 0.2s ease',
+  });
+
+  return (
+    <div style={{ marginBottom: '18px' }}>
+      {/* Label + tab switcher */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
+        <label className={styles.label} style={{ margin: 0 }}>{label}</label>
+        <div style={{ display: 'inline-flex', gap: '4px', padding: '3px', borderRadius: '8px', background: 'rgba(255,255,255,0.06)', border: '1px solid var(--border-color)' }}>
+          <button type="button" style={tabStyle(mode === 'text')} onClick={() => setMode('text')}>
+            ✏️ Text
+          </button>
+          <button type="button" style={tabStyle(mode === 'picture')} onClick={() => setMode('picture')}>
+            🖼️ Picture
+          </button>
+        </div>
+      </div>
+
+      {/* Text mode */}
+      {mode === 'text' && (
+        isTextarea ? (
+          <textarea
+            className={styles.textarea}
+            placeholder={placeholder}
+            rows={rows}
+            value={textValue}
+            onChange={(e) => updateField('finalValuation', textField, e.target.value)}
+          />
+        ) : (
+          <div className={styles.fieldWrapper}>
+            <input
+              type="text"
+              placeholder={placeholder}
+              className={styles.inputField}
+              value={textValue}
+              onChange={(e) => updateField('finalValuation', textField, e.target.value)}
+            />
+          </div>
+        )
+      )}
+
+      {/* Picture mode */}
+      {mode === 'picture' && (
+        <div>
+          {imageValue ? (
+            <div style={{ position: 'relative', display: 'inline-block', maxWidth: '100%' }}>
+              <img
+                src={imageValue}
+                alt={label}
+                style={{ maxWidth: '100%', maxHeight: '220px', borderRadius: '8px', border: '1px solid var(--border-color)', objectFit: 'contain', display: 'block' }}
+              />
+              <button
+                type="button"
+                onClick={() => updateField('finalValuation', imageField, '')}
+                title="Remove image"
+                style={{ position: 'absolute', top: '6px', right: '6px', width: '26px', height: '26px', borderRadius: '50%', background: 'rgba(239,68,68,0.85)', border: 'none', color: '#fff', cursor: 'pointer', fontWeight: 700, fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                ×
+              </button>
+            </div>
+          ) : (
+            <div
+              onClick={() => fileInputRef.current?.click()}
+              style={{ border: '2px dashed rgba(201,168,76,0.5)', borderRadius: '10px', padding: '32px 20px', textAlign: 'center', cursor: 'pointer', background: 'rgba(201,168,76,0.04)', transition: 'border-color 0.2s ease' }}
+              onMouseEnter={(e) => e.currentTarget.style.borderColor = '#C9A84C'}
+              onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgba(201,168,76,0.5)'}
+            >
+              <div style={{ fontSize: '2rem', marginBottom: '8px' }}>📷</div>
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>Click to upload image</p>
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: '4px 0 0' }}>PNG, JPG, WEBP supported</p>
+            </div>
+          )}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            style={{ display: 'none' }}
+            onChange={handleImageUpload}
+          />
+          {imageValue && (
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              style={{ marginTop: '8px', fontSize: '0.8rem', color: 'var(--primary-gold,#C9A84C)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
+            >
+              Replace image
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* Engineer Details section with per-field Text / Picture toggle */
+const EngineerDetailsFields = () => {
+  const { formData, updateField } = useFormContext();
+
+  return (
+    <>
+      <div className={styles.formGrid} style={{ marginBottom: '18px' }}>
+        {/* Engineer Name occupies left column; Signature Date stays in right column */}
+        <TextOrImageField
+          label="Engineer Name"
+          textField="valuer_name"
+          imageField="valuer_name_image"
+          placeholder="Enter engineer name"
+        />
+        <div className={styles.inputStack}>
+          <label className={styles.label}>Signature Date</label>
+          <div className={styles.fieldWrapper}>
+            <input
+              type="date"
+              className={styles.inputField}
+              value={formData.finalValuation?.report_date ?? ''}
+              onChange={(e) => updateField('finalValuation', 'report_date', e.target.value)}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Engineer Remarks — full width */}
+      <TextOrImageField
+        label="Engineer Remarks"
+        textField="valuer_remarks"
+        imageField="valuer_remarks_image"
+        placeholder="Enter engineer remarks"
+        isTextarea
+        rows={4}
+      />
+    </>
+  );
+};
+
 const InputGroup = ({ label, placeholder, isDate, fullWidth, type = "text", section, field }) => {
   const { formData, updateField } = useFormContext();
   const [internalVal, setInternalVal] = useState('');

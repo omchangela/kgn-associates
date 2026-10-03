@@ -184,10 +184,13 @@ export const initialFormData = {
     photographs_attached: true,
     documents_verified: true,
     valuer_name: '',
+    valuer_name_image: '',
     valuer_license_no: '',
     report_date: '',
     valuer_remarks: '',
+    valuer_remarks_image: '',
   },
+
   locationDetails: {
     latitude: '',
     longitude: '',
