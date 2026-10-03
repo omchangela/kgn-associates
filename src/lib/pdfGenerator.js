@@ -649,67 +649,75 @@ export function generateValuationPdf(report) {
   // PAGE 4 (APPENDIX): SITE INSPECTION PHOTOGRAPHS
   // ==========================================
   if (photos && photos.length > 0 && photos.some(p => p.photo || p.preview)) {
-    doc.addPage();
-    drawRunningHeader('APPENDIX: SITE INSPECTION PHOTOGRAPHS');
-
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(...navyDark);
-    doc.text('11.0 GEOTAGGED SITE INSPECTION PHOTOGRAPHS', 14, 18);
-
-    let photoY = 23;
     const validPhotos = photos.filter(p => p.photo || p.preview);
 
-    validPhotos.slice(0, 4).forEach((p, idx) => {
-      const imgData = p.photo || p.preview;
-      const x = (idx % 2 === 0) ? 14 : 108;
-      const y = idx < 2 ? photoY : photoY + 95;
+    for (let pageStart = 0; pageStart < validPhotos.length; pageStart += 4) {
+      doc.addPage();
+      const isContinuation = pageStart > 0;
+      drawRunningHeader(isContinuation ? 'APPENDIX: SITE INSPECTION PHOTOGRAPHS (CONT.)' : 'APPENDIX: SITE INSPECTION PHOTOGRAPHS');
 
-      // Draw photo container card
-      doc.setFillColor(248, 250, 252);
-      doc.setDrawColor(...borderLight);
-      doc.roundedRect(x, y, 88, 88, 2, 2, 'FD');
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...navyDark);
+      doc.text(isContinuation ? '11.0 GEOTAGGED SITE INSPECTION PHOTOGRAPHS (CONT.)' : '11.0 GEOTAGGED SITE INSPECTION PHOTOGRAPHS', 14, 18);
 
-      try {
-        let finalImage = imgData;
-        if (typeof imgData === 'string' && imgData.startsWith('/uploads/')) {
-          const diskPath = path.join(process.cwd(), 'public', imgData);
-          if (fs.existsSync(diskPath)) {
-            const ext = path.extname(diskPath).toLowerCase().replace('.', '') || 'jpeg';
-            const buf = fs.readFileSync(diskPath);
-            finalImage = `data:image/${ext === 'jpg' ? 'jpeg' : ext};base64,${buf.toString('base64')}`;
+      let photoY = 23;
+      const pagePhotos = validPhotos.slice(pageStart, pageStart + 4);
+
+      pagePhotos.forEach((p, idx) => {
+        const globalIdx = pageStart + idx;
+        const x = (idx % 2 === 0) ? 14 : 108;
+        const y = idx < 2 ? photoY : photoY + 95;
+
+        // Draw photo container card
+        doc.setFillColor(248, 250, 252);
+        doc.setDrawColor(...borderLight);
+        doc.roundedRect(x, y, 88, 88, 2, 2, 'FD');
+
+        try {
+          let finalImage = p.photo || p.preview;
+          if (typeof finalImage === 'string' && finalImage.startsWith('/uploads/')) {
+            const diskPath = path.join(process.cwd(), 'public', finalImage);
+            if (fs.existsSync(diskPath)) {
+              const ext = path.extname(diskPath).toLowerCase().replace('.', '') || 'jpeg';
+              const buf = fs.readFileSync(diskPath);
+              finalImage = `data:image/${ext === 'jpg' ? 'jpeg' : ext};base64,${buf.toString('base64')}`;
+            }
           }
-        }
-        if (finalImage && finalImage.startsWith('data:image')) {
-          doc.addImage(finalImage, 'JPEG', x + 2, y + 2, 84, 58);
-        } else {
+          if (finalImage && finalImage.startsWith('data:image')) {
+            doc.addImage(finalImage, 'JPEG', x + 2, y + 2, 84, 58);
+          } else {
+            doc.setFillColor(226, 232, 240);
+            doc.rect(x + 2, y + 2, 84, 58, 'F');
+            doc.setTextColor(100, 116, 139);
+            doc.setFontSize(8);
+            doc.text('[Site Photo Captured]', x + 26, y + 30);
+          }
+        } catch (e) {
           doc.setFillColor(226, 232, 240);
           doc.rect(x + 2, y + 2, 84, 58, 'F');
           doc.setTextColor(100, 116, 139);
           doc.setFontSize(8);
-          doc.text('[Site Photo Captured]', x + 26, y + 30);
+          doc.text('[Inspection Photo]', x + 28, y + 30);
         }
-      } catch (e) {
-        doc.setFillColor(226, 232, 240);
-        doc.rect(x + 2, y + 2, 84, 58, 'F');
-        doc.setTextColor(100, 116, 139);
-        doc.setFontSize(8);
-        doc.text('[Inspection Photo]', x + 28, y + 30);
-      }
 
-      // Metadata box below photo
-      doc.setFontSize(7.5);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(...navyDark);
-      doc.text(`Photo ${idx + 1}: ${fmtVal(p.description, 'Exterior Frontage & Road View')}`, x + 3, y + 66);
+        // Metadata box below photo
+        doc.setFontSize(7.5);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...navyDark);
+        const photoTitle = p.group_note
+          ? `Photo ${globalIdx + 1} (${p.group_note}): ${fmtVal(p.description, 'Exterior Frontage & Road View')}`
+          : `Photo ${globalIdx + 1}: ${fmtVal(p.description, 'Exterior Frontage & Road View')}`;
+        doc.text(photoTitle, x + 3, y + 66);
 
-      doc.setFontSize(6.8);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(71, 85, 105);
-      doc.text(`GPS Geotag: ${fmtVal(p.latitude, '17.4399°')} N, ${fmtVal(p.longitude, '78.3908°')} E`, x + 3, y + 71);
-      doc.text(`Locality: ${fmtVal(p.locality || p.region, 'Hyderabad Urban')}`, x + 3, y + 75);
-      doc.text(`Captured: ${fmtVal(p.captured_at, new Date().toLocaleDateString('en-IN'))}`, x + 3, y + 79);
-    });
+        doc.setFontSize(6.8);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(71, 85, 105);
+        doc.text(`GPS Geotag: ${fmtVal(p.latitude, '17.4399°')} N, ${fmtVal(p.longitude, '78.3908°')} E`, x + 3, y + 71);
+        doc.text(`Locality: ${fmtVal(p.locality || p.region, 'Hyderabad Urban')}`, x + 3, y + 75);
+        doc.text(`Captured: ${fmtVal(p.captured_at, new Date().toLocaleDateString('en-IN'))}`, x + 3, y + 79);
+      });
+    }
   }
 
   // ==========================================

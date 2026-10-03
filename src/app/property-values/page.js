@@ -6,7 +6,7 @@ import Header from '@/components/header/Header';
 import Footer from '@/components/footer/Footer';
 import { Calendar, ChevronRight, ChevronDown, Plus, Trash2, Upload, PenTool, RotateCcw } from 'lucide-react';
 import { propertyValuationAPI } from '@/services/api';
-import { initialFormData, getSampleFormData, sanitizePayload, parseNumber, roundCoord } from './propertyFormState';
+import { initialFormData, getSampleFormData, sanitizePayload, parseNumber, roundCoord, emptyPhoto, emptyPhotoGroup } from './propertyFormState';
 import gsap from 'gsap';
 import { ApprovedValuerBadge } from '@/components/common/SvgDecorations';
 
@@ -115,37 +115,167 @@ const PropertyValues = () => {
     }));
   };
 
+  const getPhotoGroups = (data) => {
+    if (data.photoGroups && Array.isArray(data.photoGroups) && data.photoGroups.length > 0) {
+      return data.photoGroups;
+    }
+    const existingPhotos = data.photos && data.photos.length > 0 ? data.photos : [emptyPhoto()];
+    return [
+      {
+        id: 1,
+        note: data.photo_graphs_note || (Array.isArray(data.photo_graphs_notes) ? data.photo_graphs_notes[0] : '') || '',
+        photos: existingPhotos,
+      }
+    ];
+  };
+
+  const syncPhotoState = (groups) => {
+    const flattenedPhotos = groups.flatMap(g =>
+      (g.photos || []).map(p => ({
+        ...p,
+        group_id: g.id,
+        group_note: g.note || '',
+      }))
+    );
+    const notes = groups.map(g => g.note || '');
+    return {
+      photoGroups: groups,
+      photos: flattenedPhotos.length > 0 ? flattenedPhotos : [emptyPhoto()],
+      photo_graphs_notes: notes,
+      photo_graphs_note: notes[0] || '',
+    };
+  };
+
+  const addPhotoGroup = () => {
+    setFormData(prev => {
+      const currentGroups = getPhotoGroups(prev);
+      const newGroup = emptyPhotoGroup();
+      const nextGroups = [...currentGroups, newGroup];
+      return {
+        ...prev,
+        ...syncPhotoState(nextGroups),
+      };
+    });
+  };
+
+  const removePhotoGroup = (groupId) => {
+    setFormData(prev => {
+      const currentGroups = getPhotoGroups(prev);
+      if (currentGroups.length <= 1) return prev;
+      const nextGroups = currentGroups.filter(g => g.id !== groupId);
+      return {
+        ...prev,
+        ...syncPhotoState(nextGroups),
+      };
+    });
+  };
+
+  const updatePhotoGroupNote = (groupId, note) => {
+    setFormData(prev => {
+      const currentGroups = getPhotoGroups(prev);
+      const nextGroups = currentGroups.map(g => g.id === groupId ? { ...g, note } : g);
+      return {
+        ...prev,
+        ...syncPhotoState(nextGroups),
+      };
+    });
+  };
+
+  const addPhotoToGroup = (groupId) => {
+    setFormData(prev => {
+      const currentGroups = getPhotoGroups(prev);
+      const nextGroups = currentGroups.map(g => {
+        if (g.id !== groupId) return g;
+        return {
+          ...g,
+          photos: [...(g.photos || []), emptyPhoto()],
+        };
+      });
+      return {
+        ...prev,
+        ...syncPhotoState(nextGroups),
+      };
+    });
+  };
+
+  const removePhotoFromGroup = (groupId, photoId) => {
+    setFormData(prev => {
+      const currentGroups = getPhotoGroups(prev);
+      const nextGroups = currentGroups.map(g => {
+        if (g.id !== groupId) return g;
+        if ((g.photos || []).length <= 1) return g;
+        return {
+          ...g,
+          photos: g.photos.filter(p => p.id !== photoId),
+        };
+      });
+      return {
+        ...prev,
+        ...syncPhotoState(nextGroups),
+      };
+    });
+  };
+
+  const updatePhotoInGroup = (groupId, photoId, updates) => {
+    setFormData(prev => {
+      const currentGroups = getPhotoGroups(prev);
+      const nextGroups = currentGroups.map(g => {
+        if (g.id !== groupId) return g;
+        return {
+          ...g,
+          photos: (g.photos || []).map(p => p.id === photoId ? { ...p, ...updates } : p),
+        };
+      });
+      return {
+        ...prev,
+        ...syncPhotoState(nextGroups),
+      };
+    });
+  };
+
   const updatePhoto = (id, updates) => {
-    setFormData(prev => ({
-      ...prev,
-      photos: prev.photos.map(p => (p.id === id ? { ...p, ...updates } : p)),
-    }));
+    setFormData(prev => {
+      const currentGroups = getPhotoGroups(prev);
+      const nextGroups = currentGroups.map(g => ({
+        ...g,
+        photos: (g.photos || []).map(p => (p.id === id ? { ...p, ...updates } : p)),
+      }));
+      return {
+        ...prev,
+        ...syncPhotoState(nextGroups),
+      };
+    });
   };
 
   const addPhotoRow = () => {
-    setFormData(prev => ({
-      ...prev,
-      photos: [...prev.photos, {
-        id: Date.now(),
-        file: null,
-        preview: null,
-        description: '',
-        latitude: '',
-        longitude: '',
-        locality: '',
-        region: '',
-        bearing_degrees: '',
-        bearing_direction: '',
-        captured_at: '',
-      }],
-    }));
+    setFormData(prev => {
+      const currentGroups = getPhotoGroups(prev);
+      const lastGroup = currentGroups[currentGroups.length - 1];
+      if (lastGroup) {
+        return {
+          ...prev,
+          ...syncPhotoState(currentGroups.map((g, idx) => idx === currentGroups.length - 1 ? {
+            ...g,
+            photos: [...(g.photos || []), emptyPhoto()]
+          } : g))
+        };
+      }
+      return prev;
+    });
   };
 
   const removePhotoRow = (id) => {
-    setFormData(prev => ({
-      ...prev,
-      photos: prev.photos.length > 1 ? prev.photos.filter(p => p.id !== id) : prev.photos,
-    }));
+    setFormData(prev => {
+      const currentGroups = getPhotoGroups(prev);
+      const nextGroups = currentGroups.map(g => ({
+        ...g,
+        photos: g.photos.length > 1 ? g.photos.filter(p => p.id !== id) : g.photos,
+      }));
+      return {
+        ...prev,
+        ...syncPhotoState(nextGroups),
+      };
+    });
   };
 
   const postSection = async (apiFn, id, sectionData) => {
@@ -226,14 +356,19 @@ const PropertyValues = () => {
             amenity_name: row.amenity_name,
             amenity_value: parseNumber(row.amenity_value),
           })),
-        photos: formData.photos.map((p) => ({
+        photos: (formData.photos || []).map((p) => ({
           description: p.description || '',
           latitude: roundCoord(p.latitude),
           longitude: roundCoord(p.longitude),
           locality: p.locality || '',
           region: p.region || '',
           photo: p.preview || '',
+          group_id: p.group_id || 1,
+          group_note: p.group_note || '',
         })),
+        photoGroups: formData.photoGroups || [],
+        photo_graphs_notes: formData.photoGroups ? formData.photoGroups.map(g => g.note) : (formData.photo_graphs_notes || []),
+        photo_graphs_note: formData.photoGroups?.[0]?.note || formData.photo_graphs_note || '',
         signatures: formData.signatures || {},
       };
 
@@ -262,6 +397,12 @@ const PropertyValues = () => {
     updatePhoto,
     addPhotoRow,
     removePhotoRow,
+    addPhotoGroup,
+    removePhotoGroup,
+    updatePhotoGroupNote,
+    addPhotoToGroup,
+    removePhotoFromGroup,
+    updatePhotoInGroup,
   };
 
   return (
@@ -1059,12 +1200,8 @@ const PropertyValues = () => {
             {/* TAB 10: PHOTOS */}
             {activeTab === "Photos" && (
               <>
-                <h1 className={styles.pageTitle}>Photo Graphs</h1>
-
-                {/* Photo Upload with Description Box per Photo */}
-                <div className={styles.card}>
-                  <PhotoUploadList />
-                </div>
+                {/* Repeatable Photo Graphs Sections with Photos Card */}
+                <PhotoGroupSectionList />
 
                 {/* Print / Draw Tab */}
                 <div className={styles.card}>
@@ -3627,17 +3764,44 @@ const FinalValueChartTable = () => {
   );
 };
 
-/* Photo upload list with description per photo */
-const PhotoUploadList = () => {
-  const { formData, updatePhoto, addPhotoRow, removePhotoRow } = useFormContext();
-  const photos = formData.photos;
+/* Repeatable Photo Groups: each section has a note/manual details box and a complete Photos card */
+const PhotoGroupSectionList = () => {
+  const {
+    formData,
+    addPhotoGroup,
+    removePhotoGroup,
+    updatePhotoGroupNote,
+    addPhotoToGroup,
+    removePhotoFromGroup,
+    updatePhotoInGroup,
+  } = useFormContext();
+
+  const photoGroups = (formData.photoGroups && formData.photoGroups.length > 0)
+    ? formData.photoGroups
+    : [{
+        id: 1,
+        note: formData.photo_graphs_note || (Array.isArray(formData.photo_graphs_notes) ? formData.photo_graphs_notes[0] : '') || '',
+        photos: formData.photos && formData.photos.length > 0 ? formData.photos : [{
+          id: 1,
+          file: null,
+          preview: null,
+          description: '',
+          latitude: '',
+          longitude: '',
+          locality: '',
+          region: '',
+          bearing_degrees: '',
+          bearing_direction: '',
+          captured_at: '',
+        }],
+      }];
 
   const cardinalFromDegrees = (deg) => {
     const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
     return dirs[Math.round(Number(deg) / 45) % 8] || '';
   };
 
-  const handleFile = (id, e) => {
+  const handleFile = (groupId, photoId, e) => {
     const file = e.target.files[0];
     if (!file) return;
     const preview = URL.createObjectURL(file);
@@ -3645,11 +3809,11 @@ const PhotoUploadList = () => {
     const locality = formData.propertyIdentification?.locality_name || '';
     const region = formData.propertyIdentification?.state || formData.propertyIdentification?.district || '';
 
-    updatePhoto(id, { file, preview, captured_at, locality, region });
+    updatePhotoInGroup(groupId, photoId, { file, preview, captured_at, locality, region });
 
     const applyCoords = (lat, lon, heading) => {
       const bearing = heading != null && !Number.isNaN(heading) ? Math.round(heading) : '';
-      updatePhoto(id, {
+      updatePhotoInGroup(groupId, photoId, {
         latitude: roundCoord(lat),
         longitude: roundCoord(lon),
         bearing_degrees: bearing !== '' ? String(bearing) : '',
@@ -3674,68 +3838,213 @@ const PhotoUploadList = () => {
     }
   };
 
-  const handleDesc = (id, value) => {
-    updatePhoto(id, { description: value });
+  const handleDesc = (groupId, photoId, value) => {
+    updatePhotoInGroup(groupId, photoId, { description: value });
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      {/* Header with circular + button */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '10px' }}>
-        <div>
-          <h2 className={styles.sectionHeading} style={{ margin: 0 }}>Photos</h2>
-          <p className={styles.subHeading} style={{ margin: '4px 0 0 0' }}>Upload photos and add a description for each picture.</p>
-        </div>
-        <button
-          type="button"
-          onClick={addPhotoRow}
-          title="Add another Photo"
-          style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'var(--gradient-gold, linear-gradient(135deg,#C9A84C 0%,#E0C77D 100%))', color: '#1a1a1a', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 10px rgba(201,168,76,0.35)', transition: 'transform 0.15s ease' }}
-          onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.08)')}
-          onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-        >
-          <Plus size={22} strokeWidth={2.5} />
-        </button>
-      </div>
-
-      {photos.map((photo, idx) => (
-        <div key={photo.id} style={{ display: 'flex', gap: '16px', alignItems: 'flex-start', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: 'var(--border-radius)', padding: '16px' }}>
-          <div style={{ position: 'relative', width: '120px', height: '100px', flexShrink: 0, border: '2px dashed var(--border-color)', borderRadius: 'var(--border-radius)', overflow: 'hidden', cursor: 'pointer', background: 'var(--bg-secondary)' }}>
-            {photo.preview
-              ? <img src={photo.preview} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              : <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-muted)', fontSize: '0.75rem', textAlign: 'center', padding: '8px' }}>
-                  <span style={{ fontSize: '1.5rem', marginBottom: '4px' }}>📷</span>
-                  <span>Click to upload</span>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', marginBottom: '25px' }}>
+      {photoGroups.map((group, gIdx) => {
+        const isFirst = gIdx === 0;
+        return (
+          <div key={group.id} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {/* Header row for this photo group */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+              {isFirst ? (
+                <>
+                  <h1 className={styles.pageTitle} style={{ margin: 0, color: 'var(--accent-gold, #C9A84C)', whiteSpace: 'nowrap' }}>
+                    Photo Graphs
+                  </h1>
+                  {/* Top + button: creates a complete new Photo Section below */}
+                  <button
+                    type="button"
+                    onClick={addPhotoGroup}
+                    title="Add another Photo Section below"
+                    style={{
+                      width: '38px',
+                      height: '38px',
+                      borderRadius: '50%',
+                      background: 'var(--gradient-gold, linear-gradient(135deg,#C9A84C 0%,#E0C77D 100%))',
+                      color: '#1a1a1a',
+                      border: 'none',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 10px rgba(201,168,76,0.35)',
+                      flexShrink: 0,
+                      transition: 'transform 0.15s ease',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.08)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+                  >
+                    <Plus size={22} strokeWidth={2.5} />
+                  </button>
+                </>
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <h2 className={styles.sectionHeading} style={{ margin: 0, color: 'var(--accent-gold, #C9A84C)', fontSize: '1.35rem', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                    Photo Graphs {gIdx + 1}
+                  </h2>
                 </div>
-            }
-            <input type="file" accept="image/*" capture="environment" onChange={(e) => handleFile(photo.id, e)} style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }} />
+              )}
+
+              {/* Note / manual details box for this section */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: '1 1 300px', maxWidth: '520px' }}>
+                <input
+                  type="text"
+                  placeholder="Enter manual details / note..."
+                  className={styles.inputField}
+                  value={group.note || ''}
+                  onChange={(e) => updatePhotoGroupNote(group.id, e.target.value)}
+                  style={{ width: '100%', padding: '9px 14px', fontSize: '0.92rem' }}
+                />
+                {photoGroups.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removePhotoGroup(group.id)}
+                    title="Remove this Photo Section"
+                    style={{
+                      background: 'rgba(239, 68, 68, 0.08)',
+                      border: '1px solid rgba(239, 68, 68, 0.3)',
+                      color: '#ef4444',
+                      borderRadius: '50%',
+                      width: '28px',
+                      height: '28px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '1.15rem',
+                      fontWeight: 600,
+                      flexShrink: 0,
+                      transition: 'all 0.15s ease',
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.18)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.08)'; }}
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Complete Photos card for this group */}
+            <div className={styles.card} style={{ margin: 0 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '14px' }}>
+                <div>
+                  <h2 className={styles.sectionHeading} style={{ margin: 0 }}>Photos</h2>
+                  <p className={styles.subHeading} style={{ margin: '4px 0 0 0' }}>Upload photos and add a description for each picture.</p>
+                </div>
+                {/* Internal + button: adds another photo to this group */}
+                <button
+                  type="button"
+                  onClick={() => addPhotoToGroup(group.id)}
+                  title="Add another Photo to this section"
+                  style={{
+                    width: '38px',
+                    height: '38px',
+                    borderRadius: '50%',
+                    background: 'var(--gradient-gold, linear-gradient(135deg,#C9A84C 0%,#E0C77D 100%))',
+                    color: '#1a1a1a',
+                    border: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 10px rgba(201,168,76,0.35)',
+                    flexShrink: 0,
+                    transition: 'transform 0.15s ease',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.08)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+                >
+                  <Plus size={22} strokeWidth={2.5} />
+                </button>
+              </div>
+
+              {/* Photos upload rows for this group */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {(group.photos || []).map((photo, pIdx) => (
+                  <div key={photo.id} style={{ display: 'flex', gap: '16px', alignItems: 'flex-start', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: 'var(--border-radius)', padding: '16px' }}>
+                    <div style={{ position: 'relative', width: '120px', height: '100px', flexShrink: 0, border: '2px dashed var(--border-color)', borderRadius: 'var(--border-radius)', overflow: 'hidden', cursor: 'pointer', background: 'var(--bg-secondary)' }}>
+                      {photo.preview ? (
+                        <img src={photo.preview} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-muted)', fontSize: '0.75rem', textAlign: 'center', padding: '8px' }}>
+                          <span style={{ fontSize: '1.5rem', marginBottom: '4px' }}>📷</span>
+                          <span>Click to upload</span>
+                        </div>
+                      )}
+                      <input type="file" accept="image/*" capture="environment" onChange={(e) => handleFile(group.id, photo.id, e)} style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }} />
+                    </div>
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <label style={{ fontSize: '0.85rem', fontWeight: '600', color: 'var(--text-primary)' }}>Photo {pIdx + 1}</label>
+                      <textarea
+                        value={photo.description || ''}
+                        onChange={(e) => handleDesc(group.id, photo.id, e.target.value)}
+                        placeholder="Enter description..."
+                        rows="3"
+                        style={{ width: '100%', padding: '10px 12px', background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--border-radius)', fontSize: '0.9rem', fontFamily: 'var(--font-body)', color: 'var(--text-primary)', outline: 'none', resize: 'vertical' }}
+                      />
+                      {(photo.latitude || photo.longitude) && (
+                        <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0 }}>
+                          GPS: {photo.latitude}N {photo.longitude}E
+                          {photo.bearing_degrees ? ` · ${photo.bearing_degrees}° ${photo.bearing_direction}` : ''}
+                          {photo.locality ? ` · ${photo.locality}` : ''}
+                          {photo.region ? `, ${photo.region}` : ''}
+                        </p>
+                      )}
+                    </div>
+                    {group.photos.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removePhotoFromGroup(group.id, photo.id)}
+                        title="Remove photo"
+                        style={{ background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-muted)', borderRadius: '50%', width: '28px', height: '28px', cursor: 'pointer', fontSize: '1rem', flexShrink: 0 }}
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <label style={{ fontSize: '0.85rem', fontWeight: '600', color: 'var(--text-primary)' }}>Photo {idx + 1}</label>
-            <textarea
-              value={photo.description}
-              onChange={(e) => handleDesc(photo.id, e.target.value)}
-              placeholder="Enter description..."
-              rows="3"
-              style={{ width: '100%', padding: '10px 12px', background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--border-radius)', fontSize: '0.9rem', fontFamily: 'var(--font-body)', color: 'var(--text-primary)', outline: 'none', resize: 'vertical' }}
-            />
-            {(photo.latitude || photo.longitude) && (
-              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0 }}>
-                GPS: {photo.latitude}N {photo.longitude}E
-                {photo.bearing_degrees ? ` · ${photo.bearing_degrees}° ${photo.bearing_direction}` : ''}
-                {photo.locality ? ` · ${photo.locality}` : ''}
-                {photo.region ? `, ${photo.region}` : ''}
-              </p>
-            )}
-          </div>
-          {photos.length > 1 && (
-            <button onClick={() => removePhotoRow(photo.id)} style={{ background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-muted)', borderRadius: '50%', width: '28px', height: '28px', cursor: 'pointer', fontSize: '1rem', flexShrink: 0 }}>×</button>
-          )}
-        </div>
-      ))}
+        );
+      })}
+
+      {/* Button at the bottom to also add another Photo Section */}
+      <button
+        type="button"
+        onClick={addPhotoGroup}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '8px',
+          padding: '12px 20px',
+          background: 'transparent',
+          border: '2px dashed var(--accent-gold, #C9A84C)',
+          color: 'var(--accent-gold, #C9A84C)',
+          borderRadius: 'var(--border-radius)',
+          cursor: 'pointer',
+          fontWeight: 600,
+          fontSize: '0.95rem',
+          margin: '4px 0 10px 0',
+          transition: 'all 0.2s ease',
+        }}
+        onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(201, 168, 76, 0.08)'; }}
+        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+      >
+        <Plus size={18} strokeWidth={2.5} />
+        Add Another Photo Graphs Section
+      </button>
     </div>
   );
 };
+
+const PhotoUploadList = PhotoGroupSectionList;
 
 /* Freehand drawing canvas with picture upload */
 const DrawingCanvas = () => {

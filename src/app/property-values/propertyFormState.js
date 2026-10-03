@@ -249,6 +249,27 @@ export const initialFormData = {
   amenityValuations: [
     { amenity_name: '', amenity_value: '' },
   ],
+  photoGroups: [
+    {
+      id: 1,
+      note: '',
+      photos: [
+        {
+          id: 1,
+          file: null,
+          preview: null,
+          description: '',
+          latitude: '',
+          longitude: '',
+          locality: '',
+          region: '',
+          bearing_degrees: '',
+          bearing_direction: '',
+          captured_at: '',
+        },
+      ],
+    },
+  ],
   photos: [
     {
       id: 1,
@@ -278,8 +299,8 @@ export const initialFormData = {
   },
 };
 
-const emptyPhoto = () => ({
-  id: Date.now(),
+export const emptyPhoto = () => ({
+  id: Date.now() + Math.random(),
   file: null,
   preview: null,
   description: '',
@@ -290,6 +311,12 @@ const emptyPhoto = () => ({
   bearing_degrees: '',
   bearing_direction: '',
   captured_at: '',
+});
+
+export const emptyPhotoGroup = (id = Date.now()) => ({
+  id: id || (Date.now() + Math.random()),
+  note: '',
+  photos: [emptyPhoto()],
 });
 
 /** One-click sample data for testing — fills every wired field and table row. */
@@ -530,6 +557,7 @@ export const getSampleFormData = () => {
       { amenity_name: 'Car Parking', amenity_value: '200000' },
       { amenity_name: 'Lift', amenity_value: '150000' },
     ],
+    photoGroups: [emptyPhotoGroup(1)],
     photos: [emptyPhoto()],
     photo_graphs_notes: [''],
     photo_graphs_note: '',
