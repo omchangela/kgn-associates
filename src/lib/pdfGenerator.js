@@ -440,41 +440,107 @@ export function generateValuationPdf(report) {
   currentY = doc.lastAutoTable.finalY + 3.5;
 
   // 6.2 STRUCTURE VALUATION MATRIX
-  const structRows = [];
-  if (structs.length > 0) {
-    structs.forEach((s) => {
-      const floor = (s.floor_details || 'Floor Area').replace(/_/g, ' ').toUpperCase();
-      structRows.push([
-        floor,
-        `${Number(s.area_sqft || 0).toLocaleString('en-IN')} Sq.Ft`,
-        fmtVal(s.recommendation_of_funding, 'Recommended'),
-        `Rs. ${Number(s.cost_per_sqft || 0).toLocaleString('en-IN')}`,
-        `Rs. ${Number(s.total_value || 0).toLocaleString('en-IN')}`,
-      ]);
+  const perFloorStore = report.perFloorStructureValuations || {};
+  const specCards = Array.isArray(report.technicalDetails?.buildingSpecCards)
+    ? report.technicalDetails.buildingSpecCards
+    : [];
+  const hasMultipleFloors = specCards.length > 1 && Object.keys(perFloorStore).length > 1;
+
+  const renderStructureTable = (rows, sectionTitle) => {
+    const structRows = [];
+    if (rows && rows.length > 0) {
+      rows.forEach((s) => {
+        const floor = (s.floor_details || 'Floor Area').replace(/_/g, ' ').toUpperCase();
+        structRows.push([
+          floor,
+          `${Number(s.area_sqft || 0).toLocaleString('en-IN')} Sq.Ft`,
+          fmtVal(s.recommendation_of_funding, 'Recommended'),
+          `Rs. ${Number(s.cost_per_sqft || 0).toLocaleString('en-IN')}`,
+          `Rs. ${Number(s.total_value || 0).toLocaleString('en-IN')}`,
+        ]);
+      });
+    } else {
+      structRows.push(['GROUND FLOOR PLINTH', '1,400 Sq.Ft', 'Recommended', 'Rs. 2,200', 'Rs. 30,80,000']);
+    }
+    autoTable(doc, {
+      startY: currentY,
+      margin: { left: 14, right: 14 },
+      tableWidth: 182,
+      head: [[sectionTitle, 'PLINTH AREA', 'FUNDING', 'RATE/SQFT', 'ASSESSED VALUE']],
+      body: structRows,
+      theme: 'grid',
+      headStyles: sectionHeaderStyles,
+      styles: bodyStyles,
+      columnStyles: {
+        0: { cellWidth: 54, fontStyle: 'bold' },
+        1: { cellWidth: 30 },
+        2: { cellWidth: 28 },
+        3: { cellWidth: 32 },
+        4: { cellWidth: 38, fontStyle: 'bold', halign: 'right' },
+      },
+    });
+    currentY = doc.lastAutoTable.finalY + 3.5;
+  };
+
+  if (hasMultipleFloors) {
+    // Render each floor as a separate sub-section
+    const floorKeys = Object.keys(perFloorStore).sort((a, b) => {
+      if (a === 'all') return -1;
+      if (b === 'all') return 1;
+      return parseInt(a) - parseInt(b);
+    });
+    floorKeys.forEach((floorKey, idx) => {
+      const rows = perFloorStore[floorKey];
+      const hasData = Array.isArray(rows) && rows.some(r => r.area_sqft || r.cost_per_sqft || r.total_value);
+      if (!hasData) return;
+      let label;
+      if (floorKey === 'all') {
+        label = `6.2 BUILDING & STRUCTURAL VALUATION — ALL FLOORS (COMBINED)`;
+      } else {
+        const floorNum = parseInt(floorKey, 10);
+        const cardLabel = specCards[floorNum]?.description || specCards[floorNum]?.document_number || `Floor #${floorNum + 1}`;
+        label = `6.2.${idx + 1} BUILDING & STRUCTURAL VALUATION — ${cardLabel.toUpperCase()}`;
+      }
+      renderStructureTable(rows, label);
     });
   } else {
-    structRows.push(['GROUND FLOOR PLINTH', '1,400 Sq.Ft', 'Recommended', 'Rs. 2,200', 'Rs. 30,80,000']);
+    // Single floor or no per-floor store — render the active floor's rows
+    const structRows = [];
+    if (structs.length > 0) {
+      structs.forEach((s) => {
+        const floor = (s.floor_details || 'Floor Area').replace(/_/g, ' ').toUpperCase();
+        structRows.push([
+          floor,
+          `${Number(s.area_sqft || 0).toLocaleString('en-IN')} Sq.Ft`,
+          fmtVal(s.recommendation_of_funding, 'Recommended'),
+          `Rs. ${Number(s.cost_per_sqft || 0).toLocaleString('en-IN')}`,
+          `Rs. ${Number(s.total_value || 0).toLocaleString('en-IN')}`,
+        ]);
+      });
+    } else {
+      structRows.push(['GROUND FLOOR PLINTH', '1,400 Sq.Ft', 'Recommended', 'Rs. 2,200', 'Rs. 30,80,000']);
+    }
+    autoTable(doc, {
+      startY: currentY,
+      margin: { left: 14, right: 14 },
+      tableWidth: 182,
+      head: [['6.2 BUILDING & STRUCTURAL VALUATION', 'PLINTH AREA', 'FUNDING', 'RATE/SQFT', 'ASSESSED VALUE']],
+      body: structRows,
+      theme: 'grid',
+      headStyles: sectionHeaderStyles,
+      styles: bodyStyles,
+      columnStyles: {
+        0: { cellWidth: 54, fontStyle: 'bold' },
+        1: { cellWidth: 30 },
+        2: { cellWidth: 28 },
+        3: { cellWidth: 32 },
+        4: { cellWidth: 38, fontStyle: 'bold', halign: 'right' },
+      },
+    });
+    currentY = doc.lastAutoTable.finalY + 3.5;
   }
 
-  autoTable(doc, {
-    startY: currentY,
-    margin: { left: 14, right: 14 },
-    tableWidth: 182,
-    head: [['6.2 BUILDING & STRUCTURAL VALUATION', 'PLINTH AREA', 'FUNDING', 'RATE/SQFT', 'ASSESSED VALUE']],
-    body: structRows,
-    theme: 'grid',
-    headStyles: sectionHeaderStyles,
-    styles: bodyStyles,
-    columnStyles: {
-      0: { cellWidth: 54, fontStyle: 'bold' },
-      1: { cellWidth: 30 },
-      2: { cellWidth: 28 },
-      3: { cellWidth: 32 },
-      4: { cellWidth: 38, fontStyle: 'bold', halign: 'right' },
-    },
-  });
 
-  currentY = doc.lastAutoTable.finalY + 3.5;
 
   // 6.3 AMENITIES / EXTRA WORKS (IF ANY)
   if (amenities.length > 0 && amenities.some(a => a.amenity_name || a.amenity_value)) {

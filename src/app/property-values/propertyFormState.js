@@ -246,6 +246,8 @@ export const initialFormData = {
   structure_valuation_basis: 'as_per_actual',
   structure_valuation_selected_floor: 'built_up_area',
   selected_building_spec_card: 'all',
+  // Per-floor store: keyed by floor choice ('all', '0', '1', ...) so each floor tab keeps its own data
+  perFloorStructureValuations: {},
   amenityValuations: [
     { amenity_name: '', amenity_value: '' },
   ],
