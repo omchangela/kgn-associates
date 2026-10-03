@@ -1471,6 +1471,7 @@ const defaultBuildingSpecCard = () => ({
   property_age: '',
   residual_age: '',
   description: '',
+  document_number: '',
 });
 
 const BuildingSpecificationsSection = () => {
@@ -1480,9 +1481,16 @@ const BuildingSpecificationsSection = () => {
   // Support repeat mode: store cards in td.buildingSpecCards array
   const [cards, setCards] = React.useState(() => {
     if (Array.isArray(td.buildingSpecCards) && td.buildingSpecCards.length > 0) {
-      return td.buildingSpecCards;
+      return td.buildingSpecCards.map(c => ({
+        ...defaultBuildingSpecCard(),
+        ...c,
+      }));
     }
-    return [defaultBuildingSpecCard()];
+    return [{
+      ...defaultBuildingSpecCard(),
+      description: td.description || '',
+      document_number: td.document_number || '',
+    }];
   });
 
   // Sync cards into formData on every change
@@ -1502,6 +1510,7 @@ const BuildingSpecificationsSection = () => {
         property_age: newCards[0]?.property_age ?? prev.technicalDetails?.property_age ?? '',
         residual_age: newCards[0]?.residual_age ?? prev.technicalDetails?.residual_age ?? '',
         description: newCards[0]?.description ?? prev.technicalDetails?.description ?? '',
+        document_number: newCards[0]?.document_number ?? prev.technicalDetails?.document_number ?? '',
       },
     }));
   };
@@ -1538,9 +1547,9 @@ const BuildingSpecificationsSection = () => {
           }}
         >
           {/* Card header */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-              <h2 className={styles.sectionHeading} style={{ fontSize: '1.25rem', margin: 0 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '14px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
+              <h2 className={styles.sectionHeading} style={{ fontSize: '1.25rem', margin: 0, whiteSpace: 'nowrap' }}>
                 Building Specifications
               </h2>
               {cards.length > 1 && (
@@ -1549,7 +1558,34 @@ const BuildingSpecificationsSection = () => {
                 </span>
               )}
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+
+            {/* 2 Empty Boxes: 1 for Description, 2 for Document Number */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: '1 1 400px', minWidth: '260px' }}>
+              <div style={{ flex: 1, minWidth: '130px' }}>
+                <input
+                  type="text"
+                  placeholder="Description"
+                  className={styles.inputField}
+                  value={card.description ?? ''}
+                  onChange={(e) => updateCard(cardIdx, 'description', e.target.value)}
+                  style={{ width: '100%', padding: '8px 14px', fontSize: '0.9rem' }}
+                  title="Description"
+                />
+              </div>
+              <div style={{ flex: 1, minWidth: '130px' }}>
+                <input
+                  type="text"
+                  placeholder="Document Number"
+                  className={styles.inputField}
+                  value={card.document_number ?? ''}
+                  onChange={(e) => updateCard(cardIdx, 'document_number', e.target.value)}
+                  style={{ width: '100%', padding: '8px 14px', fontSize: '0.9rem' }}
+                  title="Document Number"
+                />
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0, marginLeft: 'auto' }}>
               {cards.length > 1 && (
                 <button
                   type="button"
@@ -1608,18 +1644,6 @@ const BuildingSpecificationsSection = () => {
                 )}
               </React.Fragment>
             ))}
-          </div>
-
-          {/* Description box */}
-          <div style={{ marginTop: '20px' }}>
-            <label className={styles.label}>Description</label>
-            <textarea
-              className={styles.textarea}
-              placeholder="Enter building description (e.g. RCC framed structure with brick masonry infill walls…)"
-              rows={3}
-              value={card.description ?? ''}
-              onChange={(e) => updateCard(cardIdx, 'description', e.target.value)}
-            />
           </div>
         </div>
       ))}

@@ -147,6 +147,7 @@ export const initialFormData = {
     property_age: '',
     residual_age: '',
     description: '',
+    document_number: '',
     technical_assessment: '',
     apartment_case_note: '',
     landMeasurements: {
@@ -435,6 +436,7 @@ export const getSampleFormData = () => {
       property_age: '10',
       residual_age: '40',
       description: 'RCC framed structure with brick masonry infill walls.',
+      document_number: 'DOC-BSPEC-2024-01',
       technical_assessment: 'Construction quality is good with proper structural integrity.',
       apartment_case_note: 'In case of apartment, land measurements are as per master layout plan / reflection only.',
       landMeasurements: {
