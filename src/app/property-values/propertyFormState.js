@@ -264,6 +264,8 @@ export const initialFormData = {
       captured_at: '',
     },
   ],
+  photo_graphs_notes: [''],
+  photo_graphs_note: '',
   photoRemarks: {
     remarks: '',
     remarks_image: '',
@@ -529,6 +531,8 @@ export const getSampleFormData = () => {
       { amenity_name: 'Lift', amenity_value: '150000' },
     ],
     photos: [emptyPhoto()],
+    photo_graphs_notes: [''],
+    photo_graphs_note: '',
     signatures: {
       signature_inspector: '',
       signature_valuer: '',
