@@ -1103,26 +1103,7 @@ const PropertyValues = () => {
                 <div className={styles.card}>
                   <h2 className={styles.sectionHeading}>Final Value Chart</h2>
                   <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '10px' }}>
-                      <thead>
-                        <tr>
-                          <th style={{ textAlign: 'left', color: 'var(--text-primary)', fontWeight: '600', paddingBottom: '10px' }}>Description</th>
-                          <th style={{ textAlign: 'left', color: 'var(--text-primary)', fontWeight: '600', paddingBottom: '10px' }}>Market Value (â‚¹)</th>
-                          <th style={{ textAlign: 'left', color: 'var(--text-primary)', fontWeight: '600', paddingBottom: '10px' }}>Guideline Value (â‚¹)</th>
-                          <th style={{ textAlign: 'left', color: 'var(--text-primary)', fontWeight: '600', paddingBottom: '10px' }}>Final Value (â‚¹)</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {['Land Value', 'Structure Value', 'Amenities Value', 'Total Value', 'Distress Value', 'Forced Sale Value'].map((row, idx) => (
-                          <tr key={idx}>
-                            <td style={{ fontSize: '0.95rem', fontWeight: '600', color: 'var(--text-primary)', paddingRight: '15px' }}>{row}</td>
-                            <td><input type="text" className={styles.inputField} placeholder="â‚¹ 0" /></td>
-                            <td><input type="text" className={styles.inputField} placeholder="â‚¹ 0" /></td>
-                            <td><input type="text" className={styles.inputField} placeholder="â‚¹ 0" /></td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                    <FinalValueChartTable />
                   </div>
                 </div>
 
@@ -3290,6 +3271,47 @@ const AmenitiesTable = () => {
         + Add Amenity
       </button>
     </div>
+  );
+};
+
+const FinalValueChartTable = () => {
+  const { formData } = useFormContext();
+  
+  const amenities = formData.amenityValuations || [];
+  const amenityRows = amenities
+    .map(a => a.amenity_name?.trim())
+    .filter(name => name !== '');
+  
+  const finalAmenityRows = amenityRows.length > 0 ? amenityRows : ['Amenities Value'];
+
+  const rows = [
+    'Land Value',
+    'Structure Value',
+    ...finalAmenityRows,
+    'Total Value',
+    'Distress Value',
+    'Forced Sale Value'
+  ];
+
+  return (
+    <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '10px' }}>
+      <thead>
+        <tr>
+          <th style={{ textAlign: 'left', color: 'var(--text-primary)', fontWeight: '600', paddingBottom: '10px' }}>Description</th>
+          <th style={{ textAlign: 'left', color: 'var(--text-primary)', fontWeight: '600', paddingBottom: '10px' }}>Market Value (₹)</th>
+          <th style={{ textAlign: 'left', color: 'var(--text-primary)', fontWeight: '600', paddingBottom: '10px' }}>Guideline Value (₹)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((row, idx) => (
+          <tr key={idx}>
+            <td style={{ fontSize: '0.95rem', fontWeight: '600', color: 'var(--text-primary)', paddingRight: '15px' }}>{row}</td>
+            <td><input type="text" className={styles.inputField} placeholder="₹ 0" /></td>
+            <td><input type="text" className={styles.inputField} placeholder="₹ 0" /></td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 };
 
