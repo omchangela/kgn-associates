@@ -871,6 +871,7 @@ const PropertyValues = () => {
                 <MeasurementMatchingCard
                   title="Land Measurements & Matching Status"
                   sectionKey="landMeasurements"
+                  showDescriptionBox={true}
                   showNoteBox={true}
                   noteLabel="Note : Apartment case (just reflection)"
                 />
@@ -878,8 +879,8 @@ const PropertyValues = () => {
                 <MeasurementMatchingCard
                   title="Building Measurements & Matching Status"
                   sectionKey="buildingMeasurements"
-                  showNoteBox={true}
-                  noteLabel="Description"
+                  showDescriptionBox={true}
+                  showNoteBox={false}
                 />
                 <div className={styles.card}>
                   <h2 className={styles.sectionHeading}>Technical Remarks</h2>
@@ -1656,6 +1657,7 @@ const defaultCardState = () => ({
   document_name: '',
   shape: 'Regular',
   apartment_case_note: '',
+  description: '',
   north: { actual: '', document: '', plan: '', match: false },
   south: { actual: '', document: '', plan: '', match: false },
   east: { actual: '', document: '', plan: '', match: false },
@@ -1665,6 +1667,7 @@ const defaultCardState = () => ({
 const MeasurementMatchingCard = ({
   title,
   sectionKey,
+  showDescriptionBox = true,
   showNoteBox = (sectionKey === 'landMeasurements'),
   noteLabel = "Note : Apartment case (just reflection)",
 }) => {
@@ -1673,7 +1676,10 @@ const MeasurementMatchingCard = ({
 
   const cards = React.useMemo(() => {
     if (Array.isArray(rawSection) && rawSection.length > 0) {
-      return rawSection;
+      return rawSection.map(c => ({
+        ...defaultCardState(),
+        ...c,
+      }));
     }
     if (rawSection && typeof rawSection === 'object') {
       return [{
@@ -1681,6 +1687,7 @@ const MeasurementMatchingCard = ({
         document_name: rawSection.document_name || '',
         shape: rawSection.shape || 'Regular',
         apartment_case_note: rawSection.apartment_case_note || '',
+        description: rawSection.description || '',
         north: rawSection.north || { actual: '', document: '', plan: '', match: false },
         south: rawSection.south || { actual: '', document: '', plan: '', match: false },
         east: rawSection.east || { actual: '', document: '', plan: '', match: false },
@@ -1696,6 +1703,7 @@ const MeasurementMatchingCard = ({
     normalized.shape = firstCard.shape;
     normalized.document_name = firstCard.document_name;
     normalized.apartment_case_note = firstCard.apartment_case_note;
+    normalized.description = firstCard.description;
     normalized.north = firstCard.north;
     normalized.south = firstCard.south;
     normalized.east = firstCard.east;
@@ -1718,6 +1726,11 @@ const MeasurementMatchingCard = ({
 
   const updateDocumentName = (cardIdx, document_name) => {
     const updated = cards.map((c, i) => (i === cardIdx ? { ...c, document_name } : c));
+    updateCards(updated);
+  };
+
+  const updateDescription = (cardIdx, description) => {
+    const updated = cards.map((c, i) => (i === cardIdx ? { ...c, description } : c));
     updateCards(updated);
   };
 
@@ -2112,13 +2125,60 @@ const MeasurementMatchingCard = ({
               );
             })}
 
+            {/* Description Box */}
+            {showDescriptionBox && (
+              <div
+                style={{
+                  marginTop: '22px',
+                  paddingTop: '18px',
+                  borderTop: '1px solid var(--border-color, rgba(255, 255, 255, 0.08))',
+                }}
+              >
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                    <label
+                      style={{
+                        fontSize: '0.95rem',
+                        fontWeight: 600,
+                        fontFamily: 'var(--font-heading)',
+                        color: 'var(--text-primary)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                      }}
+                    >
+                      <span>Description</span>
+                    </label>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                      Manual Entry
+                    </span>
+                  </div>
+                  <textarea
+                    rows={2}
+                    placeholder="Enter description..."
+                    value={card.description ?? ''}
+                    onChange={(e) => updateDescription(cardIdx, e.target.value)}
+                    className={styles.textarea}
+                    style={{
+                      width: '100%',
+                      minHeight: '60px',
+                      padding: '10px 14px',
+                      fontSize: '0.9rem',
+                      fontFamily: 'var(--font-body)',
+                      resize: 'vertical',
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+
             {/* Note Box for Apartment Case Reflection */}
             {showNoteBox && (
               <div
                 style={{
                   marginTop: '22px',
                   paddingTop: '18px',
-                  borderTop: '1px solid var(--border-color, #e2e8f0)',
+                  borderTop: showDescriptionBox ? '1px dashed var(--border-color, rgba(255, 255, 255, 0.08))' : '1px solid var(--border-color, #e2e8f0)',
                 }}
               >
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
