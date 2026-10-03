@@ -878,6 +878,8 @@ const PropertyValues = () => {
                 <MeasurementMatchingCard
                   title="Building Measurements & Matching Status"
                   sectionKey="buildingMeasurements"
+                  showNoteBox={true}
+                  noteLabel="Description"
                 />
                 <div className={styles.card}>
                   <h2 className={styles.sectionHeading}>Technical Remarks</h2>

@@ -161,6 +161,7 @@ export const initialFormData = {
     buildingMeasurements: {
       document_name: '',
       shape: 'Regular',
+      apartment_case_note: '',
       north: { actual: '', document: '', plan: '', match: false },
       south: { actual: '', document: '', plan: '', match: false },
       east: { actual: '', document: '', plan: '', match: false },
