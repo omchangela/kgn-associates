@@ -25,8 +25,8 @@ Use the **Authorize** button above and paste your JWT token as:
       },
     },
     servers: [
+      { url: 'https://kgn-associates.vercel.app', description: 'Production (Live)' },
       { url: 'http://localhost:3000', description: 'Local Development' },
-      { url: 'https://your-domain.com', description: 'Production' },
     ],
     components: {
       securitySchemes: {
