@@ -3667,9 +3667,18 @@ const StructureValuationTable = () => {
 
   const ORDERED_KEYS = ['carpet_area', 'plinth_area', 'built_up_area', 'super_built', 'slab_area'];
 
-  const specCards = Array.isArray(formData.technicalDetails?.buildingSpecCards)
-    ? formData.technicalDetails.buildingSpecCards
-    : [];
+  // Resolve building spec cards: prefer buildingMeasurements (merged) then fall back to buildingSpecCards
+  const resolveSpecCards = (tech) => {
+    const bmCards = Array.isArray(tech?.buildingMeasurements)
+      ? tech.buildingMeasurements
+      : (tech?.buildingMeasurements && typeof tech.buildingMeasurements === 'object'
+          ? [tech.buildingMeasurements]
+          : []);
+    if (bmCards.length > 0) return bmCards;
+    return Array.isArray(tech?.buildingSpecCards) ? tech.buildingSpecCards : [];
+  };
+
+  const specCards = resolveSpecCards(formData.technicalDetails);
 
   const activeCardChoice = formData.selected_building_spec_card || (specCards.length > 1 ? 'all' : '0');
   const selectedFloor = formData.structure_valuation_selected_floor || 'built_up_area';
@@ -3729,7 +3738,7 @@ const StructureValuationTable = () => {
   const getAreaForBasis = (key, basis, prev, floorChoice) => {
     const tech = prev.technicalDetails || {};
     const flatKey = techMapping[key];
-    const specList = Array.isArray(tech.buildingSpecCards) ? tech.buildingSpecCards : [];
+    const specList = resolveSpecCards(tech);
     const choice = floorChoice !== undefined ? floorChoice : (prev.selected_building_spec_card || (specList.length > 1 ? 'all' : '0'));
 
     // Map basis to measurement field
@@ -3779,7 +3788,7 @@ const StructureValuationTable = () => {
 
   // Apply basis fill only for area_sqft (preserving per-floor cost/funding/total values)
   const applyBasisFill = (prev, basis, floorChoice) => {
-    const specList = Array.isArray(prev.technicalDetails?.buildingSpecCards) ? prev.technicalDetails.buildingSpecCards : [];
+    const specList = resolveSpecCards(prev.technicalDetails);
     const choice = floorChoice !== undefined ? floorChoice : (prev.selected_building_spec_card || (specList.length > 1 ? 'all' : '0'));
     // Load the target floor's existing rows (preserving cost, funding, total)
     const existingRows = getFloorRows(prev, choice);
@@ -4008,11 +4017,15 @@ const StructureValuationTable = () => {
             </button>
             {specCards.map((c, idx) => {
               const isActive = activeCardChoice === String(idx);
-              const label = c.description
-                ? `Floor #${idx + 1}: ${c.description}`
-                : c.document_number
-                  ? `Floor #${idx + 1}: ${c.document_number}`
-                  : `Floor #${idx + 1}`;
+              const label = c.spec_description
+                ? `Floor #${idx + 1}: ${c.spec_description}`
+                : c.spec_document_number
+                  ? `Floor #${idx + 1}: ${c.spec_document_number}`
+                  : c.description
+                    ? `Floor #${idx + 1}: ${c.description}`
+                    : c.document_number
+                      ? `Floor #${idx + 1}: ${c.document_number}`
+                      : `Floor #${idx + 1}`;
               return (
                 <button
                   key={c.id || idx}
