@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import React, { useState, createContext, useContext, useRef, useEffect } from 'react';
 import styles from './PropertyValues.module.css';
 import Sidebar from '@/components/sidebar/Sidebar';
@@ -48,7 +48,7 @@ const accessOptions = [
 ];
 
 const PropertyValues = () => {
-  const tabs = ["Institution Details", "Property", "Schedule", "Infrastructure", "Technical", "Property Market Value","Final Valuation", "Location", "Characteristics", "Photos"];
+  const tabs = ["Institution Details", "Property", "Schedule", "Infrastructure", "Technical", "Property Market Value", "Final Valuation", "Location", "Characteristics", "Photos"];
   const [activeTab, setActiveTab] = useState("Institution Details");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [formData, setFormData] = useState(initialFormData);
@@ -423,879 +423,887 @@ const PropertyValues = () => {
 
   return (
     <FormContext.Provider value={formContextValue}>
-    <div className={styles.layoutWrapper}>
-      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      <div className={styles.layoutWrapper}>
+        <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
-      <div className={styles.rightSide}>
-        <Header onMenuToggle={toggleSidebar} />
+        <div className={styles.rightSide}>
+          <Header onMenuToggle={toggleSidebar} />
 
-        <main className={styles.mainScrollArea}>
-          <div className={styles.contentPadding}>
-            {/* Navigation Tabs */}
-            <div className={styles.tabsContainer}>
-              {tabs.map((tab) => (
-                <button 
-                  key={tab} 
-                  className={`${styles.tabBtn} ${activeTab === tab ? styles.activeTab : ''}`}
-                  onClick={() => setActiveTab(tab)}
-                >
-                  {tab}
-                </button>
-              ))}
-            </div>
-
-            <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
-              <button type="button" className={styles.blueBtn} onClick={fillSampleData}>
-                Fill Sample Data
-              </button>
-              <button
-                type="button"
-                onClick={clearForm}
-                style={{
-                  background: 'transparent',
-                  border: '1px solid var(--border-color)',
-                  color: 'var(--text-muted)',
-                  padding: '8px 16px',
-                  borderRadius: 'var(--border-radius)',
-                  cursor: 'pointer',
-                  fontFamily: 'var(--font-body)',
-                  fontSize: '0.9rem',
-                }}
-              >
-                Clear Form
-              </button>
-            </div>
-
-            <div ref={tabContentRef} style={{ width: '100%' }}>
-            {/* TAB 1: INSTITUTION DETAILS */}
-            {activeTab === "Institution Details" && (
-              <>
-                <h1 className={styles.pageTitle}>Institution Details</h1>
-                <div className={styles.card}>
-                  <div className={styles.formGrid}>
-                    <InputGroup label="Financial Institution" placeholder="Financial Institution" section="institutionDetails" field="bank_name" />
-                    <InputGroup label="Branch Name" placeholder="Branch Name" section="institutionDetails" field="branch_name" />
-                    <InputGroup label="Valuer / Engineer / Institution Name" placeholder="Valuer/engineer/institution name" section="institutionDetails" field="vendor_engineer_institution_name" />
-                    <InputGroup label="Contact Number" placeholder="Number" section="institutionDetails" field="vendor_contact_number" />
-                    <InputGroup label="Site Engineer Name" placeholder="Site engineer name" section="institutionDetails" field="site_engineer_name" />
-                    <InputGroup label="Contact Number" placeholder="Number" section="institutionDetails" field="site_engineer_contact_number" />
-                  </div>
-                </div>
-
-                <h2 className={styles.sectionHeading}>Basic Details</h2>
-                <p className={styles.subHeading}>Loan Application Details</p>
-
-                <div className={styles.card}>
-                  <div className={styles.formGrid}>
-                    <InputGroup label="Loan Application ID" placeholder="Loan Application ID" section="institutionDetails" field="loan_application_id" />
-                    <InputGroup label="Product / Loan Type" placeholder="Product / Loan Type" section="institutionDetails" field="product_loan_type" />
-                    <InputGroup label="Applicant Name" placeholder="Applicant Name" section="institutionDetails" field="applicant_name" />
-                    <InputGroup label="Contact Number" placeholder="Number" section="institutionDetails" field="applicant_contact_number" />
-                    <InputGroup label="Property Owner / Document Holder Name" placeholder="Property Owner / Document Holder Name" section="institutionDetails" field="property_owner_name" />
-                    <InputGroup label="Contact Number" placeholder="Number" section="institutionDetails" field="property_owner_contact_number" />
-                    <InputGroup label="Person Met At Site" placeholder="Person Met At Site" section="institutionDetails" field="person_met_at_site" />
-                    <InputGroup label="Contact Number" placeholder="Number" section="institutionDetails" field="person_met_contact_number" />
-                    <InputGroup label="Relationship With Applicant" placeholder="Relationship With Applicant" section="institutionDetails" field="relationship_with_applicant" />
-                    
-                    <div>
-                      <label className={styles.label}>Property Holding Type</label>
-                      <div className={styles.radioGroup}>
-                        <Radio label="Free Hold" name="holding" value="freehold" section="institutionDetails" field="property_holding_type" />
-                        <Radio label="Lease Hold" name="holding" value="lease_hold" section="institutionDetails" field="property_holding_type" />
-                        <Radio label="Mortgaged" name="holding" value="mortgaged" section="institutionDetails" field="property_holding_type" />
-                        <Radio label="Development Authority" name="holding" value="development_authority" section="institutionDetails" field="property_holding_type" />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className={styles.label}>Property Type</label>
-                      <div className={styles.radioGroup}>
-                        <Radio label="Vacant Land" name="type" value="vacant_land" section="institutionDetails" field="property_type" />
-                        <Radio label="Residential" name="type" value="residential" section="institutionDetails" field="property_type" />
-                        <Radio label="Commercial" name="type" value="commercial" section="institutionDetails" field="property_type" />
-                        <Radio label="Institutional" name="type" value="institutional" section="institutionDetails" field="property_type" />
-                        <Radio label="Industrial" name="type" value="industrial" section="institutionDetails" field="property_type" />
-                        <Radio label="Mixed" name="type" value="mixed" section="institutionDetails" field="property_type" />
-                        <Radio label="Others" name="type" value="others" section="institutionDetails" field="property_type" />
-                      </div>
-                      {formData.institutionDetails?.property_type === 'others' && (
-                        <div style={{ marginTop: '14px', width: '100%', maxWidth: '400px' }}>
-                          <InputGroup 
-                            label="Specify Property Type" 
-                            placeholder="Enter property type manually" 
-                            section="institutionDetails" 
-                            field="other_property_type" 
-                          />
-                        </div>
-                      )}
-                    </div>
-
-                    <InputGroup label="Property Sub Type" placeholder="Property Sub Type" section="institutionDetails" field="property_sub_type" />
-                    <InputGroup label="Date Of Inspection" placeholder="Date Of Inspection" isDate section="institutionDetails" field="date_of_inspection" />
-                    <InputGroup label="Date Of Report" placeholder="Date Of Report" isDate section="institutionDetails" field="date_of_report" />
-                  </div>
-                </div>
-
-                <h2 className={styles.sectionHeading}>Verified Documents:</h2>
-                {(formData.verifiedDocuments && formData.verifiedDocuments.length > 0
-                  ? formData.verifiedDocuments
-                  : [{ type_of_document: '', document_number: '', execution_date: '', expiry_date: '', in_favour_of: '', approval_authority: '' }]
-                ).map((doc, idx) => (
-                  <div key={idx} className={styles.card} style={{ marginBottom: '16px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                      <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--accent-primary, #C9A84C)' }}>
-                        Document #{idx + 1}
-                      </span>
-                      {(formData.verifiedDocuments?.length > 1) && (
-                        <button
-                          type="button"
-                          onClick={() => removeTableRow('verifiedDocuments', idx)}
-                          style={{
-                            background: 'rgba(239, 68, 68, 0.1)',
-                            border: '1px solid rgba(239, 68, 68, 0.3)',
-                            color: '#ef4444',
-                            cursor: 'pointer',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            fontSize: '0.82rem',
-                            padding: '4px 10px',
-                            borderRadius: '6px',
-                            fontWeight: 500,
-                          }}
-                          title="Remove Document"
-                        >
-                          <Trash2 size={14} /> Remove
-                        </button>
-                      )}
-                    </div>
-                    <div className={styles.formGrid}>
-                      <div className={styles.inputStack}>
-                        <label className={styles.label}>Type of Document</label>
-                        <div className={styles.fieldWrapper}>
-                          <input
-                            type="text"
-                            placeholder="Enter Document Name (e.g. Sale Deed, Patta, EC)"
-                            className={styles.inputField}
-                            value={doc.type_of_document || ''}
-                            onChange={(e) => {
-                              updateTableRow('verifiedDocuments', idx, 'type_of_document', e.target.value);
-                              if (idx === 0) updateField('institutionDetails', 'type_of_document', e.target.value);
-                            }}
-                          />
-                        </div>
-                      </div>
-
-                      <div className={styles.inputStack}>
-                        <label className={styles.label}>Document Number</label>
-                        <div className={styles.fieldWrapper}>
-                          <input
-                            type="text"
-                            placeholder="Enter Document Number"
-                            className={styles.inputField}
-                            value={doc.document_number || ''}
-                            onChange={(e) => {
-                              updateTableRow('verifiedDocuments', idx, 'document_number', e.target.value);
-                              if (idx === 0) updateField('institutionDetails', 'document_number', e.target.value);
-                            }}
-                          />
-                        </div>
-                      </div>
-
-                      <div className={styles.inputStack}>
-                        <label className={styles.label}>Execution Date</label>
-                        <div className={styles.fieldWrapper}>
-                          <input
-                            type="date"
-                            placeholder="dd-mm-yyyy"
-                            className={styles.inputField}
-                            value={doc.execution_date || ''}
-                            onChange={(e) => {
-                              updateTableRow('verifiedDocuments', idx, 'execution_date', e.target.value);
-                              if (idx === 0) updateField('institutionDetails', 'execution_date', e.target.value);
-                            }}
-                          />
-                        </div>
-                      </div>
-
-                      <div className={styles.inputStack}>
-                        <label className={styles.label}>Expiry Date</label>
-                        <div className={styles.fieldWrapper}>
-                          <input
-                            type="date"
-                            placeholder="dd-mm-yyyy"
-                            className={styles.inputField}
-                            value={doc.expiry_date || ''}
-                            onChange={(e) => {
-                              updateTableRow('verifiedDocuments', idx, 'expiry_date', e.target.value);
-                              if (idx === 0) updateField('institutionDetails', 'expiry_date', e.target.value);
-                            }}
-                          />
-                        </div>
-                      </div>
-
-                      <div className={styles.inputStack}>
-                        <label className={styles.label}>In Favour Of</label>
-                        <div className={styles.fieldWrapper}>
-                          <input
-                            type="text"
-                            placeholder="In Favour Of"
-                            className={styles.inputField}
-                            value={doc.in_favour_of || ''}
-                            onChange={(e) => {
-                              updateTableRow('verifiedDocuments', idx, 'in_favour_of', e.target.value);
-                              if (idx === 0) updateField('institutionDetails', 'in_favour_of', e.target.value);
-                            }}
-                          />
-                        </div>
-                      </div>
-
-                      <div className={styles.inputStack}>
-                        <label className={styles.label}>Approval Authority</label>
-                        <div className={styles.fieldWrapper}>
-                          <input
-                            type="text"
-                            placeholder="Enter Approval Authority"
-                            className={styles.inputField}
-                            value={doc.approval_authority || ''}
-                            onChange={(e) => {
-                              updateTableRow('verifiedDocuments', idx, 'approval_authority', e.target.value);
-                              if (idx === 0) updateField('institutionDetails', 'approval_authority', e.target.value);
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+          <main className={styles.mainScrollArea}>
+            <div className={styles.contentPadding}>
+              {/* Navigation Tabs */}
+              <div className={styles.tabsContainer}>
+                {tabs.map((tab) => (
+                  <button
+                    key={tab}
+                    className={`${styles.tabBtn} ${activeTab === tab ? styles.activeTab : ''}`}
+                    onClick={() => setActiveTab(tab)}
+                  >
+                    {tab}
+                  </button>
                 ))}
+              </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '16px', paddingBottom: '30px' }}>
-                  <div style={{ alignSelf: 'flex-start' }}>
-                    <button
-                      type="button"
-                      className={styles.blueBtn}
-                      onClick={() => addTableRow('verifiedDocuments', {
-                        type_of_document: '',
-                        document_number: '',
-                        execution_date: '',
-                        expiry_date: '',
-                        in_favour_of: '',
-                        approval_authority: '',
-                      })}
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
-                    >
-                      <Plus size={16} /> Add Document
-                    </button>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
-                    <button className={styles.nextBtn} onClick={handleNext}>Next <ChevronRight size={20} /></button>
-                  </div>
-                </div>
-              </>
-            )}
+              <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
+                <button type="button" className={styles.blueBtn} onClick={fillSampleData}>
+                  Fill Sample Data
+                </button>
+                <button
+                  type="button"
+                  onClick={clearForm}
+                  style={{
+                    background: 'transparent',
+                    border: '1px solid var(--border-color)',
+                    color: 'var(--text-muted)',
+                    padding: '8px 16px',
+                    borderRadius: 'var(--border-radius)',
+                    cursor: 'pointer',
+                    fontFamily: 'var(--font-body)',
+                    fontSize: '0.9rem',
+                  }}
+                >
+                  Clear Form
+                </button>
+              </div>
 
-            {/* TAB 2: PROPERTY */}
-            {activeTab === "Property" && (
-              <>
-                <h1 className={styles.pageTitle}>Property Identification Details</h1>
-                <div className={styles.formBody}>
-                  <div className={styles.card}>
-                    <div className={styles.formGrid}>
-                      <InputGroup label="Address (As per Documents)" placeholder="Address (As per Documents)" section="propertyIdentification" field="address_as_per_documents" fullWidth />
-                      <div></div>
-                      <InputGroup label="Address As Per Actual Site" placeholder="Address As Per Actual Site" section="propertyIdentification" field="address_as_per_actual_site" fullWidth />
-                      <div></div>
-                      <InputGroup label="Address As Per Plan" placeholder="Address As Per Plan" section="propertyIdentification" field="address_as_per_plan" fullWidth />
-                      <div></div>
-                    </div>
-                  </div>
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '-8px', marginBottom: '12px', paddingRight: '4px' }}>
-                      <button
-                        type="button"
-                        onClick={() => setShowPropertyDetails(prev => !prev)}
-                        title={showPropertyDetails ? 'Collapse' : 'Add more property details'}
-                        style={{
-                          background: showPropertyDetails ? 'rgba(201,168,76,0.18)' : 'rgba(201,168,76,0.09)',
-                          border: '2px solid #C9A84C',
-                          color: '#C9A84C',
-                          borderRadius: '50%',
-                          width: '36px',
-                          height: '36px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          cursor: 'pointer',
-                          fontSize: '1.5rem',
-                          fontWeight: '700',
-                          lineHeight: 1,
-                          transition: 'all 0.2s ease',
-                          flexShrink: 0,
-                        }}
-                      >
-                        {showPropertyDetails ? '\u2212' : '+'}
-                      </button>
-                    </div>
-
-                  {showPropertyDetails && (
+              <div ref={tabContentRef} style={{ width: '100%' }}>
+                {/* TAB 1: INSTITUTION DETAILS */}
+                {activeTab === "Institution Details" && (
+                  <>
+                    <h1 className={styles.pageTitle}>Institution Details</h1>
                     <div className={styles.card}>
                       <div className={styles.formGrid}>
-                        <InputGroup label="Survey Number" placeholder="Enter" section="propertyIdentification" field="survey_number" />
-                        <InputGroup label="Plot No / Flat No" placeholder="Enter" section="propertyIdentification" field="plot_no_flat_no" />
-                        <InputGroup label="LPM / Approval No" placeholder="Enter" section="propertyIdentification" field="lpm_approval_no" />
-                        <InputGroup label="Door No" placeholder="Enter" section="propertyIdentification" field="door_no" />
-                        <InputGroup label="Assessment No" placeholder="Enter" section="propertyIdentification" field="assessment_no" />
-                        <InputGroup label="Landmark" placeholder="Enter" section="propertyIdentification" field="landmark" />
-                        <InputGroup label="Locality Name" placeholder="Enter" section="propertyIdentification" field="locality_name" />
-                        <InputGroup label="Grama Polam" placeholder="Enter" section="propertyIdentification" field="grama_polam" />
-                        <InputGroup label="Jurisdiction" placeholder="Enter" section="propertyIdentification" field="jurisdiction" />
-                        <InputGroup label="Taluka" placeholder="Enter" section="propertyIdentification" field="taluka" />
-                        <InputGroup label="Mandal" placeholder="Enter" section="propertyIdentification" field="mandal" />
-                        <InputGroup label="District" placeholder="Enter" section="propertyIdentification" field="district" />
+                        <InputGroup label="Financial Institution" placeholder="Financial Institution" section="institutionDetails" field="bank_name" />
+                        <InputGroup label="Branch Name" placeholder="Branch Name" section="institutionDetails" field="branch_name" />
+                        <InputGroup label="Valuer / Engineer / Institution Name" placeholder="Valuer/engineer/institution name" section="institutionDetails" field="vendor_engineer_institution_name" />
+                        <InputGroup label="Contact Number" placeholder="Number" section="institutionDetails" field="vendor_contact_number" />
+                        <InputGroup label="Site Engineer Name" placeholder="Site engineer name" section="institutionDetails" field="site_engineer_name" />
+                        <InputGroup label="Contact Number" placeholder="Number" section="institutionDetails" field="site_engineer_contact_number" />
+                      </div>
+                    </div>
+
+                    <h2 className={styles.sectionHeading}>Basic Details</h2>
+                    <p className={styles.subHeading}>Loan Application Details</p>
+
+                    <div className={styles.card}>
+                      <div className={styles.formGrid}>
+                        <InputGroup label="Loan Application ID" placeholder="Loan Application ID" section="institutionDetails" field="loan_application_id" />
+                        <InputGroup label="Product / Loan Type" placeholder="Product / Loan Type" section="institutionDetails" field="product_loan_type" />
+                        <InputGroup label="Applicant Name" placeholder="Applicant Name" section="institutionDetails" field="applicant_name" />
+                        <InputGroup label="Contact Number" placeholder="Number" section="institutionDetails" field="applicant_contact_number" />
+                        <InputGroup label="Property Owner / Document Holder Name" placeholder="Property Owner / Document Holder Name" section="institutionDetails" field="property_owner_name" />
+                        <InputGroup label="Contact Number" placeholder="Number" section="institutionDetails" field="property_owner_contact_number" />
+                        <InputGroup label="Person Met At Site" placeholder="Person Met At Site" section="institutionDetails" field="person_met_at_site" />
+                        <InputGroup label="Contact Number" placeholder="Number" section="institutionDetails" field="person_met_contact_number" />
+                        <InputGroup label="Relationship With Applicant" placeholder="Relationship With Applicant" section="institutionDetails" field="relationship_with_applicant" />
+
+                        <div>
+                          <label className={styles.label}>Property Holding Type</label>
+                          <div className={styles.radioGroup}>
+                            <Radio label="Free Hold" name="holding" value="freehold" section="institutionDetails" field="property_holding_type" />
+                            <Radio label="Lease Hold" name="holding" value="lease_hold" section="institutionDetails" field="property_holding_type" />
+                            <Radio label="Mortgaged" name="holding" value="mortgaged" section="institutionDetails" field="property_holding_type" />
+                            <Radio label="Development Authority" name="holding" value="development_authority" section="institutionDetails" field="property_holding_type" />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className={styles.label}>Property Type</label>
+                          <div className={styles.radioGroup}>
+                            <Radio label="Vacant Land" name="type" value="vacant_land" section="institutionDetails" field="property_type" />
+                            <Radio label="Residential" name="type" value="residential" section="institutionDetails" field="property_type" />
+                            <Radio label="Commercial" name="type" value="commercial" section="institutionDetails" field="property_type" />
+                            <Radio label="Institutional" name="type" value="institutional" section="institutionDetails" field="property_type" />
+                            <Radio label="Industrial" name="type" value="industrial" section="institutionDetails" field="property_type" />
+                            <Radio label="Mixed" name="type" value="mixed" section="institutionDetails" field="property_type" />
+                            <Radio label="Others" name="type" value="others" section="institutionDetails" field="property_type" />
+                          </div>
+                          {formData.institutionDetails?.property_type === 'others' && (
+                            <div style={{ marginTop: '14px', width: '100%', maxWidth: '400px' }}>
+                              <InputGroup
+                                label="Specify Property Type"
+                                placeholder="Enter property type manually"
+                                section="institutionDetails"
+                                field="other_property_type"
+                              />
+                            </div>
+                          )}
+                        </div>
+
+                        <InputGroup label="Property Sub Type" placeholder="Property Sub Type" section="institutionDetails" field="property_sub_type" />
+                        <InputGroup label="Date Of Inspection" placeholder="Date Of Inspection" isDate section="institutionDetails" field="date_of_inspection" />
+                        <InputGroup label="Date Of Report" placeholder="Date Of Report" isDate section="institutionDetails" field="date_of_report" />
+                      </div>
+                    </div>
+
+                    <h2 className={styles.sectionHeading}>Verified Documents:</h2>
+                    {(formData.verifiedDocuments && formData.verifiedDocuments.length > 0
+                      ? formData.verifiedDocuments
+                      : [{ type_of_document: '', document_number: '', execution_date: '', expiry_date: '', in_favour_of: '', approval_authority: '' }]
+                    ).map((doc, idx) => (
+                      <div key={idx} className={styles.card} style={{ marginBottom: '16px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                          <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--accent-primary, #C9A84C)' }}>
+                            Document #{idx + 1}
+                          </span>
+                          {(formData.verifiedDocuments?.length > 1) && (
+                            <button
+                              type="button"
+                              onClick={() => removeTableRow('verifiedDocuments', idx)}
+                              style={{
+                                background: 'rgba(239, 68, 68, 0.1)',
+                                border: '1px solid rgba(239, 68, 68, 0.3)',
+                                color: '#ef4444',
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                fontSize: '0.82rem',
+                                padding: '4px 10px',
+                                borderRadius: '6px',
+                                fontWeight: 500,
+                              }}
+                              title="Remove Document"
+                            >
+                              <Trash2 size={14} /> Remove
+                            </button>
+                          )}
+                        </div>
+                        <div className={styles.formGrid}>
+                          <div className={styles.inputStack}>
+                            <label className={styles.label}>Type of Document</label>
+                            <div className={styles.fieldWrapper}>
+                              <input
+                                type="text"
+                                placeholder="Enter Document Name (e.g. Sale Deed, Patta, EC)"
+                                className={styles.inputField}
+                                value={doc.type_of_document || ''}
+                                onChange={(e) => {
+                                  updateTableRow('verifiedDocuments', idx, 'type_of_document', e.target.value);
+                                  if (idx === 0) updateField('institutionDetails', 'type_of_document', e.target.value);
+                                }}
+                              />
+                            </div>
+                          </div>
+
+                          <div className={styles.inputStack}>
+                            <label className={styles.label}>Document Number</label>
+                            <div className={styles.fieldWrapper}>
+                              <input
+                                type="text"
+                                placeholder="Enter Document Number"
+                                className={styles.inputField}
+                                value={doc.document_number || ''}
+                                onChange={(e) => {
+                                  updateTableRow('verifiedDocuments', idx, 'document_number', e.target.value);
+                                  if (idx === 0) updateField('institutionDetails', 'document_number', e.target.value);
+                                }}
+                              />
+                            </div>
+                          </div>
+
+                          <div className={styles.inputStack}>
+                            <label className={styles.label}>Execution Date</label>
+                            <div className={styles.fieldWrapper}>
+                              <input
+                                type="date"
+                                placeholder="dd-mm-yyyy"
+                                className={styles.inputField}
+                                value={doc.execution_date || ''}
+                                onChange={(e) => {
+                                  updateTableRow('verifiedDocuments', idx, 'execution_date', e.target.value);
+                                  if (idx === 0) updateField('institutionDetails', 'execution_date', e.target.value);
+                                }}
+                              />
+                            </div>
+                          </div>
+
+                          <div className={styles.inputStack}>
+                            <label className={styles.label}>Expiry Date</label>
+                            <div className={styles.fieldWrapper}>
+                              <input
+                                type="date"
+                                placeholder="dd-mm-yyyy"
+                                className={styles.inputField}
+                                value={doc.expiry_date || ''}
+                                onChange={(e) => {
+                                  updateTableRow('verifiedDocuments', idx, 'expiry_date', e.target.value);
+                                  if (idx === 0) updateField('institutionDetails', 'expiry_date', e.target.value);
+                                }}
+                              />
+                            </div>
+                          </div>
+
+                          <div className={styles.inputStack}>
+                            <label className={styles.label}>In Favour Of</label>
+                            <div className={styles.fieldWrapper}>
+                              <input
+                                type="text"
+                                placeholder="In Favour Of"
+                                className={styles.inputField}
+                                value={doc.in_favour_of || ''}
+                                onChange={(e) => {
+                                  updateTableRow('verifiedDocuments', idx, 'in_favour_of', e.target.value);
+                                  if (idx === 0) updateField('institutionDetails', 'in_favour_of', e.target.value);
+                                }}
+                              />
+                            </div>
+                          </div>
+
+                          <div className={styles.inputStack}>
+                            <label className={styles.label}>Approval Authority</label>
+                            <div className={styles.fieldWrapper}>
+                              <input
+                                type="text"
+                                placeholder="Enter Approval Authority"
+                                className={styles.inputField}
+                                value={doc.approval_authority || ''}
+                                onChange={(e) => {
+                                  updateTableRow('verifiedDocuments', idx, 'approval_authority', e.target.value);
+                                  if (idx === 0) updateField('institutionDetails', 'approval_authority', e.target.value);
+                                }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '16px', paddingBottom: '30px' }}>
+                      <div style={{ alignSelf: 'flex-start' }}>
+                        <button
+                          type="button"
+                          className={styles.blueBtn}
+                          onClick={() => addTableRow('verifiedDocuments', {
+                            type_of_document: '',
+                            document_number: '',
+                            execution_date: '',
+                            expiry_date: '',
+                            in_favour_of: '',
+                            approval_authority: '',
+                          })}
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
+                        >
+                          <Plus size={16} /> Add Document
+                        </button>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
+                        <button className={styles.nextBtn} onClick={handleNext}>Next <ChevronRight size={20} /></button>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* TAB 2: PROPERTY */}
+                {activeTab === "Property" && (
+                  <>
+                    <h1 className={styles.pageTitle}>Property Identification Details</h1>
+                    <div className={styles.formBody}>
+                      <div className={styles.card}>
+                        <div className={styles.formGrid}>
+                          <InputGroup label="Address (As per Documents)" placeholder="Address (As per Documents)" section="propertyIdentification" field="address_as_per_documents" fullWidth />
+                          <div></div>
+                          <InputGroup label="Address As Per Actual Site" placeholder="Address As Per Actual Site" section="propertyIdentification" field="address_as_per_actual_site" fullWidth />
+                          <div></div>
+                          <InputGroup label="Address As Per Plan" placeholder="Address As Per Plan" section="propertyIdentification" field="address_as_per_plan" fullWidth />
+                          <div></div>
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '-8px', marginBottom: '12px', paddingRight: '4px' }}>
+                        <button
+                          type="button"
+                          onClick={() => setShowPropertyDetails(prev => !prev)}
+                          title={showPropertyDetails ? 'Collapse' : 'Add more property details'}
+                          style={{
+                            background: showPropertyDetails ? 'rgba(201,168,76,0.18)' : 'rgba(201,168,76,0.09)',
+                            border: '2px solid #C9A84C',
+                            color: '#C9A84C',
+                            borderRadius: '50%',
+                            width: '36px',
+                            height: '36px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            fontSize: '1.5rem',
+                            fontWeight: '700',
+                            lineHeight: 1,
+                            transition: 'all 0.2s ease',
+                            flexShrink: 0,
+                          }}
+                        >
+                          {showPropertyDetails ? '\u2212' : '+'}
+                        </button>
+                      </div>
+
+                      {showPropertyDetails && (
+                        <div className={styles.card}>
+                          <div className={styles.formGrid}>
+                            <InputGroup label="Survey Number" placeholder="Enter" section="propertyIdentification" field="survey_number" />
+                            <InputGroup label="Plot No / Flat No" placeholder="Enter" section="propertyIdentification" field="plot_no_flat_no" />
+                            <InputGroup label="LPM / Approval No" placeholder="Enter" section="propertyIdentification" field="lpm_approval_no" />
+                            <InputGroup label="Door No" placeholder="Enter" section="propertyIdentification" field="door_no" />
+                            <InputGroup label="Assessment No" placeholder="Enter" section="propertyIdentification" field="assessment_no" />
+                            <InputGroup label="Landmark" placeholder="Enter" section="propertyIdentification" field="landmark" />
+                            <InputGroup label="Locality Name" placeholder="Enter" section="propertyIdentification" field="locality_name" />
+                            <InputGroup label="Grama Polam" placeholder="Enter" section="propertyIdentification" field="grama_polam" />
+                            <InputGroup label="Jurisdiction" placeholder="Enter" section="propertyIdentification" field="jurisdiction" />
+                            <InputGroup label="Taluka" placeholder="Enter" section="propertyIdentification" field="taluka" />
+                            <InputGroup label="Mandal" placeholder="Enter" section="propertyIdentification" field="mandal" />
+                            <InputGroup label="District" placeholder="Enter" section="propertyIdentification" field="district" />
+                            <SelectField
+                              label="State"
+                              section="propertyIdentification"
+                              field="state"
+                              options={[
+                                { value: '', label: 'Select' },
+                                { value: 'Tamil Nadu', label: 'Tamil Nadu' },
+                                { value: 'Karnataka', label: 'Karnataka' },
+                                { value: 'Kerala', label: 'Kerala' },
+                                { value: 'Andhra Pradesh', label: 'Andhra Pradesh' },
+                              ]}
+                            />
+                            <InputGroup label="Pincode" placeholder="Enter" section="propertyIdentification" field="pincode" />
+                          </div>
+                        </div>
+                      )}
+
+                      <h2 className={styles.sectionHeading}>Approval Details</h2>
+                      <div className={styles.card}>
+                        <div className={styles.radioList}>
+                          <RadioYesNo label="Layout Plan Available?" section="propertyIdentification" field="layout_plan_available" />
+                          <RadioYesNo label="Construction Plan Available?" section="propertyIdentification" field="construction_plan_available" />
+                          <RadioYesNo label="Plan Validity" section="propertyIdentification" field="plan_validity" />
+                          <InputGroup label="Approving Authority" placeholder="Enter authority" section="propertyIdentification" field="approving_authority" />
+
+                        </div>
+                      </div>
+
+                      <div className={styles.footerActions}>
+                        <button className={styles.nextBtn} onClick={handleNext}>Next <ChevronRight size={18} /></button>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* TAB 3: SCHEDULE */}
+                {activeTab === "Schedule" && (
+                  <>
+                    <h1 className={styles.pageTitle}>Schedule Details</h1>
+                    <div className={styles.card}>
+                      <BoundaryTable />
+                    </div>
+
+                    <h2 className={styles.sectionHeading} style={{ fontSize: '1.5rem', marginTop: '10px', marginBottom: '20px' }}>Construction Details</h2>
+                    <div className={styles.card}>
+                      <div className={styles.formGrid}>
+                        <SelectField label="Construction Type" section="scheduleDetails" field="construction_type" options={[{ value: '', label: 'Select' }, { value: 'framed', label: 'Framed' }, { value: 'load_bearing', label: 'Load Bearing' }, { value: 'timber_wooden', label: 'Timber / Wooden' }, { value: 'stone', label: 'Stone' }, { value: 'others', label: 'Others' }]} />
+                        {formData.scheduleDetails?.construction_type === 'others' && (
+                          <div className={styles.inputStack}>
+                            <label className={styles.label}>Construction Type (Others)</label>
+                            <div className={styles.fieldWrapper}>
+                              <input
+                                type="text"
+                                placeholder="Please specify construction type"
+                                className={styles.inputField}
+                                value={formData.scheduleDetails?.other_construction_type || ''}
+                                onChange={(e) => updateField('scheduleDetails', 'other_construction_type', e.target.value)}
+                              />
+                            </div>
+                          </div>
+                        )}
+                        <SelectField label="Roof Type" section="scheduleDetails" field="roof_type" options={[{ value: '', label: 'Select' }, { value: 'flat', label: 'Flat' }, { value: 'sloped', label: 'Sloped' }, { value: 'rcc_roof', label: 'RCC Roof' }, { value: 'iron_mtr', label: 'Iron Mtr' }, { value: 'wooden_mtr', label: 'Wooden Mtr' }, { value: 'cc_mtr', label: 'CC Mtr' }, { value: 'acc_shed', label: 'ACC Shed' }, { value: 'gi_sheets', label: 'GI Sheets' }, { value: 'others', label: 'Others' }]} />
+                        {formData.scheduleDetails?.roof_type === 'others' && (
+                          <div className={styles.inputStack}>
+                            <label className={styles.label}>Roof Type (Others)</label>
+                            <div className={styles.fieldWrapper}>
+                              <input
+                                type="text"
+                                placeholder="Please specify roof type"
+                                className={styles.inputField}
+                                value={formData.scheduleDetails?.other_roof_type || ''}
+                                onChange={(e) => updateField('scheduleDetails', 'other_roof_type', e.target.value)}
+                              />
+                            </div>
+                          </div>
+                        )}
+                        <SelectField label="Flooring Type" section="scheduleDetails" field="flooring_type" options={[{ value: '', label: 'Select' }, { value: 'granite', label: 'Granite' }, { value: 'marble', label: 'Marble' }, { value: 'vertified_tiles', label: 'Vertified Tiles' }, { value: 'ceramic_tiles', label: 'Ceramic Tiles' }, { value: 'tiles', label: 'Tiles' }, { value: 'concrete_flooring', label: 'Concrete Flooring' }, { value: 'emanuel_flooring', label: 'Emanuel Flooring' }, { value: 'others', label: 'Others' }]} />
+                        {formData.scheduleDetails?.flooring_type === 'others' && (
+                          <div className={styles.inputStack}>
+                            <label className={styles.label}>Flooring Type (Others)</label>
+                            <div className={styles.fieldWrapper}>
+                              <input
+                                type="text"
+                                placeholder="Please specify flooring type"
+                                className={styles.inputField}
+                                value={formData.scheduleDetails?.other_flooring_type || ''}
+                                onChange={(e) => updateField('scheduleDetails', 'other_flooring_type', e.target.value)}
+                              />
+                            </div>
+                          </div>
+                        )}
+                        <SelectField label="Stair Type" section="scheduleDetails" field="stair_type" options={[{ value: '', label: 'Select' }, { value: 'cast_in_situ', label: 'Cast-in-situ' }, { value: 'metal', label: 'Metal' }, { value: 'cast_in_situ_metal', label: 'Cast-in-situ Metal' }, { value: 'stones', label: 'Stones' }, { value: 'timber', label: 'Timber' }, { value: 'glass', label: 'Glass' }, { value: 'not_applicable', label: 'Not Applicable' }, { value: 'others', label: 'Others' }]} />
+                        {formData.scheduleDetails?.stair_type === 'others' && (
+                          <div className={styles.inputStack}>
+                            <label className={styles.label}>Stair Type (Others)</label>
+                            <div className={styles.fieldWrapper}>
+                              <input
+                                type="text"
+                                placeholder="Please specify stair type"
+                                className={styles.inputField}
+                                value={formData.scheduleDetails?.other_stair_type || ''}
+                                onChange={(e) => updateField('scheduleDetails', 'other_stair_type', e.target.value)}
+                              />
+                            </div>
+                          </div>
+                        )}
+                        <InputGroup label="No. of Floors Approved" placeholder="Enter" section="scheduleDetails" field="no_of_floors_approved" />
+                        <InputGroup label="No. of Floors Existing" placeholder="Enter" section="scheduleDetails" field="no_of_floors_existing" />
+                        <SelectField label="Construction Quality" section="scheduleDetails" field="construction_quality" options={[{ value: '', label: 'Select' }, { value: 'Excellent', label: 'Excellent' }, { value: 'Good', label: 'Good' }, { value: 'Average', label: 'Average' }, { value: 'Poor', label: 'Poor' }]} />
+                        <SelectField label="Maintenance of Property" section="scheduleDetails" field="maintenance_of_property" options={[{ value: '', label: 'Select' }, { value: 'Excellent', label: 'Excellent' }, { value: 'Good', label: 'Good' }, { value: 'Average', label: 'Average' }, { value: 'Poor', label: 'Poor' }]} />
+                      </div>
+                    </div>
+
+                    <div className={styles.card} style={{ marginTop: '20px' }}>
+                      <div className={styles.formGrid}>
+                        <SelectField label="Occupancy Status" section="scheduleDetails" field="occupancy_status" options={[{ value: '', label: 'Select' }, { value: 'fully_occupied', label: 'Fully Occupied' }, { value: 'partly_occupied', label: 'Partly Occupied' }, { value: 'occupied', label: 'Occupied' }, { value: 'vacant', label: 'Vacant' }]} />
+                        <InputGroup label="Occupant Details" placeholder="Input / Textarea" section="scheduleDetails" field="occupant_details" />
                         <SelectField
-                          label="State"
-                          section="propertyIdentification"
-                          field="state"
+                          label="Class of Locality"
+                          section="scheduleDetails"
+                          field="class_of_locality"
                           options={[
                             { value: '', label: 'Select' },
-                            { value: 'Tamil Nadu', label: 'Tamil Nadu' },
-                            { value: 'Karnataka', label: 'Karnataka' },
-                            { value: 'Kerala', label: 'Kerala' },
-                            { value: 'Andhra Pradesh', label: 'Andhra Pradesh' },
+                            { value: 'Prime', label: 'Prime' },
+                            { value: 'High', label: 'High' },
+                            { value: 'Middle', label: 'Middle' },
+                            { value: 'Low', label: 'Low' },
+                            { value: 'others', label: 'Others' },
                           ]}
                         />
-                        <InputGroup label="Pincode" placeholder="Enter" section="propertyIdentification" field="pincode" />
+                        {(formData.scheduleDetails?.class_of_locality === 'others' ||
+                          formData.scheduleDetails?.class_of_locality === 'Others' ||
+                          (Boolean(formData.scheduleDetails?.class_of_locality) &&
+                            !['prime', 'high', 'middle', 'low', ''].some((k) =>
+                              String(formData.scheduleDetails?.class_of_locality).toLowerCase().includes(k)
+                            ))) && (
+                            <div className={styles.inputStack}>
+                              <label className={styles.label}>Class of Locality (Others)</label>
+                              <div className={styles.fieldWrapper}>
+                                <input
+                                  type="text"
+                                  placeholder="Please specify class of locality"
+                                  className={styles.inputField}
+                                  value={
+                                    formData.scheduleDetails?.other_class_of_locality ||
+                                    (!['others', 'Others'].includes(formData.scheduleDetails?.class_of_locality)
+                                      ? formData.scheduleDetails?.class_of_locality || ''
+                                      : '')
+                                  }
+                                  onChange={(e) => updateField('scheduleDetails', 'other_class_of_locality', e.target.value)}
+                                />
+                              </div>
+                            </div>
+                          )}
+                        <InputGroup label="Number of Floors Valued" placeholder="Enter" section="scheduleDetails" field="number_of_floors" />
                       </div>
                     </div>
-                  )}
 
-                  <h2 className={styles.sectionHeading}>Approval Details</h2>
-                  <div className={styles.card}>
-                    <div className={styles.radioList}>
-                      <RadioYesNo label="Layout Plan Available?" section="propertyIdentification" field="layout_plan_available" />
-                      <RadioYesNo label="Construction Plan Available?" section="propertyIdentification" field="construction_plan_available" />
-                      <RadioYesNo label="Plan Validity" section="propertyIdentification" field="plan_validity" />
-                      <InputGroup label="Approving Authority" placeholder="Enter authority" section="propertyIdentification" field="approving_authority" />
-
+                    <div className={styles.footerActions}>
+                      <button className={styles.nextBtn} onClick={handleNext}>Next <ChevronRight size={18} /></button>
                     </div>
-                  </div>
+                  </>
+                )}
 
-                  <div className={styles.footerActions}>
-                    <button className={styles.nextBtn} onClick={handleNext}>Next <ChevronRight size={18} /></button>
-                  </div>
-                </div>
-              </>
-            )}
+                {/* TAB 4: INFRASTRUCTURE */}
+                {activeTab === "Infrastructure" && (
+                  <>
+                    <h1 className={styles.pageTitle}>Infrastructure Details</h1>
+                    <div className={styles.card}>
+                      <div className={styles.formGrid}>
+                        <div className={styles.inputStack}><RadioYesNo label="Land Locked" section="infrastructureDetails" field="land_locked" /></div>
+                        <div></div>
+                        <InputGroup label="Description" placeholder="Enter" section="infrastructureDetails" field="land_locked_description" fullWidth />
+                        <InputGroup label="Number of Roads" placeholder="Enter" section="infrastructureDetails" field="number_of_roads" />
+                        <div></div>
 
-            {/* TAB 3: SCHEDULE */}
-            {activeTab === "Schedule" && (
-              <>
-                <h1 className={styles.pageTitle}>Schedule Details</h1>
-                <div className={styles.card}>
-                <BoundaryTable />
-                </div>
+                        {(() => {
+                          const rawRoads = formData.infrastructureDetails?.number_of_roads;
+                          const parsedRoads = parseInt(rawRoads, 10);
+                          const totalRoads = (rawRoads === '0' || parsedRoads === 0)
+                            ? 0
+                            : (Number.isNaN(parsedRoads) ? 1 : Math.max(1, Math.min(10, parsedRoads)));
 
-                <h2 className={styles.sectionHeading} style={{ fontSize: '1.5rem', marginTop: '10px', marginBottom: '20px' }}>Construction Details</h2>
-                <div className={styles.card}>
-                  <div className={styles.formGrid}>
-                    <SelectField label="Construction Type" section="scheduleDetails" field="construction_type" options={[{ value: '', label: 'Select' }, { value: 'framed', label: 'Framed' }, { value: 'load_bearing', label: 'Load Bearing' }, { value: 'timber_wooden', label: 'Timber / Wooden' }, { value: 'stone', label: 'Stone' }, { value: 'others', label: 'Others' }]} />
-                    {formData.scheduleDetails?.construction_type === 'others' && (
-                      <div className={styles.inputStack}>
-                        <label className={styles.label}>Construction Type (Others)</label>
-                        <div className={styles.fieldWrapper}>
-                          <input
-                            type="text"
-                            placeholder="Please specify construction type"
-                            className={styles.inputField}
-                            value={formData.scheduleDetails?.other_construction_type || ''}
-                            onChange={(e) => updateField('scheduleDetails', 'other_construction_type', e.target.value)}
-                          />
-                        </div>
-                      </div>
-                    )}
-                    <SelectField label="Roof Type" section="scheduleDetails" field="roof_type" options={[{ value: '', label: 'Select' }, { value: 'flat', label: 'Flat' }, { value: 'sloped', label: 'Sloped' }, { value: 'rcc_roof', label: 'RCC Roof' }, { value: 'iron_mtr', label: 'Iron Mtr' }, { value: 'wooden_mtr', label: 'Wooden Mtr' }, { value: 'cc_mtr', label: 'CC Mtr' }, { value: 'acc_shed', label: 'ACC Shed' }, { value: 'gi_sheets', label: 'GI Sheets' }, { value: 'others', label: 'Others' }]} />
-                    {formData.scheduleDetails?.roof_type === 'others' && (
-                      <div className={styles.inputStack}>
-                        <label className={styles.label}>Roof Type (Others)</label>
-                        <div className={styles.fieldWrapper}>
-                          <input
-                            type="text"
-                            placeholder="Please specify roof type"
-                            className={styles.inputField}
-                            value={formData.scheduleDetails?.other_roof_type || ''}
-                            onChange={(e) => updateField('scheduleDetails', 'other_roof_type', e.target.value)}
-                          />
-                        </div>
-                      </div>
-                    )}
-                    <SelectField label="Flooring Type" section="scheduleDetails" field="flooring_type" options={[{ value: '', label: 'Select' }, { value: 'granite', label: 'Granite' }, { value: 'marble', label: 'Marble' }, { value: 'vertified_tiles', label: 'Vertified Tiles' }, { value: 'ceramic_tiles', label: 'Ceramic Tiles' }, { value: 'tiles', label: 'Tiles' }, { value: 'concrete_flooring', label: 'Concrete Flooring' }, { value: 'emanuel_flooring', label: 'Emanuel Flooring' }, { value: 'others', label: 'Others' }]} />
-                    {formData.scheduleDetails?.flooring_type === 'others' && (
-                      <div className={styles.inputStack}>
-                        <label className={styles.label}>Flooring Type (Others)</label>
-                        <div className={styles.fieldWrapper}>
-                          <input
-                            type="text"
-                            placeholder="Please specify flooring type"
-                            className={styles.inputField}
-                            value={formData.scheduleDetails?.other_flooring_type || ''}
-                            onChange={(e) => updateField('scheduleDetails', 'other_flooring_type', e.target.value)}
-                          />
-                        </div>
-                      </div>
-                    )}
-                    <SelectField label="Stair Type" section="scheduleDetails" field="stair_type" options={[{ value: '', label: 'Select' }, { value: 'cast_in_situ', label: 'Cast-in-situ' }, { value: 'metal', label: 'Metal' }, { value: 'cast_in_situ_metal', label: 'Cast-in-situ Metal' }, { value: 'stones', label: 'Stones' }, { value: 'timber', label: 'Timber' }, { value: 'glass', label: 'Glass' }, { value: 'not_applicable', label: 'Not Applicable' }, { value: 'others', label: 'Others' }]} />
-                    {formData.scheduleDetails?.stair_type === 'others' && (
-                      <div className={styles.inputStack}>
-                        <label className={styles.label}>Stair Type (Others)</label>
-                        <div className={styles.fieldWrapper}>
-                          <input
-                            type="text"
-                            placeholder="Please specify stair type"
-                            className={styles.inputField}
-                            value={formData.scheduleDetails?.other_stair_type || ''}
-                            onChange={(e) => updateField('scheduleDetails', 'other_stair_type', e.target.value)}
-                          />
-                        </div>
-                      </div>
-                    )}
-                    <InputGroup label="No. of Floors Approved" placeholder="Enter" section="scheduleDetails" field="no_of_floors_approved" />
-                    <InputGroup label="No. of Floors Existing" placeholder="Enter" section="scheduleDetails" field="no_of_floors_existing" />
-                    <SelectField label="Construction Quality" section="scheduleDetails" field="construction_quality" options={[{ value: '', label: 'Select' }, { value: 'Excellent', label: 'Excellent' }, { value: 'Good', label: 'Good' }, { value: 'Average', label: 'Average' }, { value: 'Poor', label: 'Poor' }]} />
-                    <SelectField label="Maintenance of Property" section="scheduleDetails" field="maintenance_of_property" options={[{ value: '', label: 'Select' }, { value: 'Excellent', label: 'Excellent' }, { value: 'Good', label: 'Good' }, { value: 'Average', label: 'Average' }, { value: 'Poor', label: 'Poor' }]} />
-                  </div>
-                </div>
+                          return Array.from({ length: totalRoads }, (_, idx) => {
+                            const roadNum = idx + 1;
+                            const accessField = roadNum === 1 ? 'type_of_access' : `type_of_access_${roadNum}`;
+                            const dirField = roadNum === 1 ? 'road_direction' : `road_direction_${roadNum}`;
+                            const approachField = roadNum === 1 ? 'approach_road_type' : `approach_road_type_${roadNum}`;
+                            const otherApproachField = roadNum === 1 ? 'other_approach_road_type' : `other_approach_road_type_${roadNum}`;
+                            const widthField = roadNum === 1 ? 'road_width_ft' : `road_width_ft_${roadNum}`;
+                            const isOther = formData.infrastructureDetails?.[approachField] === 'others';
 
-                <div className={styles.card} style={{ marginTop: '20px' }}>
-                  <div className={styles.formGrid}>
-                    <SelectField label="Occupancy Status" section="scheduleDetails" field="occupancy_status" options={[{ value: '', label: 'Select' }, { value: 'fully_occupied', label: 'Fully Occupied' }, { value: 'partly_occupied', label: 'Partly Occupied' }, { value: 'occupied', label: 'Occupied' }, { value: 'vacant', label: 'Vacant' }]} />
-                    <InputGroup label="Occupant Details" placeholder="Input / Textarea" section="scheduleDetails" field="occupant_details" />
-                    <SelectField
-                      label="Class of Locality"
-                      section="scheduleDetails"
-                      field="class_of_locality"
-                      options={[
-                        { value: '', label: 'Select' },
-                        { value: 'Prime', label: 'Prime' },
-                        { value: 'High', label: 'High' },
-                        { value: 'Middle', label: 'Middle' },
-                        { value: 'Low', label: 'Low' },
-                        { value: 'others', label: 'Others' },
-                      ]}
+                            return (
+                              <React.Fragment key={roadNum}>
+                                {totalRoads > 1 && (
+                                  <div
+                                    className={styles.fullWidth}
+                                    style={{
+                                      marginTop: idx === 0 ? '5px' : '15px',
+                                      marginBottom: '5px',
+                                      padding: '8px 12px',
+                                      background: 'rgba(201, 168, 76, 0.08)',
+                                      borderLeft: '3px solid var(--primary-gold, #C9A84C)',
+                                      borderRadius: '4px',
+                                      fontWeight: '600',
+                                      fontSize: '0.9rem',
+                                      color: 'var(--text-primary)',
+                                    }}
+                                  >
+                                    Road {roadNum} Details
+                                  </div>
+                                )}
+                                <SelectField
+                                  label={totalRoads > 1 ? `Type of Access (Road ${roadNum})` : "Type of Access"}
+                                  section="infrastructureDetails"
+                                  field={accessField}
+                                  options={accessOptions}
+                                />
+                                <SelectField
+                                  label={totalRoads > 1 ? `Direction (Road ${roadNum})` : "Direction"}
+                                  section="infrastructureDetails"
+                                  field={dirField}
+                                  options={directionOptions}
+                                />
+                                <SelectField
+                                  label={totalRoads > 1 ? `Approach Road Type to Property (Road ${roadNum})` : "Approach Road Type to Property"}
+                                  section="infrastructureDetails"
+                                  field={approachField}
+                                  options={approachRoadOptions}
+                                />
+                                <InputGroup
+                                  label={totalRoads > 1 ? `Road Width (ft) (Road ${roadNum})` : "Road Width (ft)"}
+                                  placeholder="Enter"
+                                  section="infrastructureDetails"
+                                  field={widthField}
+                                />
+                                {isOther && (
+                                  <div className={`${styles.inputStack} ${styles.fullWidth}`}>
+                                    <label className={styles.label}>
+                                      Approach Road Type to Property (Others{totalRoads > 1 ? ` - Road ${roadNum}` : ''})
+                                    </label>
+                                    <div className={styles.fieldWrapper}>
+                                      <input
+                                        type="text"
+                                        placeholder="Please specify approach road type"
+                                        className={styles.inputField}
+                                        value={formData.infrastructureDetails?.[otherApproachField] || ''}
+                                        onChange={(e) => updateField('infrastructureDetails', otherApproachField, e.target.value)}
+                                      />
+                                    </div>
+                                  </div>
+                                )}
+                              </React.Fragment>
+                            );
+                          });
+                        })()}
+
+                        <InputGroup label="Number of Lifts" placeholder="Enter" section="infrastructureDetails" field="number_of_lifts" />
+                        <div className={styles.inputStack}><RadioYesNo label="Electricity" section="infrastructureDetails" field="electricity" /></div>
+                        <div className={styles.inputStack}><RadioYesNo label="Water" section="infrastructureDetails" field="water" /></div>
+                        <div className={styles.inputStack}><RadioYesNo label="Drainage Connection" section="infrastructureDetails" field="drainage_connection" /></div>
+                      </div>
+                    </div>
+                    <div className={styles.footerActions}>
+                      <button className={styles.nextBtn} onClick={handleNext}>Next <ChevronRight size={18} /></button>
+                    </div>
+                  </>
+                )}
+
+                {/* TAB 5: TECHNICAL */}
+                {activeTab === "Technical" && (
+                  <>
+                    <h1 className={styles.pageTitle}>Technical Details</h1>
+                    <MeasurementMatchingCard
+                      title="Land Measurements & Matching Status"
+                      sectionKey="landMeasurements"
+                      showDescriptionBox={true}
+                      showNoteBox={true}
+                      noteLabel="Note : Apartment case (just reflection)"
                     />
-                    {(formData.scheduleDetails?.class_of_locality === 'others' ||
-                      formData.scheduleDetails?.class_of_locality === 'Others' ||
-                      (Boolean(formData.scheduleDetails?.class_of_locality) &&
-                        !['prime', 'high', 'middle', 'low', ''].some((k) =>
-                          String(formData.scheduleDetails?.class_of_locality).toLowerCase().includes(k)
-                        ))) && (
-                      <div className={styles.inputStack}>
-                        <label className={styles.label}>Class of Locality (Others)</label>
-                        <div className={styles.fieldWrapper}>
-                          <input
-                            type="text"
-                            placeholder="Please specify class of locality"
-                            className={styles.inputField}
-                            value={
-                              formData.scheduleDetails?.other_class_of_locality ||
-                              (!['others', 'Others'].includes(formData.scheduleDetails?.class_of_locality)
-                                ? formData.scheduleDetails?.class_of_locality || ''
-                                : '')
-                            }
-                            onChange={(e) => updateField('scheduleDetails', 'other_class_of_locality', e.target.value)}
-                          />
-                        </div>
+
+                    <MeasurementMatchingCard
+                      title="Building Measurements & Matching Status"
+                      sectionKey="buildingMeasurements"
+                      showDescriptionBox={true}
+                      showNoteBox={false}
+                    />
+                    <BuildingSpecificationsSection />
+                    <ValueReferenceSection
+                      title="Land Value Reference"
+                      sectionKey="landValueReferences"
+                    />
+                    <ValueReferenceSection
+                      title="Building Value Reference"
+                      sectionKey="buildingValueReferences"
+                    />
+                    <div className={styles.card}>
+                      <h2 className={styles.sectionHeading}>Technical Remarks</h2>
+                      <TextAreaField label="Technical Assessment" section="technicalDetails" field="technical_assessment" placeholder="Enter technical assessment details" />
+                    </div>
+                    <div className={styles.footerActions}>
+                      <button className={styles.nextBtn} onClick={handleNext}>Next <ChevronRight size={18} /></button>
+                    </div>
+                  </>
+                )}
+
+                {/* TAB 6: PROPERTY MARKET VALUE */}
+                {activeTab === "Property Market Value" && (
+                  <>
+                    <h1 className={styles.pageTitle} style={{ marginBottom: '5px' }}>Property Market Value Assessment</h1>
+                    <p className={styles.subHeading} style={{ marginBottom: '20px' }}>Land Extent Valuation:</p>
+                    <div className={styles.card} style={{ padding: '20px', marginBottom: '40px' }}>
+                      <LandExtentTable />
+                      <h2 className={styles.sectionHeading} style={{ fontSize: '1.2rem', marginTop: '10px', marginBottom: '14px' }}>Structure Valuation:</h2>
+                      <StructureValuationTable />
+                      <h2 className={styles.sectionHeading} style={{ fontSize: '1.2rem', marginTop: '10px', marginBottom: '15px' }}>Amenities Valuation:</h2>
+                      <AmenitiesTable />
+                    </div>
+
+                    <h1 className={styles.pageTitle} style={{ marginBottom: '5px', marginTop: '40px' }}>Property Guideline Value Assessment:</h1>
+                    <p className={styles.subHeading} style={{ marginBottom: '20px' }}>Land Extent Valuation:</p>
+                    <div className={styles.card} style={{ padding: '20px' }}>
+                      <LandExtentTable />
+                      <h2 className={styles.sectionHeading} style={{ fontSize: '1.2rem', marginTop: '10px', marginBottom: '15px' }}>Amenities Valuation:</h2>
+                      <AmenitiesTable />
+                    </div>
+                    <div className={styles.footerActions}>
+                      <button className={styles.nextBtn} onClick={handleNext}>Next <ChevronRight size={18} /></button>
+                    </div>
+                  </>
+                )}
+
+                {/* TAB 7: FINAL VALUATION */}
+                {activeTab === "Final Valuation" && (
+                  <>
+                    <h1 className={styles.pageTitle}>Final Valuation</h1>
+
+                    <div className={styles.card}>
+                      <h2 className={styles.sectionHeading}>Final Values</h2>
+                      <div className={styles.formGrid}>
+                        <InputGroup label="Final Market Value" placeholder="Enter" type="number" section="finalValuation" field="final_market_value" />
+                        <InputGroup label="Final Guideline Value" placeholder="Enter" type="number" section="finalValuation" field="final_guideline_value" />
+                        <InputGroup label="Distress Value" placeholder="Enter" type="number" section="finalValuation" field="distress_value" />
+                        <InputGroup label="Forced Sale Value" placeholder="Enter" type="number" section="finalValuation" field="forced_sale_value" />
+                        <InputGroup label="Replacement Cost" placeholder="Enter" type="number" section="finalValuation" field="replacement_cost" />
+                        <InputGroup label="Depreciated Cost" placeholder="Enter" type="number" section="finalValuation" field="depreciated_cost" />
                       </div>
-                    )}
-                    <InputGroup label="Number of Floors Valued" placeholder="Enter" section="scheduleDetails" field="number_of_floors" />
-                  </div>
-                </div>
+                    </div>
 
-                <div className={styles.footerActions}>
-                  <button className={styles.nextBtn} onClick={handleNext}>Next <ChevronRight size={18} /></button>
-                </div>
-              </>
-            )}
+                    <div className={styles.card}>
+                      <h2 className={styles.sectionHeading}>Engineer Details</h2>
+                      <EngineerDetailsFields />
+                    </div>
 
-            {/* TAB 4: INFRASTRUCTURE */}
-            {activeTab === "Infrastructure" && (
-              <>
-                <h1 className={styles.pageTitle}>Infrastructure Details</h1>
-                <div className={styles.card}>
-                  <div className={styles.formGrid}>
-                    <div className={styles.inputStack}><RadioYesNo label="Land Locked" section="infrastructureDetails" field="land_locked" /></div>
-                    <div></div>
-                    <InputGroup label="Description" placeholder="Enter" section="infrastructureDetails" field="land_locked_description" fullWidth />
-                    <InputGroup label="Number of Roads" placeholder="Enter" section="infrastructureDetails" field="number_of_roads" />
-                    <div></div>
+                    <div className={styles.footerActions}>
+                      <button className={styles.nextBtn} onClick={handleNext}>Next <ChevronRight size={18} /></button>
+                    </div>
+                  </>
+                )}
 
-                    {(() => {
-                      const rawRoads = formData.infrastructureDetails?.number_of_roads;
-                      const parsedRoads = parseInt(rawRoads, 10);
-                      const totalRoads = (rawRoads === '0' || parsedRoads === 0)
-                        ? 0
-                        : (Number.isNaN(parsedRoads) ? 1 : Math.max(1, Math.min(10, parsedRoads)));
+                {/* TAB 8: LOCATION */}
+                {activeTab === "Location" && (
+                  <>
+                    <h1 className={styles.pageTitle}>Location Details</h1>
+                    <div className={styles.card}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', marginBottom: '10px' }}>
+                        <h2 className={styles.sectionHeading} style={{ margin: 0 }}>Gps Co-Ordinates:</h2>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (typeof window !== 'undefined' && navigator.geolocation) {
+                              navigator.geolocation.getCurrentPosition(
+                                (pos) => {
+                                  updateField('locationDetails', 'latitude', String(pos.coords.latitude));
+                                  updateField('locationDetails', 'longitude', String(pos.coords.longitude));
+                                },
+                                (err) => {
+                                  console.warn('Geolocation error:', err);
+                                  alert('Unable to retrieve location automatically. Please enter coordinates manually.');
+                                },
+                                { enableHighAccuracy: true, timeout: 10000 }
+                              );
+                            } else {
+                              alert('Geolocation is not supported by your browser.');
+                            }
+                          }}
+                          style={{
+                            padding: '6px 14px',
+                            borderRadius: '8px',
+                            fontSize: '0.8rem',
+                            fontWeight: '600',
+                            background: 'rgba(59, 130, 246, 0.15)',
+                            color: '#60a5fa',
+                            border: '1px solid rgba(59, 130, 246, 0.3)',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                          }}
+                          title="Fetch device GPS coordinates"
+                        >
+                          <span>📍 Get Current Location</span>
+                        </button>
+                      </div>
+                      <div className={styles.formGrid}>
+                        <InputGroup label="Latitude" placeholder="Enter Latitude" section="locationDetails" field="latitude" />
+                        <InputGroup label="Longitude" placeholder="Enter Longitude" section="locationDetails" field="longitude" />
+                      </div>
+                      <h2 className={styles.sectionHeading} style={{ marginTop: '20px' }}>Manual Gps Co-Ordinates:</h2>
+                      <div className={styles.formGrid}>
+                        <InputGroup label="Latitude" placeholder="Enter Latitude" section="locationDetails" field="manual_latitude" />
+                        <InputGroup label="Longitude" placeholder="Enter Longitude" section="locationDetails" field="manual_longitude" />
+                      </div>
+                    </div>
+                    <div className={styles.footerActions}>
+                      <button className={styles.nextBtn} onClick={handleNext}>Next <ChevronRight size={18} /></button>
+                    </div>
+                  </>
+                )}
 
-                      return Array.from({ length: totalRoads }, (_, idx) => {
-                        const roadNum = idx + 1;
-                        const accessField = roadNum === 1 ? 'type_of_access' : `type_of_access_${roadNum}`;
-                        const dirField = roadNum === 1 ? 'road_direction' : `road_direction_${roadNum}`;
-                        const approachField = roadNum === 1 ? 'approach_road_type' : `approach_road_type_${roadNum}`;
-                        const otherApproachField = roadNum === 1 ? 'other_approach_road_type' : `other_approach_road_type_${roadNum}`;
-                        const widthField = roadNum === 1 ? 'road_width_ft' : `road_width_ft_${roadNum}`;
-                        const isOther = formData.infrastructureDetails?.[approachField] === 'others';
-
-                        return (
-                          <React.Fragment key={roadNum}>
-                            {totalRoads > 1 && (
-                              <div
-                                className={styles.fullWidth}
-                                style={{
-                                  marginTop: idx === 0 ? '5px' : '15px',
-                                  marginBottom: '5px',
-                                  padding: '8px 12px',
-                                  background: 'rgba(201, 168, 76, 0.08)',
-                                  borderLeft: '3px solid var(--primary-gold, #C9A84C)',
-                                  borderRadius: '4px',
-                                  fontWeight: '600',
-                                  fontSize: '0.9rem',
-                                  color: 'var(--text-primary)',
-                                }}
-                              >
-                                Road {roadNum} Details
-                              </div>
-                            )}
-                            <SelectField
-                              label={totalRoads > 1 ? `Type of Access (Road ${roadNum})` : "Type of Access"}
-                              section="infrastructureDetails"
-                              field={accessField}
-                              options={accessOptions}
-                            />
-                            <SelectField
-                              label={totalRoads > 1 ? `Direction (Road ${roadNum})` : "Direction"}
-                              section="infrastructureDetails"
-                              field={dirField}
-                              options={directionOptions}
-                            />
-                            <SelectField
-                              label={totalRoads > 1 ? `Approach Road Type to Property (Road ${roadNum})` : "Approach Road Type to Property"}
-                              section="infrastructureDetails"
-                              field={approachField}
-                              options={approachRoadOptions}
-                            />
-                            <InputGroup
-                              label={totalRoads > 1 ? `Road Width (ft) (Road ${roadNum})` : "Road Width (ft)"}
-                              placeholder="Enter"
-                              section="infrastructureDetails"
-                              field={widthField}
-                            />
-                            {isOther && (
-                              <div className={`${styles.inputStack} ${styles.fullWidth}`}>
-                                <label className={styles.label}>
-                                  Approach Road Type to Property (Others{totalRoads > 1 ? ` - Road ${roadNum}` : ''})
-                                </label>
-                                <div className={styles.fieldWrapper}>
-                                  <input
-                                    type="text"
-                                    placeholder="Please specify approach road type"
-                                    className={styles.inputField}
-                                    value={formData.infrastructureDetails?.[otherApproachField] || ''}
-                                    onChange={(e) => updateField('infrastructureDetails', otherApproachField, e.target.value)}
-                                  />
-                                </div>
-                              </div>
-                            )}
-                          </React.Fragment>
-                        );
-                      });
-                    })()}
-
-                    <InputGroup label="Number of Lifts" placeholder="Enter" section="infrastructureDetails" field="number_of_lifts" />
-                    <div className={styles.inputStack}><RadioYesNo label="Electricity" section="infrastructureDetails" field="electricity" /></div>
-                    <div className={styles.inputStack}><RadioYesNo label="Water" section="infrastructureDetails" field="water" /></div>
-                    <div className={styles.inputStack}><RadioYesNo label="Drainage Connection" section="infrastructureDetails" field="drainage_connection" /></div>
-                  </div>
-                </div>
-                <div className={styles.footerActions}>
-                  <button className={styles.nextBtn} onClick={handleNext}>Next <ChevronRight size={18} /></button>
-                </div>
-              </>
-            )}
-
-            {/* TAB 5: TECHNICAL */}
-            {activeTab === "Technical" && (
-              <>
-                <h1 className={styles.pageTitle}>Technical Details</h1>
-                <BuildingSpecificationsSection />
-                <MeasurementMatchingCard
-                  title="Land Measurements & Matching Status"
-                  sectionKey="landMeasurements"
-                  showDescriptionBox={true}
-                  showNoteBox={true}
-                  noteLabel="Note : Apartment case (just reflection)"
-                />
-
-                <MeasurementMatchingCard
-                  title="Building Measurements & Matching Status"
-                  sectionKey="buildingMeasurements"
-                  showDescriptionBox={true}
-                  showNoteBox={false}
-                />
-                <div className={styles.card}>
-                  <h2 className={styles.sectionHeading}>Technical Remarks</h2>
-                  <TextAreaField label="Technical Assessment" section="technicalDetails" field="technical_assessment" placeholder="Enter technical assessment details" />
-                </div>
-                <div className={styles.footerActions}>
-                  <button className={styles.nextBtn} onClick={handleNext}>Next <ChevronRight size={18} /></button>
-                </div>
-              </>
-            )}
-
-            {/* TAB 6: PROPERTY MARKET VALUE */}
-            {activeTab === "Property Market Value" && (
-              <>
-                <h1 className={styles.pageTitle} style={{ marginBottom: '5px' }}>Property Market Value Assessment</h1>
-                <p className={styles.subHeading} style={{ marginBottom: '20px' }}>Land Extent Valuation:</p>
-                <div className={styles.card} style={{ padding: '20px', marginBottom: '40px' }}>
-                  <LandExtentTable />
-                  <h2 className={styles.sectionHeading} style={{ fontSize: '1.2rem', marginTop: '10px', marginBottom: '14px' }}>Structure Valuation:</h2>
-                  <StructureValuationTable />
-                  <h2 className={styles.sectionHeading} style={{ fontSize: '1.2rem', marginTop: '10px', marginBottom: '15px' }}>Amenities Valuation:</h2>
-                  <AmenitiesTable />
-                </div>
-
-                <h1 className={styles.pageTitle} style={{ marginBottom: '5px', marginTop: '40px' }}>Property Guideline Value Assessment:</h1>
-                <p className={styles.subHeading} style={{ marginBottom: '20px' }}>Land Extent Valuation:</p>
-                <div className={styles.card} style={{ padding: '20px' }}>
-                  <LandExtentTable />
-                  <h2 className={styles.sectionHeading} style={{ fontSize: '1.2rem', marginTop: '10px', marginBottom: '15px' }}>Amenities Valuation:</h2>
-                  <AmenitiesTable />
-                </div>
-                <div className={styles.footerActions}>
-                  <button className={styles.nextBtn} onClick={handleNext}>Next <ChevronRight size={18} /></button>
-                </div>
-              </>
-            )}
-
-            {/* TAB 7: FINAL VALUATION */}
-            {activeTab === "Final Valuation" && (
-              <>
-                <h1 className={styles.pageTitle}>Final Valuation</h1>
-
-                <div className={styles.card}>
-                  <h2 className={styles.sectionHeading}>Final Values</h2>
-                  <div className={styles.formGrid}>
-                    <InputGroup label="Final Market Value" placeholder="Enter" type="number" section="finalValuation" field="final_market_value" />
-                    <InputGroup label="Final Guideline Value" placeholder="Enter" type="number" section="finalValuation" field="final_guideline_value" />
-                    <InputGroup label="Distress Value" placeholder="Enter" type="number" section="finalValuation" field="distress_value" />
-                    <InputGroup label="Forced Sale Value" placeholder="Enter" type="number" section="finalValuation" field="forced_sale_value" />
-                    <InputGroup label="Replacement Cost" placeholder="Enter" type="number" section="finalValuation" field="replacement_cost" />
-                    <InputGroup label="Depreciated Cost" placeholder="Enter" type="number" section="finalValuation" field="depreciated_cost" />
-                  </div>
-                </div>
-
-                <div className={styles.card}>
-                  <h2 className={styles.sectionHeading}>Engineer Details</h2>
-                  <EngineerDetailsFields />
-                </div>
-
-                <div className={styles.footerActions}>
-                  <button className={styles.nextBtn} onClick={handleNext}>Next <ChevronRight size={18} /></button>
-                </div>
-              </>
-            )}
-
-            {/* TAB 8: LOCATION */}
-            {activeTab === "Location" && (
-              <>
-                <h1 className={styles.pageTitle}>Location Details</h1>
-                <div className={styles.card}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', marginBottom: '10px' }}>
-                    <h2 className={styles.sectionHeading} style={{ margin: 0 }}>Gps Co-Ordinates:</h2>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (typeof window !== 'undefined' && navigator.geolocation) {
-                          navigator.geolocation.getCurrentPosition(
-                            (pos) => {
-                              updateField('locationDetails', 'latitude', String(pos.coords.latitude));
-                              updateField('locationDetails', 'longitude', String(pos.coords.longitude));
-                            },
-                            (err) => {
-                              console.warn('Geolocation error:', err);
-                              alert('Unable to retrieve location automatically. Please enter coordinates manually.');
-                            },
-                            { enableHighAccuracy: true, timeout: 10000 }
-                          );
-                        } else {
-                          alert('Geolocation is not supported by your browser.');
-                        }
-                      }}
-                      style={{
-                        padding: '6px 14px',
-                        borderRadius: '8px',
-                        fontSize: '0.8rem',
-                        fontWeight: '600',
-                        background: 'rgba(59, 130, 246, 0.15)',
-                        color: '#60a5fa',
-                        border: '1px solid rgba(59, 130, 246, 0.3)',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                      }}
-                      title="Fetch device GPS coordinates"
-                    >
-                      <span>📍 Get Current Location</span>
-                    </button>
-                  </div>
-                  <div className={styles.formGrid}>
-                    <InputGroup label="Latitude" placeholder="Enter Latitude" section="locationDetails" field="latitude" />
-                    <InputGroup label="Longitude" placeholder="Enter Longitude" section="locationDetails" field="longitude" />
-                  </div>
-                  <h2 className={styles.sectionHeading} style={{ marginTop: '20px' }}>Manual Gps Co-Ordinates:</h2>
-                  <div className={styles.formGrid}>
-                    <InputGroup label="Latitude" placeholder="Enter Latitude" section="locationDetails" field="manual_latitude" />
-                    <InputGroup label="Longitude" placeholder="Enter Longitude" section="locationDetails" field="manual_longitude" />
-                  </div>
-                </div>
-                <div className={styles.footerActions}>
-                  <button className={styles.nextBtn} onClick={handleNext}>Next <ChevronRight size={18} /></button>
-                </div>
-              </>
-            )}
-
-            {/* ---------------------------------------------------
+                {/* ---------------------------------------------------
                 TAB 9: CHARACTERISTICS (UPDATED)
             --------------------------------------------------- */}
-            {activeTab === "Characteristics" && (
-              <>
-                <h1 className={styles.pageTitle}>Characteristics of Property Specifications</h1>
-                <div className={styles.card}>
-                  <h2 className={styles.sectionHeading} style={{ fontSize: '1.2rem', marginBottom: '15px' }}>Property Characteristics</h2>
-                  <div className={styles.formGrid}>
-                    <InputGroup label="Joint Wall – Direction" placeholder="Enter" section="propertyCharacteristics" field="joint_wall_direction" />
-                    <InputGroup label="Joint Slab – Direction" placeholder="Enter" section="propertyCharacteristics" field="joint_slab_direction" />
-                    <InputGroup label="FSI" placeholder="Enter" section="propertyCharacteristics" field="fsi" />
-                    <InputGroup label="Nearest Railway Station (Km)" placeholder="Enter" section="propertyCharacteristics" field="nearest_railway_station_km" />
-                    <InputGroup label="Nearest Bus Station (Km)" placeholder="Enter" section="propertyCharacteristics" field="nearest_bus_station_km" />
-                    <InputGroup label="Nearest Connecting Road (Km)" placeholder="Enter" section="propertyCharacteristics" field="nearest_connecting_road_km" />
-                    <InputGroup label="Distance From City Centre" placeholder="Enter (Km)" section="propertyCharacteristics" field="distance_from_city_centre_km" />
-                    <InputGroup label="Distance From Branch" placeholder="Enter (Km)" section="propertyCharacteristics" field="distance_from_branch_km" />
-                    <SelectField label="Valuation Methodology" section="propertyCharacteristics" field="valuation_methodology" options={[{ value: '', label: 'Select' }, { value: 'market', label: 'Market Comparison' }, { value: 'income', label: 'Income Approach' }, { value: 'cost', label: 'Cost Approach' }]} />
-                    <SelectField label="Risk Of Demolition" section="propertyCharacteristics" field="risk_of_demolition" options={[{ value: '', label: 'Select' }, { value: 'low', label: 'Low' }, { value: 'medium', label: 'Medium' }, { value: 'high', label: 'High' }]} />
-                    <RadioYesNo label="Negative Area As Per Local" section="propertyCharacteristics" field="negative_area_as_per_local" />
-                    <SelectField label="Development Of Vicinity/Surroundings" section="propertyCharacteristics" field="development_of_vicinity" options={[{ value: '', label: 'Select' }, { value: 'developing', label: 'Developing' }, { value: 'developed', label: 'Fully Developed' }, { value: 'underdeveloped', label: 'Underdeveloped' }]} />
-                    <InputGroup label="Habitation Around The Property (%)" placeholder="Enter %" section="propertyCharacteristics" field="habitation_around_property_percent" />
-                    <SelectField label="Availability of Local Transport" section="propertyCharacteristics" field="availability_of_local_transport" options={[{ value: '', label: 'Select' }, { value: 'good', label: 'Good' }, { value: 'average', label: 'Average' }, { value: 'poor', label: 'Poor' }]} />
-                    <SelectField label="Level of Land with Topographical Conditions" section="propertyCharacteristics" field="level_of_land" options={[{ value: '', label: 'Select' }, { value: 'flat', label: 'Flat' }, { value: 'sloped', label: 'Sloped' }, { value: 'hilly', label: 'Hilly' }, { value: 'undulating', label: 'Undulating' }]} />
-                    <InputGroup label="Setback Deviation (%)" placeholder="Enter %" section="propertyCharacteristics" field="setback_deviation_percent" />
-                    <InputGroup label="Vertical Deviation" placeholder="Enter" section="propertyCharacteristics" field="vertical_deviation" />
-                    <RadioYesNo label="Structure Confirming to Safety (Load Resistance)" section="propertyCharacteristics" field="structure_confirming_to_safety" />
-                  </div>
+                {activeTab === "Characteristics" && (
+                  <>
+                    <h1 className={styles.pageTitle}>Characteristics of Property Specifications</h1>
+                    <div className={styles.card}>
+                      <h2 className={styles.sectionHeading} style={{ fontSize: '1.2rem', marginBottom: '15px' }}>Property Characteristics</h2>
+                      <div className={styles.formGrid}>
+                        <InputGroup label="Joint Wall – Direction" placeholder="Enter" section="propertyCharacteristics" field="joint_wall_direction" />
+                        <InputGroup label="Joint Slab – Direction" placeholder="Enter" section="propertyCharacteristics" field="joint_slab_direction" />
+                        <InputGroup label="FSI" placeholder="Enter" section="propertyCharacteristics" field="fsi" />
+                        <InputGroup label="Nearest Railway Station (Km)" placeholder="Enter" section="propertyCharacteristics" field="nearest_railway_station_km" />
+                        <InputGroup label="Nearest Bus Station (Km)" placeholder="Enter" section="propertyCharacteristics" field="nearest_bus_station_km" />
+                        <InputGroup label="Nearest Connecting Road (Km)" placeholder="Enter" section="propertyCharacteristics" field="nearest_connecting_road_km" />
+                        <InputGroup label="Distance From City Centre" placeholder="Enter (Km)" section="propertyCharacteristics" field="distance_from_city_centre_km" />
+                        <InputGroup label="Distance From Branch" placeholder="Enter (Km)" section="propertyCharacteristics" field="distance_from_branch_km" />
+                        <SelectField label="Valuation Methodology" section="propertyCharacteristics" field="valuation_methodology" options={[{ value: '', label: 'Select' }, { value: 'market', label: 'Market Comparison' }, { value: 'income', label: 'Income Approach' }, { value: 'cost', label: 'Cost Approach' }]} />
+                        <SelectField label="Risk Of Demolition" section="propertyCharacteristics" field="risk_of_demolition" options={[{ value: '', label: 'Select' }, { value: 'low', label: 'Low' }, { value: 'medium', label: 'Medium' }, { value: 'high', label: 'High' }]} />
+                        <RadioYesNo label="Negative Area As Per Local" section="propertyCharacteristics" field="negative_area_as_per_local" />
+                        <SelectField label="Development Of Vicinity/Surroundings" section="propertyCharacteristics" field="development_of_vicinity" options={[{ value: '', label: 'Select' }, { value: 'developing', label: 'Developing' }, { value: 'developed', label: 'Fully Developed' }, { value: 'underdeveloped', label: 'Underdeveloped' }]} />
+                        <InputGroup label="Habitation Around The Property (%)" placeholder="Enter %" section="propertyCharacteristics" field="habitation_around_property_percent" />
+                        <SelectField label="Availability of Local Transport" section="propertyCharacteristics" field="availability_of_local_transport" options={[{ value: '', label: 'Select' }, { value: 'good', label: 'Good' }, { value: 'average', label: 'Average' }, { value: 'poor', label: 'Poor' }]} />
+                        <SelectField label="Level of Land with Topographical Conditions" section="propertyCharacteristics" field="level_of_land" options={[{ value: '', label: 'Select' }, { value: 'flat', label: 'Flat' }, { value: 'sloped', label: 'Sloped' }, { value: 'hilly', label: 'Hilly' }, { value: 'undulating', label: 'Undulating' }]} />
+                        <InputGroup label="Setback Deviation (%)" placeholder="Enter %" section="propertyCharacteristics" field="setback_deviation_percent" />
+                        <InputGroup label="Vertical Deviation" placeholder="Enter" section="propertyCharacteristics" field="vertical_deviation" />
+                        <RadioYesNo label="Structure Confirming to Safety (Load Resistance)" section="propertyCharacteristics" field="structure_confirming_to_safety" />
+                      </div>
 
-                  <h2 className={styles.sectionHeading} style={{ fontSize: '1.2rem', marginTop: '25px', marginBottom: '15px' }}>NDMA Parameters</h2>
-                  <div className={styles.formGrid}>
-                    <InputGroup label="Nature of Building / Wing" placeholder="Enter" section="ndmaParameters" field="nature_of_building" />
-                    <SelectField label="Shape of Building" section="ndmaParameters" field="shape_of_building" options={[{ value: '', label: 'Select' }, { value: 'regular', label: 'Regular' }, { value: 'irregular', label: 'Irregular' }, { value: 'l-shape', label: 'L-Shape' }, { value: 't-shape', label: 'T-Shape' }]} />
-                    <InputGroup label="Concrete Grade" placeholder="e.g. M-20" section="ndmaParameters" field="concrete_grade" />
-                    <SelectField label="Roof Type" section="ndmaParameters" field="roof_type" options={[{ value: '', label: 'Select' }, { value: 'mtr', label: 'MTR' }, { value: 'flat', label: 'Flat RCC' }, { value: 'sloped', label: 'Sloped' }, { value: 'sheet', label: 'Sheet' }]} />
-                    <SelectField label="Soil Strata" section="ndmaParameters" field="soil_strata" options={[{ value: '', label: 'Select' }, { value: 'hard', label: 'Hard' }, { value: 'medium', label: 'Medium' }, { value: 'soft', label: 'Soft' }]} />
-                    <SelectField label="Seismic Zone" section="ndmaParameters" field="seismic_zone" options={[{ value: '', label: 'Select' }, { value: 'zone2', label: 'Zone II' }, { value: 'zone3', label: 'Zone III' }, { value: 'zone4', label: 'Zone IV' }, { value: 'zone5', label: 'Zone V' }]} />
-                  </div>
+                      <h2 className={styles.sectionHeading} style={{ fontSize: '1.2rem', marginTop: '25px', marginBottom: '15px' }}>NDMA Parameters</h2>
+                      <div className={styles.formGrid}>
+                        <InputGroup label="Nature of Building / Wing" placeholder="Enter" section="ndmaParameters" field="nature_of_building" />
+                        <SelectField label="Shape of Building" section="ndmaParameters" field="shape_of_building" options={[{ value: '', label: 'Select' }, { value: 'regular', label: 'Regular' }, { value: 'irregular', label: 'Irregular' }, { value: 'l-shape', label: 'L-Shape' }, { value: 't-shape', label: 'T-Shape' }]} />
+                        <InputGroup label="Concrete Grade" placeholder="e.g. M-20" section="ndmaParameters" field="concrete_grade" />
+                        <SelectField label="Roof Type" section="ndmaParameters" field="roof_type" options={[{ value: '', label: 'Select' }, { value: 'mtr', label: 'MTR' }, { value: 'flat', label: 'Flat RCC' }, { value: 'sloped', label: 'Sloped' }, { value: 'sheet', label: 'Sheet' }]} />
+                        <SelectField label="Soil Strata" section="ndmaParameters" field="soil_strata" options={[{ value: '', label: 'Select' }, { value: 'hard', label: 'Hard' }, { value: 'medium', label: 'Medium' }, { value: 'soft', label: 'Soft' }]} />
+                        <SelectField label="Seismic Zone" section="ndmaParameters" field="seismic_zone" options={[{ value: '', label: 'Select' }, { value: 'zone2', label: 'Zone II' }, { value: 'zone3', label: 'Zone III' }, { value: 'zone4', label: 'Zone IV' }, { value: 'zone5', label: 'Zone V' }]} />
+                      </div>
 
-                  <div style={{ marginTop: '20px' }}>
-                    <TextAreaField label="Others Remarks" section="propertyCharacteristics" field="others_remarks" placeholder="Enter any other remarks" rows={3} />
-                  </div>
-                </div>
+                      <div style={{ marginTop: '20px' }}>
+                        <TextAreaField label="Others Remarks" section="propertyCharacteristics" field="others_remarks" placeholder="Enter any other remarks" rows={3} />
+                      </div>
+                    </div>
 
-                <div className={styles.footerActions}>
-                  <button className={styles.nextBtn} onClick={handleNext}>Next <ChevronRight size={18} /></button>
-                </div>
-              </>
-            )}
+                    <div className={styles.footerActions}>
+                      <button className={styles.nextBtn} onClick={handleNext}>Next <ChevronRight size={18} /></button>
+                    </div>
+                  </>
+                )}
 
-            {/* TAB 10: PHOTOS */}
-            {activeTab === "Photos" && (
-              <>
-                {/* Repeatable Photo Graphs Sections with Photos Card */}
-                <PhotoGroupSectionList />
+                {/* TAB 10: PHOTOS */}
+                {activeTab === "Photos" && (
+                  <>
+                    {/* Repeatable Photo Graphs Sections with Photos Card */}
+                    <PhotoGroupSectionList />
 
-                {/* Print / Draw Tab */}
-                <div className={styles.card}>
-                  <h2 className={styles.sectionHeading}>Print Tab</h2>
-                  <p className={styles.subHeading} style={{ marginBottom: '12px' }}>To Draw Any Thing With Hand</p>
-                  <div className={styles.drawingCanvasWrapper}>
-                    <DrawingCanvas />
-                  </div>
-                </div>
+                    {/* Print / Draw Tab */}
+                    <div className={styles.card}>
+                      <h2 className={styles.sectionHeading}>Print Tab</h2>
+                      <p className={styles.subHeading} style={{ marginBottom: '12px' }}>To Draw Any Thing With Hand</p>
+                      <div className={styles.drawingCanvasWrapper}>
+                        <DrawingCanvas />
+                      </div>
+                    </div>
 
-                {/* Remarks */}
-                <div className={styles.card}>
-                  <h2 className={styles.sectionHeading}>Remarks</h2>
-                  <TextOrImageField
-                    label=""
-                    textField="remarks"
-                    imageField="remarks_image"
-                    placeholder="Enter remarks here..."
-                    isTextarea
-                    rows={4}
-                    sectionOverride="photoRemarks"
-                  />
-                </div>
+                    {/* Remarks */}
+                    <div className={styles.card}>
+                      <h2 className={styles.sectionHeading}>Remarks</h2>
+                      <TextOrImageField
+                        label=""
+                        textField="remarks"
+                        imageField="remarks_image"
+                        placeholder="Enter remarks here..."
+                        isTextarea
+                        rows={4}
+                        sectionOverride="photoRemarks"
+                      />
+                    </div>
 
-                {/* Signatures */}
-                <div className={styles.card}>
-                  <h2 className={styles.sectionHeading}>Signatures</h2>
-                  <div className={styles.formGrid}>
-                    <SignatureField label="Signature Of Inspector" section="signatures" field="signature_inspector" />
-                    <SignatureField label="Signature Of Engineer" section="signatures" field="signature_engineer" />
-                    <SignatureField label="Signature Of Institution" section="signatures" field="signature_institution" />
-                  </div>
-                </div>
+                    {/* Signatures */}
+                    <div className={styles.card}>
+                      <h2 className={styles.sectionHeading}>Signatures</h2>
+                      <div className={styles.formGrid}>
+                        <SignatureField label="Signature Of Inspector" section="signatures" field="signature_inspector" />
+                        <SignatureField label="Signature Of Engineer" section="signatures" field="signature_engineer" />
+                        <SignatureField label="Signature Of Institution" section="signatures" field="signature_institution" />
+                      </div>
+                    </div>
 
-                {/* Final Value Chart */}
-                <div className={styles.card}>
-                  <h2 className={styles.sectionHeading}>Final Value Chart</h2>
-                  <div style={{ overflowX: 'auto' }}>
-                    <FinalValueChartTable />
-                  </div>
-                </div>
+                    {/* Final Value Chart */}
+                    <div className={styles.card}>
+                      <h2 className={styles.sectionHeading}>Final Value Chart</h2>
+                      <div style={{ overflowX: 'auto' }}>
+                        <FinalValueChartTable />
+                      </div>
+                    </div>
 
-                {/* Declaration */}
-                <div className={styles.card}>
-                  <h2 className={styles.sectionHeading}>DECLARATION</h2>
-                  <ul style={{ listStyle: 'disc', paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    <li style={{ fontSize: '0.95rem', color: 'var(--text-primary)', lineHeight: '1.7' }}>
-                      Kgn and the site engineer/service provider partner certify that they have no direct or indirect interest in the appraisal of the property.
-                    </li>
-                    <li style={{ fontSize: '0.95rem', color: 'var(--text-primary)', lineHeight: '1.7' }}>
-                      The property was inspected by our authorised representative in the presence of owner&apos;s representative, and the information provided in the report is accurate to the best of our knowledge and in accordance with the financial institution&apos;s or the property owner&apos;s documents (We did not do any due diligence on the documents that were provided to us for this valuation).
-                    </li>
-                    <li style={{ fontSize: '0.95rem', color: 'var(--text-primary)', lineHeight: '1.7' }}>
-                      The FAIR MARKET VALUE in the report is based on market feedback on similar properties as of the date of Valuation. Financial institutions and clients are free to obtain independent advice. The fair market value of properties/locations may fluctuates due to future market conditions and scenarios, requiring periodic analysis.
-                    </li>
-                    <li style={{ fontSize: '0.95rem', color: 'var(--text-primary)', lineHeight: '1.7' }}>
-                      Legal considerations are beyond the scope of valuation and report does not certify the ownership or title of property or physical/legal possession of the property that has been valued therefore financial firm or client should independently verify authenticity of all title &amp; other documents.
-                    </li>
-                    <li style={{ fontSize: '0.95rem', color: 'var(--text-primary)', lineHeight: '1.7' }}>
-                      Compliance with statutory regulations pertaining to mortgage or property loans is the responsibility of the lending institutions. Legal Opinion/considerations on the subject property is also the responsibility of lending institution.
-                    </li>
-                  </ul>
-                </div>
+                    {/* Declaration */}
+                    <div className={styles.card}>
+                      <h2 className={styles.sectionHeading}>DECLARATION</h2>
+                      <ul style={{ listStyle: 'disc', paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        <li style={{ fontSize: '0.95rem', color: 'var(--text-primary)', lineHeight: '1.7' }}>
+                          Kgn and the site engineer/service provider partner certify that they have no direct or indirect interest in the appraisal of the property.
+                        </li>
+                        <li style={{ fontSize: '0.95rem', color: 'var(--text-primary)', lineHeight: '1.7' }}>
+                          The property was inspected by our authorised representative in the presence of owner&apos;s representative, and the information provided in the report is accurate to the best of our knowledge and in accordance with the financial institution&apos;s or the property owner&apos;s documents (We did not do any due diligence on the documents that were provided to us for this valuation).
+                        </li>
+                        <li style={{ fontSize: '0.95rem', color: 'var(--text-primary)', lineHeight: '1.7' }}>
+                          The FAIR MARKET VALUE in the report is based on market feedback on similar properties as of the date of Valuation. Financial institutions and clients are free to obtain independent advice. The fair market value of properties/locations may fluctuates due to future market conditions and scenarios, requiring periodic analysis.
+                        </li>
+                        <li style={{ fontSize: '0.95rem', color: 'var(--text-primary)', lineHeight: '1.7' }}>
+                          Legal considerations are beyond the scope of valuation and report does not certify the ownership or title of property or physical/legal possession of the property that has been valued therefore financial firm or client should independently verify authenticity of all title &amp; other documents.
+                        </li>
+                        <li style={{ fontSize: '0.95rem', color: 'var(--text-primary)', lineHeight: '1.7' }}>
+                          Compliance with statutory regulations pertaining to mortgage or property loans is the responsibility of the lending institutions. Legal Opinion/considerations on the subject property is also the responsibility of lending institution.
+                        </li>
+                      </ul>
+                    </div>
 
-                <div className={styles.footerActions}>
-                  <button className={styles.nextBtn} onClick={handleSubmit} disabled={isSubmitting}>
-                    {isSubmitting ? 'Submitting...' : 'Submit'} <ChevronRight size={18} />
-                  </button>
-                </div>
-              </>
-            )}
+                    <div className={styles.footerActions}>
+                      <button className={styles.nextBtn} onClick={handleSubmit} disabled={isSubmitting}>
+                        {isSubmitting ? 'Submitting...' : 'Submit'} <ChevronRight size={18} />
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+
             </div>
-
-          </div>
-          <Footer />
-        </main>
+            <Footer />
+          </main>
+        </div>
       </div>
-    </div>
     </FormContext.Provider>
   );
 };
@@ -1309,7 +1317,7 @@ const TextOrImageField = ({ label, textField, imageField, placeholder, isTextare
   const { formData, updateField } = useFormContext();
   const [mode, setMode] = useState('text'); // 'text' | 'picture'
   const fileInputRef = React.useRef(null);
-  
+
   const section = sectionOverride || 'finalValuation';
 
   const textValue = formData[section]?.[textField] ?? '';
@@ -1341,17 +1349,17 @@ const TextOrImageField = ({ label, textField, imageField, placeholder, isTextare
     <div style={{ marginBottom: '18px' }}>
       {/* Label + tab switcher */}
       {label && (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
-        <label className={styles.label} style={{ margin: 0 }}>{label}</label>
-        <div style={{ display: 'inline-flex', gap: '4px', padding: '3px', borderRadius: '8px', background: 'rgba(255,255,255,0.06)', border: '1px solid var(--border-color)' }}>
-          <button type="button" style={tabStyle(mode === 'text')} onClick={() => setMode('text')}>
-            ✏️ Text
-          </button>
-          <button type="button" style={tabStyle(mode === 'picture')} onClick={() => setMode('picture')}>
-            🖼️ Picture
-          </button>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
+          <label className={styles.label} style={{ margin: 0 }}>{label}</label>
+          <div style={{ display: 'inline-flex', gap: '4px', padding: '3px', borderRadius: '8px', background: 'rgba(255,255,255,0.06)', border: '1px solid var(--border-color)' }}>
+            <button type="button" style={tabStyle(mode === 'text')} onClick={() => setMode('text')}>
+              ✏️ Text
+            </button>
+            <button type="button" style={tabStyle(mode === 'picture')} onClick={() => setMode('picture')}>
+              🖼️ Picture
+            </button>
+          </div>
         </div>
-      </div>
       )}
       {!label && (
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '8px' }}>
@@ -1627,6 +1635,159 @@ const defaultBuildingSpecCard = () => ({
   document_number: '',
 });
 
+
+// ─── Value Reference Section ────────────────────────────────────────────────
+const emptyValueRef = () => ({
+  id: `vref_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+  source: '',
+  rate_per_sqft: '',
+  total_value: '',
+  remarks: '',
+});
+
+const ValueReferenceSection = ({ title, sectionKey }) => {
+  const { formData, setFormData } = useFormContext();
+
+  const refs = React.useMemo(() => {
+    const raw = formData.technicalDetails?.[sectionKey];
+    if (Array.isArray(raw) && raw.length > 0) return raw;
+    return [emptyValueRef()];
+  }, [formData.technicalDetails, sectionKey]);
+
+  const syncRefs = (newRefs) => {
+    setFormData((prev) => ({
+      ...prev,
+      technicalDetails: {
+        ...prev.technicalDetails,
+        [sectionKey]: newRefs,
+      },
+    }));
+  };
+
+  const addRef = () => syncRefs([...refs, emptyValueRef()]);
+
+  const removeRef = (idx) => syncRefs(refs.filter((_, i) => i !== idx));
+
+  const updateRef = (idx, field, value) => {
+    syncRefs(refs.map((r, i) => (i === idx ? { ...r, [field]: value } : r)));
+  };
+
+  return (
+    <div className={styles.card} style={{ marginBottom: '25px' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px', flexWrap: 'wrap', gap: '10px' }}>
+        <h2 className={styles.sectionHeading} style={{ margin: 0 }}>{title}</h2>
+        <button
+          type="button"
+          onClick={addRef}
+          title={`Add ${title} entry`}
+          style={{
+            width: '34px', height: '34px', borderRadius: '50%',
+            background: 'var(--gradient-gold, linear-gradient(135deg,#C9A84C 0%,#E0C77D 100%))',
+            color: '#1a1a1a', border: 'none', display: 'flex', alignItems: 'center',
+            justifyContent: 'center', cursor: 'pointer',
+            boxShadow: '0 2px 10px rgba(201,168,76,0.35)', flexShrink: 0,
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.08)')}
+          onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+        >
+          <Plus size={18} strokeWidth={2.5} />
+        </button>
+      </div>
+
+      {/* Entries */}
+      {refs.map((ref, idx) => (
+        <div
+          key={ref.id}
+          style={{
+            border: refs.length > 1 ? '1px solid rgba(201,168,76,0.3)' : undefined,
+            borderRadius: '8px',
+            padding: refs.length > 1 ? '16px' : '0',
+            marginBottom: idx < refs.length - 1 ? '14px' : '0',
+            background: refs.length > 1 ? 'rgba(201,168,76,0.03)' : 'transparent',
+          }}
+        >
+          {/* Row header: entry # + remove */}
+          {refs.length > 1 && (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+              <span style={{ fontSize: '0.8rem', fontWeight: 700, padding: '2px 10px', borderRadius: '12px', background: 'rgba(201,168,76,0.15)', color: 'var(--primary-gold,#C9A84C)', border: '1px solid rgba(201,168,76,0.3)' }}>
+                Entry #{idx + 1}
+              </span>
+              <button
+                type="button"
+                onClick={() => removeRef(idx)}
+                title="Remove entry"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '6px', border: '1px solid rgba(239,68,68,0.4)', background: 'rgba(239,68,68,0.08)', color: '#ef4444', fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer' }}
+              >
+                <Trash2 size={13} /> Remove
+              </button>
+            </div>
+          )}
+
+          {/* Fields */}
+          <div className={styles.formGrid}>
+            <div className={styles.inputStack}>
+              <label className={styles.label}>Source / Reference</label>
+              <div className={styles.fieldWrapper}>
+                <input
+                  type="text"
+                  placeholder="e.g. Govt. Gazette, Market Survey…"
+                  className={styles.inputField}
+                  value={ref.source ?? ''}
+                  onChange={(e) => updateRef(idx, 'source', e.target.value)}
+                  style={{ width: '100%' }}
+                />
+              </div>
+            </div>
+
+            <div className={styles.inputStack}>
+              <label className={styles.label}>Rate per Sq.ft (₹)</label>
+              <div className={styles.fieldWrapper}>
+                <input
+                  type="text"
+                  placeholder="Enter rate"
+                  className={styles.inputField}
+                  value={ref.rate_per_sqft ?? ''}
+                  onChange={(e) => updateRef(idx, 'rate_per_sqft', e.target.value)}
+                  style={{ width: '100%' }}
+                />
+              </div>
+            </div>
+
+            <div className={styles.inputStack}>
+              <label className={styles.label}>Total Value (₹)</label>
+              <div className={styles.fieldWrapper}>
+                <input
+                  type="text"
+                  placeholder="Enter total value"
+                  className={styles.inputField}
+                  value={ref.total_value ?? ''}
+                  onChange={(e) => updateRef(idx, 'total_value', e.target.value)}
+                  style={{ width: '100%' }}
+                />
+              </div>
+            </div>
+
+            <div className={styles.inputStack}>
+              <label className={styles.label}>Remarks</label>
+              <div className={styles.fieldWrapper}>
+                <input
+                  type="text"
+                  placeholder="Enter remarks"
+                  className={styles.inputField}
+                  value={ref.remarks ?? ''}
+                  onChange={(e) => updateRef(idx, 'remarks', e.target.value)}
+                  style={{ width: '100%' }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+// ────────────────────────────────────────────────────────────────────────────
 const BuildingSpecificationsSection = () => {
   const { formData, setFormData } = useFormContext();
   const td = formData.technicalDetails || {};
@@ -2698,11 +2859,11 @@ const LandExtentTable = ({ showSelectionOption = true }) => {
           return found
             ? { ...found }
             : {
-                basis_of_valuation: b,
-                land_extent_sqft: '',
-                cost_per_sqft: '',
-                total_value: '',
-              };
+              basis_of_valuation: b,
+              land_extent_sqft: '',
+              cost_per_sqft: '',
+              total_value: '',
+            };
         });
         return {
           ...prev,
@@ -2931,8 +3092,8 @@ const LandExtentTable = ({ showSelectionOption = true }) => {
                     background: isSelected
                       ? 'rgba(201, 168, 76, 0.08)'
                       : isFinal
-                      ? 'rgba(59, 130, 246, 0.05)'
-                      : 'transparent',
+                        ? 'rgba(59, 130, 246, 0.05)'
+                        : 'transparent',
                     borderRadius: '6px',
                     transition: 'background 0.2s ease',
                   }}
@@ -3506,8 +3667,8 @@ const StructureValuationTable = () => {
               const label = c.description
                 ? `Floor #${idx + 1}: ${c.description}`
                 : c.document_number
-                ? `Floor #${idx + 1}: ${c.document_number}`
-                : `Floor #${idx + 1}`;
+                  ? `Floor #${idx + 1}: ${c.document_number}`
+                  : `Floor #${idx + 1}`;
               return (
                 <button
                   key={c.id || idx}
@@ -3543,7 +3704,7 @@ const StructureValuationTable = () => {
             <tr>
               <th style={{ textAlign: 'left', color: 'var(--text-primary)', fontWeight: '600', paddingBottom: '10px' }}>Floor Details</th>
               <th style={{ textAlign: 'left', color: 'var(--text-primary)', fontWeight: '600', paddingBottom: '10px' }}>Area (Sq Ft)</th>
-              <th style={{ textAlign: 'left', color: 'var(--text-primary)', fontWeight: '600', paddingBottom: '10px' }}>Recommendation<br/>Of Funding</th>
+              <th style={{ textAlign: 'left', color: 'var(--text-primary)', fontWeight: '600', paddingBottom: '10px' }}>Recommendation<br />Of Funding</th>
               <th style={{ textAlign: 'left', color: 'var(--text-primary)', fontWeight: '600', paddingBottom: '10px' }}>Cost Per Sft</th>
               <th style={{ textAlign: 'left', color: 'var(--text-primary)', fontWeight: '600', paddingBottom: '10px' }}>Total Value</th>
             </tr>
@@ -3789,12 +3950,12 @@ const AmenitiesTable = () => {
 
 const FinalValueChartTable = () => {
   const { formData } = useFormContext();
-  
+
   const amenities = formData.amenityValuations || [];
   const amenityRows = amenities
     .map(a => a.amenity_name?.trim())
     .filter(name => name !== '');
-  
+
   const finalAmenityRows = amenityRows.length > 0 ? amenityRows : ['Amenities Value'];
 
   const rows = [
@@ -3843,22 +4004,22 @@ const PhotoGroupSectionList = () => {
   const photoGroups = (formData.photoGroups && formData.photoGroups.length > 0)
     ? formData.photoGroups
     : [{
+      id: 1,
+      note: formData.photo_graphs_note || (Array.isArray(formData.photo_graphs_notes) ? formData.photo_graphs_notes[0] : '') || '',
+      photos: formData.photos && formData.photos.length > 0 ? formData.photos : [{
         id: 1,
-        note: formData.photo_graphs_note || (Array.isArray(formData.photo_graphs_notes) ? formData.photo_graphs_notes[0] : '') || '',
-        photos: formData.photos && formData.photos.length > 0 ? formData.photos : [{
-          id: 1,
-          file: null,
-          preview: null,
-          description: '',
-          latitude: '',
-          longitude: '',
-          locality: '',
-          region: '',
-          bearing_degrees: '',
-          bearing_direction: '',
-          captured_at: '',
-        }],
-      }];
+        file: null,
+        preview: null,
+        description: '',
+        latitude: '',
+        longitude: '',
+        locality: '',
+        region: '',
+        bearing_degrees: '',
+        bearing_direction: '',
+        captured_at: '',
+      }],
+    }];
 
   const cardinalFromDegrees = (deg) => {
     const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];

@@ -1,4 +1,4 @@
-export const initialFormData = {
+﻿export const initialFormData = {
   institutionDetails: {
     bank_name: '',
     branch_name: '',
@@ -170,6 +170,12 @@ export const initialFormData = {
       east: { actual: '', document: '', plan: '', match: false },
       west: { actual: '', document: '', plan: '', match: false },
     },
+    landValueReferences: [
+      { id: 'lvref_1', source: '', rate_per_sqft: '', total_value: '', remarks: '' },
+    ],
+    buildingValueReferences: [
+      { id: 'bvref_1', source: '', rate_per_sqft: '', total_value: '', remarks: '' },
+    ],
   },
   finalValuation: {
     property_type: '',
