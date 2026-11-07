@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getValuationById, upsertValuation } from '@/lib/mysql';
 import memoryStore from '@/lib/memoryStore';
 import { generateValuationPdf } from '@/lib/pdfGenerator';
+import { generateValuationWord } from '@/lib/wordGenerator';
 
 export async function GET(req, { params }) {
   const { id, action } = await params;
@@ -53,6 +54,17 @@ export async function GET(req, { params }) {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `${disposition}; filename="property_valuation_${id}.pdf"`,
+      },
+    });
+  }
+
+  if (cleanAction === 'generate-word') {
+    const wordBuffer = await generateValuationWord(report);
+
+    return new NextResponse(wordBuffer, {
+      headers: {
+        'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'Content-Disposition': `attachment; filename="property_valuation_${id}.docx"`,
       },
     });
   }
