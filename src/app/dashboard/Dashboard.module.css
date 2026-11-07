@@ -63,12 +63,12 @@
   align-items: center;
   gap: 6px;
   padding: 4px 10px;
-  background: rgba(184, 134, 11, 0.1);
-  border: 1px solid rgba(184, 134, 11, 0.25);
+  background: rgba(5, 150, 105, 0.1);
+  border: 1px solid rgba(5, 150, 105, 0.25);
   border-radius: 9999px;
   font-size: 0.72rem;
   font-weight: 700;
-  color: #B8860B;
+  color: #059669;
   letter-spacing: 0.5px;
   text-transform: uppercase;
 }
@@ -102,21 +102,21 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: linear-gradient(135deg, #96703E 0%, #D4A017 55%, #F5E2BE 100%);
+  background: linear-gradient(135deg, #047857 0%, #10B981 55%, #A7F3D0 100%);
   color: #ffffff;
   padding: 11px 22px;
   border-radius: 10px;
   font-weight: 700;
   font-size: 0.875rem;
   text-decoration: none;
-  box-shadow: 0 4px 16px rgba(184, 134, 11, 0.3);
+  box-shadow: 0 4px 16px rgba(5, 150, 105, 0.3);
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   white-space: nowrap;
 }
 
 .primaryCta:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(184, 134, 11, 0.4);
+  box-shadow: 0 8px 24px rgba(5, 150, 105, 0.4);
 }
 
 /* ── KPI Stat Cards ──────────────────────────────────────────── */
@@ -144,7 +144,7 @@
 .statCard:hover {
   transform: translateY(-3px);
   box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-  border-color: rgba(184, 134, 11, 0.25);
+  border-color: rgba(5, 150, 105, 0.25);
 }
 
 .statCard::after {
@@ -163,7 +163,7 @@
   opacity: 1;
 }
 
-.statCardGold::after  { background: linear-gradient(90deg, #96703E, #D4A017); }
+.statCardGold::after  { background: linear-gradient(90deg, #047857, #10B981); }
 .statCardGreen::after { background: linear-gradient(90deg, #059669, #34D399); }
 .statCardBlue::after  { background: linear-gradient(90deg, #2563EB, #60A5FA); }
 .statCardAmber::after { background: linear-gradient(90deg, #D97706, #FCD34D); }
@@ -189,7 +189,7 @@
   transform: scale(1.08) rotate(4deg);
 }
 
-.statIconGold  { background: rgba(184, 134, 11, 0.1);  color: #B8860B; }
+.statIconGold  { background: rgba(5, 150, 105, 0.1);  color: #059669; }
 .statIconGreen { background: rgba(16, 185, 129, 0.1);  color: #059669; }
 .statIconBlue  { background: rgba(37, 99, 235, 0.1);   color: #2563EB; }
 .statIconAmber { background: rgba(217, 119, 6, 0.1);   color: #D97706; }
@@ -268,9 +268,9 @@
   align-items: center;
   gap: 5px;
   font-size: 0.7rem;
-  color: #B8860B;
-  background: rgba(184, 134, 11, 0.09);
-  border: 1px solid rgba(184, 134, 11, 0.25);
+  color: #059669;
+  background: rgba(5, 150, 105, 0.09);
+  border: 1px solid rgba(5, 150, 105, 0.25);
   padding: 4px 10px;
   border-radius: 9999px;
   font-weight: 600;
@@ -335,10 +335,10 @@
 }
 
 .actionTile:hover {
-  border-color: rgba(184, 134, 11, 0.4);
-  background: rgba(184, 134, 11, 0.04);
+  border-color: rgba(5, 150, 105, 0.4);
+  background: rgba(5, 150, 105, 0.04);
   transform: translateX(3px);
-  color: #B8860B;
+  color: #059669;
 }
 
 .actionIconBox {
@@ -349,13 +349,13 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  background: rgba(184, 134, 11, 0.1);
-  color: #B8860B;
+  background: rgba(5, 150, 105, 0.1);
+  color: #059669;
   transition: all 0.2s ease;
 }
 
 .actionTile:hover .actionIconBox {
-  background: linear-gradient(135deg, #96703E, #D4A017);
+  background: linear-gradient(135deg, #047857, #10B981);
   color: #ffffff;
 }
 
@@ -386,7 +386,7 @@
 }
 
 .actionTile:hover .actionArrow {
-  color: #B8860B;
+  color: #059669;
 }
 
 /* ── Analysis Cards Grid ─────────────────────────────────────── */
@@ -416,7 +416,7 @@
 .analysisCard:hover {
   transform: translateY(-4px);
   box-shadow: 0 10px 32px rgba(0,0,0,0.09);
-  border-color: rgba(184, 134, 11, 0.3);
+  border-color: rgba(5, 150, 105, 0.3);
 }
 
 .cardTopRow {
@@ -428,19 +428,19 @@
 .cardIcon {
   width: 48px;
   height: 48px;
-  background: rgba(184, 134, 11, 0.1);
-  border: 1px solid rgba(184, 134, 11, 0.2);
+  background: rgba(5, 150, 105, 0.1);
+  border: 1px solid rgba(5, 150, 105, 0.2);
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #B8860B;
+  color: #059669;
   flex-shrink: 0;
   transition: all 0.25s ease;
 }
 
 .analysisCard:hover .cardIcon {
-  background: linear-gradient(135deg, #96703E, #D4A017);
+  background: linear-gradient(135deg, #047857, #10B981);
   color: #ffffff;
   border-color: transparent;
   transform: scale(1.05) rotate(3deg);
@@ -473,7 +473,7 @@
   font-family: var(--font-heading);
   font-size: 2.2rem;
   font-weight: 800;
-  color: #B8860B;
+  color: #059669;
   line-height: 1;
   letter-spacing: -0.5px;
 }
@@ -496,7 +496,7 @@
 }
 
 .viewAllLink {
-  color: #B8860B;
+  color: #059669;
   font-size: 0.82rem;
   text-decoration: none;
   display: flex;
@@ -505,14 +505,14 @@
   font-weight: 600;
   padding: 6px 12px;
   border-radius: 8px;
-  border: 1px solid rgba(184,134,11,0.25);
-  background: rgba(184,134,11,0.06);
+  border: 1px solid rgba(5,150,105,0.25);
+  background: rgba(5,150,105,0.06);
   transition: all 0.2s ease;
 }
 
 .viewAllLink:hover {
-  background: rgba(184,134,11,0.12);
-  border-color: rgba(184,134,11,0.4);
+  background: rgba(5,150,105,0.12);
+  border-color: rgba(5,150,105,0.4);
 }
 
 /* Table */
@@ -537,7 +537,7 @@
 }
 
 .reportRow:hover {
-  background: rgba(184, 134, 11, 0.03);
+  background: rgba(5, 150, 105, 0.03);
 }
 
 .reportRow td {
@@ -565,8 +565,8 @@
 .bankBadge {
   display: inline-flex;
   align-items: center;
-  background: rgba(184, 134, 11, 0.09);
-  color: #B8860B;
+  background: rgba(5, 150, 105, 0.09);
+  color: #059669;
   padding: 3px 10px;
   border-radius: 9999px;
   font-weight: 600;
@@ -589,26 +589,57 @@
   align-items: center;
   gap: 6px;
   font-size: 0.8rem;
-  color: #B8860B;
+  color: #059669;
   font-weight: 600;
   padding: 7px 14px;
   border-radius: 8px;
-  border: 1px solid rgba(184, 134, 11, 0.25);
-  background: rgba(184, 134, 11, 0.07);
+  border: 1px solid rgba(5, 150, 105, 0.25);
+  background: rgba(5, 150, 105, 0.07);
   transition: all 0.2s ease;
   cursor: pointer;
   white-space: nowrap;
 }
 
 .pdfButton:hover {
-  background: linear-gradient(135deg, #96703E, #D4A017);
+  background: linear-gradient(135deg, #047857, #10B981);
   color: #ffffff;
   border-color: transparent;
-  box-shadow: 0 4px 12px rgba(184, 134, 11, 0.3);
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
   transform: translateY(-1px);
 }
 
 .pdfButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ── Word Download Button ──────────────────────────────────────── */
+.wordButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: #2563EB;
+  font-weight: 600;
+  padding: 7px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(37, 99, 235, 0.25);
+  background: rgba(37, 99, 235, 0.07);
+  transition: all 0.2s ease;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.wordButton:hover {
+  background: linear-gradient(135deg, #1D4ED8, #3B82F6);
+  color: #ffffff;
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  transform: translateY(-1px);
+}
+
+.wordButton:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
@@ -633,19 +664,19 @@
 }
 
 .emptyLink {
-  color: #B8860B;
+  color: #059669;
   text-decoration: none;
   font-weight: 600;
   font-size: 0.88rem;
   padding: 8px 18px;
-  border: 1px solid rgba(184,134,11,0.3);
+  border: 1px solid rgba(5,150,105,0.3);
   border-radius: 8px;
   display: inline-block;
   transition: all 0.2s ease;
 }
 
 .emptyLink:hover {
-  background: rgba(184,134,11,0.08);
+  background: rgba(5,150,105,0.08);
 }
 
 /* ── Responsive ─────────────────────────────────────────────── */

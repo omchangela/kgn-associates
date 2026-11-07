@@ -311,6 +311,30 @@ export const propertyValuationAPI = {
     a.remove();
     window.URL.revokeObjectURL(url);
   },
+
+  generateWord: async (id) => {
+    const token = getToken();
+    const headers = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const response = await fetch(`${API_BASE_URL}/valuations/${id}/generate-word`, {
+      headers,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to generate Word document (${response.status})`);
+    }
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `property_valuation_${id}.docx`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  },
 };
 
 const apiServices = { authAPI, propertyValuationAPI };

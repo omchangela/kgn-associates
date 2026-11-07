@@ -40,6 +40,7 @@ const Dashboard = () => {
   const [recentReports, setRecentReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [downloadingId, setDownloadingId] = useState(null);
+  const [downloadingWordId, setDownloadingWordId] = useState(null);
 
   const containerRef = useRef(null);
   const bannerRef    = useRef(null);
@@ -101,6 +102,18 @@ const Dashboard = () => {
       alert(`Error downloading certified PDF: ${err.message}`);
     } finally {
       setDownloadingId(null);
+    }
+  };
+
+  const handleDownloadWord = async (id, e) => {
+    e.preventDefault();
+    try {
+      setDownloadingWordId(id);
+      await propertyValuationAPI.generateWord(id);
+    } catch (err) {
+      alert(`Error downloading Word document: ${err.message}`);
+    } finally {
+      setDownloadingWordId(null);
     }
   };
 
@@ -363,8 +376,9 @@ const Dashboard = () => {
                     </thead>
                     <tbody>
                       {recentReports.map((rep) => {
-                        const repId       = rep.id || rep._id;
-                        const isDownloading = downloadingId === repId;
+                        const repId         = rep.id || rep._id;
+                        const isDownloading     = downloadingId === repId;
+                        const isWordDownloading = downloadingWordId === repId;
                         const inst        = rep.institution_details || rep.institutionDetails || {};
                         const prop        = rep.property_identification || rep.propertyIdentification || {};
 
@@ -391,14 +405,24 @@ const Dashboard = () => {
                               </span>
                             </td>
                             <td style={{ textAlign: 'right' }}>
-                              <button
-                                onClick={(e) => handleDownloadPDF(repId, e)}
-                                className={styles.pdfButton}
-                                disabled={isDownloading}
-                              >
-                                <Download size={14} />
-                                <span>{isDownloading ? 'Preparing…' : 'PDF'}</span>
-                              </button>
+                              <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                <button
+                                  onClick={(e) => handleDownloadWord(repId, e)}
+                                  className={styles.wordButton}
+                                  disabled={isWordDownloading || isDownloading}
+                                >
+                                  <Download size={14} />
+                                  <span>{isWordDownloading ? 'Preparing…' : 'Word'}</span>
+                                </button>
+                                <button
+                                  onClick={(e) => handleDownloadPDF(repId, e)}
+                                  className={styles.pdfButton}
+                                  disabled={isDownloading || isWordDownloading}
+                                >
+                                  <Download size={14} />
+                                  <span>{isDownloading ? 'Preparing…' : 'PDF'}</span>
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         );
