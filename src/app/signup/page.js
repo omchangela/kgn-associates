@@ -116,7 +116,7 @@ const Signup = () => {
             </div>
 
             <p className={styles.brandDescription}>
-              Engineers and Valuers
+              
             </p>
           </div>
         </div>

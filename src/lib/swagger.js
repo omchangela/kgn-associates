@@ -8,7 +8,7 @@ const options = {
       version: '1.0.0',
       description: `
 ## KGN ASSOCIATES
-### Engineers and Valuers
+### 
 
 REST API for the Property Valuation Management System.
 

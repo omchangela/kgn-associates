@@ -127,7 +127,7 @@ export function generateValuationPdf(report) {
     doc.setTextColor(...goldLight);
     doc.setFontSize(7.5);
     doc.setFont('helvetica', 'bold');
-    doc.text('KGN ASSOCIATES • ENGINEERS AND VALUERS', 14, 6.8);
+    doc.text('KGN ASSOCIATES • ', 14, 6.8);
     
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(7);
@@ -165,7 +165,7 @@ export function generateValuationPdf(report) {
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
-  doc.text('Engineers and Valuers', 14, 20);
+  doc.text('', 14, 20);
 
   doc.setTextColor(203, 213, 225);
   doc.setFontSize(7.5);
@@ -671,7 +671,7 @@ export function generateValuationPdf(report) {
   doc.setFontSize(7.2);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(71, 85, 105);
-  doc.text('Engineers and Valuers', 18, currentY + 23);
+  doc.text('', 18, currentY + 23);
   doc.text('Authorized Signatory', 18, currentY + 27);
 
   // Inspector / Signatory Signature
@@ -801,7 +801,7 @@ export function generateValuationPdf(report) {
     doc.setFontSize(6.8);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(100, 116, 139);
-    doc.text('Confidential Banking Document • KGN Associates Engineers and Valuers', 14, 291);
+    doc.text('Confidential Banking Document • KGN Associates ', 14, 291);
     doc.text(`Page ${i} of ${totalPages}`, 180, 291);
   }
 

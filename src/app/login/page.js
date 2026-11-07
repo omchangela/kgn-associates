@@ -97,7 +97,7 @@ const Login = () => {
                   ESTD. &amp; REGISTERED
                 </span>
                 <h2 style={{ fontFamily: 'var(--font-heading)', color: 'var(--primary-gold)', margin: 0, fontSize: '1.4rem' }}>
-                  ENGINEERS AND VALUERS
+                  
                 </h2>
               </div>
             </div>
@@ -108,7 +108,7 @@ const Login = () => {
             </div>
 
             <p className={styles.brandDescription}>
-              Engineers and Valuers
+              
             </p>
 
             {/* Feature highlights with animated SVG icons */}

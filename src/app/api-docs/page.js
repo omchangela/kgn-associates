@@ -35,7 +35,7 @@ export default function ApiDocsPage() {
             KGN ASSOCIATES
           </div>
           <div style={{ fontSize: '0.72rem', color: '#94a3b8', letterSpacing: '1px' }}>
-            Engineers and Valuers · REST API Documentation
+             · REST API Documentation
           </div>
         </div>
         <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px', alignItems: 'center' }}>

@@ -113,7 +113,7 @@ export default function Home() {
               fontWeight: 600,
             }}
           >
-            Engineers and Valuers
+            
           </p>
         </div>
 
