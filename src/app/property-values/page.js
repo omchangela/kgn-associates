@@ -1093,8 +1093,8 @@ const PropertyValues = () => {
                       <div className={styles.formGrid}>
                         <InputGroup label="Final Market Value" placeholder="Enter" type="number" section="finalValuation" field="final_market_value" />
                         <InputGroup label="Final Guideline Value" placeholder="Enter" type="number" section="finalValuation" field="final_guideline_value" />
-                        <InputGroup label="Distress Value" placeholder="Enter" type="number" section="finalValuation" field="distress_value" />
-                        <InputGroup label="Forced Sale Value" placeholder="Enter" type="number" section="finalValuation" field="forced_sale_value" />
+                        <InputGroup label="Realised Value" placeholder="Enter" type="number" section="finalValuation" field="distress_value" />
+                        <InputGroup label="Distress Value" placeholder="Enter" type="number" section="finalValuation" field="forced_sale_value" />
                         <InputGroup label="Replacement Cost" placeholder="Enter" type="number" section="finalValuation" field="replacement_cost" />
                         <InputGroup label="Depreciated Cost" placeholder="Enter" type="number" section="finalValuation" field="depreciated_cost" />
                       </div>
@@ -4308,21 +4308,79 @@ const AmenitiesTable = () => {
 const FinalValueChartTable = () => {
   const { formData } = useFormContext();
 
-  const amenities = formData.amenityValuations || [];
-  const amenityRows = amenities
-    .map(a => a.amenity_name?.trim())
-    .filter(name => name !== '');
+  // ── Land Value ──────────────────────────────────────────────────────────────
+  const landFinalRow = (formData.landExtentValuations || []).find(
+    r => r.basis_of_valuation === 'final_selected'
+  );
+  const landMarket = landFinalRow?.total_value || '';
 
-  const finalAmenityRows = amenityRows.length > 0 ? amenityRows : ['Amenities Value'];
+  // ── Structure Value ──────────────────────────────────────────────────────────
+  const selectedFloorKey = formData.structure_valuation_selected_floor || 'built_up_area';
+  const structureRow = (formData.structureValuations || []).find(
+    r => r.floor_details === selectedFloorKey
+  );
+  const structureMarket = structureRow?.total_value || '';
 
-  const rows = [
-    'Land Value',
-    'Structure Value',
-    ...finalAmenityRows,
-    'Total Value',
-    'Distress Value',
-    'Forced Sale Value'
+  // ── Amenities ────────────────────────────────────────────────────────────────
+  const amenities = (formData.amenityValuations || []).filter(
+    a => a.amenity_name?.trim() !== ''
+  );
+  const hasAmenities = amenities.length > 0;
+
+  // ── Final Values (from Final Valuation tab) ──────────────────────────────────
+  const totalMarket     = formData.finalValuation?.final_market_value    || '';
+  const totalGuideline  = formData.finalValuation?.final_guideline_value || '';
+  const realisedValue   = formData.finalValuation?.distress_value        || '';  // "Realised Value"
+  const distressValue   = formData.finalValuation?.forced_sale_value     || '';  // "Distress Value"
+
+  // ── Helper: format a value for display ──────────────────────────────────────
+  const fmt = (v) => {
+    if (!v && v !== 0) return '';
+    const n = parseFloat(String(v).replace(/,/g, ''));
+    if (isNaN(n)) return '';
+    return '₹ ' + n.toLocaleString('en-IN');
+  };
+
+  const readOnlyStyle = {
+    background: '#fffbf0',
+    border: '1px solid #e8d5a3',
+    color: 'var(--text-primary)',
+    cursor: 'not-allowed',
+    fontWeight: '500',
+  };
+
+  const renderCell = (val) => (
+    <input
+      type="text"
+      className={styles.inputField}
+      value={fmt(val)}
+      placeholder="₹ 0"
+      readOnly
+      style={val ? readOnlyStyle : {}}
+    />
+  );
+
+  // ── Build rows ───────────────────────────────────────────────────────────────
+  const fixedRows = [
+    { label: 'Land Value',      market: landMarket,    guideline: '' },
+    { label: 'Structure Value', market: structureMarket, guideline: '' },
   ];
+
+  const amenityRowsData = hasAmenities
+    ? amenities.map(a => ({
+        label: a.amenity_name,
+        market: a.total_value || '',
+        guideline: '',
+      }))
+    : [{ label: 'Amenities Value', market: '', guideline: '' }];
+
+  const summaryRows = [
+    { label: 'Total Value',    market: totalMarket,   guideline: totalGuideline },
+    { label: 'Realised Value', market: realisedValue, guideline: '' },
+    { label: 'Distress Value', market: distressValue, guideline: '' },
+  ];
+
+  const allRows = [...fixedRows, ...amenityRowsData, ...summaryRows];
 
   return (
     <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '10px' }}>
@@ -4334,11 +4392,11 @@ const FinalValueChartTable = () => {
         </tr>
       </thead>
       <tbody>
-        {rows.map((row, idx) => (
+        {allRows.map((row, idx) => (
           <tr key={idx}>
-            <td style={{ fontSize: '0.95rem', fontWeight: '600', color: 'var(--text-primary)', paddingRight: '15px' }}>{row}</td>
-            <td><input type="text" className={styles.inputField} placeholder="₹ 0" /></td>
-            <td><input type="text" className={styles.inputField} placeholder="₹ 0" /></td>
+            <td style={{ fontSize: '0.95rem', fontWeight: '600', color: 'var(--text-primary)', paddingRight: '15px' }}>{row.label}</td>
+            <td>{renderCell(row.market)}</td>
+            <td>{renderCell(row.guideline)}</td>
           </tr>
         ))}
       </tbody>
