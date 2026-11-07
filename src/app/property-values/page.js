@@ -2458,7 +2458,49 @@ const MeasurementMatchingCard = ({
               );
             })}
 
-
+            {/* ── Land Extent (repeats inside each card) ── */}
+            <div
+              style={{
+                marginTop: '24px',
+                paddingTop: '20px',
+                borderTop: '2px solid rgba(184, 134, 11, 0.15)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
+                <span style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--primary-gold, #B8860B)', fontFamily: 'var(--font-heading)' }}>
+                  Land Extent
+                </span>
+                <span style={{ fontSize: '0.72rem', fontWeight: 600, padding: '2px 8px', borderRadius: '9999px', background: 'rgba(184,134,11,0.08)', color: 'var(--primary-gold, #B8860B)', border: '1px solid rgba(184,134,11,0.2)' }}>
+                  sqft
+                </span>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+                {[
+                  { label: 'As per Actual',    fk: 'land_extent_actual' },
+                  { label: 'As per Documents', fk: 'land_extent_documents' },
+                  { label: 'As per Plan',      fk: 'land_extent_plan' },
+                ].map(({ label, fk }) => (
+                  <div key={fk} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <label style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-secondary, #64748b)' }}>
+                      {label}
+                    </label>
+                    <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                      <input
+                        type="text"
+                        placeholder="Enter"
+                        className={styles.inputField}
+                        style={{ width: '100%', paddingRight: '44px', borderColor: 'rgba(184,134,11,0.3)' }}
+                        value={card[fk] ?? ''}
+                        onChange={(e) => updateCardField(cardIdx, fk, e.target.value)}
+                      />
+                      <span style={{ position: 'absolute', right: '12px', fontSize: '0.78rem', color: 'var(--primary-gold, #B8860B)', pointerEvents: 'none', fontWeight: 600 }}>
+                        sqft
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
 
             {/* Description Box */}
             {showDescriptionBox && (
@@ -2671,66 +2713,32 @@ const MeasurementMatchingCard = ({
         );
       })}
 
-      {/* ══ GLOBAL: Final / Total Land Extent (after all cards) ══ */}
+      {/* ── Final / Total Land Extent — appears once after all cards ── */}
       <div
         style={{
-          marginTop: '32px',
-          padding: '24px',
-          borderRadius: '12px',
-          border: '2px solid rgba(184, 134, 11, 0.25)',
-          background: 'rgba(184, 134, 11, 0.03)',
+          marginTop: '8px',
+          padding: '20px 24px 24px',
+          borderTop: '3px solid rgba(184, 134, 11, 0.3)',
+          background: 'rgba(184,134,11,0.025)',
+          borderRadius: '0 0 12px 12px',
         }}
       >
-        {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
-          <h3
-            style={{
-              fontSize: '1rem',
-              fontWeight: 700,
-              color: 'var(--primary-gold, #B8860B)',
-              fontFamily: 'var(--font-heading)',
-              margin: 0,
-            }}
-          >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+          <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--primary-gold, #B8860B)', fontFamily: 'var(--font-heading)' }}>
             Final / Total Land Extent
-          </h3>
-          <span
-            style={{
-              fontSize: '0.72rem',
-              fontWeight: 600,
-              padding: '2px 10px',
-              borderRadius: '9999px',
-              background: 'rgba(184,134,11,0.12)',
-              color: 'var(--primary-gold, #B8860B)',
-              border: '1px solid rgba(184,134,11,0.25)',
-            }}
-          >
+          </span>
+          <span style={{ fontSize: '0.72rem', fontWeight: 600, padding: '2px 8px', borderRadius: '9999px', background: 'rgba(184,134,11,0.12)', color: 'var(--primary-gold, #B8860B)', border: '1px solid rgba(184,134,11,0.25)' }}>
             Manual Entry
           </span>
         </div>
-
-        {/* 3 Fields */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: '20px',
-          }}
-        >
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
           {[
-            { label: 'As per Actual',    stateKey: 'final_extent_actual' },
-            { label: 'As per Documents', stateKey: 'final_extent_documents' },
-            { label: 'As per Plan',      stateKey: 'final_extent_plan' },
-          ].map(({ label, stateKey }) => (
-            <div key={stateKey} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label
-                style={{
-                  fontSize: '0.9rem',
-                  fontWeight: 600,
-                  color: 'var(--text-primary)',
-                  fontFamily: 'var(--font-heading)',
-                }}
-              >
+            { label: 'As per Actual',    sk: 'final_extent_actual' },
+            { label: 'As per Documents', sk: 'final_extent_documents' },
+            { label: 'As per Plan',      sk: 'final_extent_plan' },
+          ].map(({ label, sk }) => (
+            <div key={sk} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)', fontFamily: 'var(--font-heading)' }}>
                 {label}
               </label>
               <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
@@ -2738,27 +2746,11 @@ const MeasurementMatchingCard = ({
                   type="text"
                   placeholder="Enter"
                   className={styles.inputField}
-                  style={{
-                    width: '100%',
-                    paddingRight: '48px',
-                    borderColor: 'rgba(184, 134, 11, 0.4)',
-                    fontWeight: 600,
-                    fontSize: '1rem',
-                    background: 'rgba(184,134,11,0.02)',
-                  }}
-                  value={(cards[0] || {})[stateKey] ?? ''}
-                  onChange={(e) => updateCardField(0, stateKey, e.target.value)}
+                  style={{ width: '100%', paddingRight: '48px', borderColor: 'rgba(184,134,11,0.4)', fontWeight: 600, fontSize: '1rem' }}
+                  value={(cards[0] || {})[sk] ?? ''}
+                  onChange={(e) => updateCardField(0, sk, e.target.value)}
                 />
-                <span
-                  style={{
-                    position: 'absolute',
-                    right: '12px',
-                    fontSize: '0.78rem',
-                    color: 'var(--primary-gold, #B8860B)',
-                    pointerEvents: 'none',
-                    fontWeight: 700,
-                  }}
-                >
+                <span style={{ position: 'absolute', right: '12px', fontSize: '0.78rem', color: 'var(--primary-gold, #B8860B)', pointerEvents: 'none', fontWeight: 700 }}>
                   sqft
                 </span>
               </div>
