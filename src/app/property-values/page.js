@@ -2458,236 +2458,7 @@ const MeasurementMatchingCard = ({
               );
             })}
 
-            {/* ── Land Extent Row (As per Actual / Documents / Plan) ── */}
-            <div
-              style={{
-                marginTop: '24px',
-                paddingTop: '20px',
-                borderTop: '2px solid rgba(184, 134, 11, 0.15)',
-              }}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  marginBottom: '14px',
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: '0.95rem',
-                    fontWeight: 700,
-                    color: 'var(--primary-gold, #B8860B)',
-                    fontFamily: 'var(--font-heading)',
-                  }}
-                >
-                  Land Extent
-                </span>
-                <span
-                  style={{
-                    fontSize: '0.72rem',
-                    color: 'var(--text-muted)',
-                    background: 'rgba(184,134,11,0.08)',
-                    border: '1px solid rgba(184,134,11,0.2)',
-                    padding: '2px 8px',
-                    borderRadius: '9999px',
-                    fontWeight: 600,
-                  }}
-                >
-                  sqft
-                </span>
-              </div>
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                  gap: '16px',
-                }}
-              >
-                {[
-                  { label: 'As per Actual',    key: 'land_extent_actual' },
-                  { label: 'As per Documents', key: 'land_extent_documents' },
-                  { label: 'As per Plan',      key: 'land_extent_plan' },
-                ].map(({ label, key: fKey }) => (
-                  <div key={fKey} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <label
-                      style={{
-                        fontSize: '0.85rem',
-                        fontWeight: 500,
-                        color: 'var(--text-secondary, #64748b)',
-                      }}
-                    >
-                      {label}
-                    </label>
-                    <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                      <input
-                        type="text"
-                        placeholder="Enter"
-                        className={styles.inputField}
-                        style={{
-                          width: '100%',
-                          paddingRight: '44px',
-                          borderColor: 'rgba(184, 134, 11, 0.3)',
-                        }}
-                        value={card[fKey] ?? ''}
-                        onChange={(e) => updateCardField(cardIdx, fKey, e.target.value)}
-                      />
-                      <span
-                        style={{
-                          position: 'absolute',
-                          right: '12px',
-                          fontSize: '0.78rem',
-                          color: 'var(--primary-gold, #B8860B)',
-                          pointerEvents: 'none',
-                          fontWeight: 600,
-                        }}
-                      >
-                        sqft
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
 
-            {/* ── Total & Final Land Extent ── */}
-            {(() => {
-              const autoSum = directionsList.reduce((sum, { key }) => {
-                const val = parseFloat((card[key] || {}).land_extent || 0);
-                return sum + (isNaN(val) ? 0 : val);
-              }, 0);              return (
-                <div
-                  style={{
-                    marginTop: '24px',
-                    paddingTop: '20px',
-                    borderTop: '2px solid rgba(184, 134, 11, 0.2)',
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-                    gap: '20px',
-                  }}
-                >
-                  {/* Total Land Extent */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
-                      <label
-                        style={{
-                          fontSize: '0.95rem',
-                          fontWeight: 700,
-                          color: 'var(--primary-gold, #B8860B)',
-                          fontFamily: 'var(--font-heading)',
-                        }}
-                      >
-                        Total Land Extent
-                      </label>
-                      <span
-                        style={{
-                          fontSize: '0.72rem',
-                          color: 'var(--text-muted)',
-                          background: 'rgba(184,134,11,0.08)',
-                          border: '1px solid rgba(184,134,11,0.2)',
-                          padding: '2px 8px',
-                          borderRadius: '9999px',
-                          fontWeight: 600,
-                        }}
-                      >
-                        Manual Entry
-                      </span>
-                    </div>
-                    <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                      <input
-                        type="text"
-                        placeholder={autoSum > 0 ? String(autoSum) : 'Enter total'}
-                        className={styles.inputField}
-                        style={{
-                          width: '100%',
-                          paddingRight: '48px',
-                          borderColor: 'rgba(184, 134, 11, 0.45)',
-                          fontWeight: 600,
-                          fontSize: '1rem',
-                          background: 'rgba(184,134,11,0.03)',
-                        }}
-                        value={card.total_land_extent ?? ''}
-                        onChange={(e) => updateCardField(cardIdx, 'total_land_extent', e.target.value)}
-                      />
-                      <span
-                        style={{
-                          position: 'absolute',
-                          right: '12px',
-                          fontSize: '0.78rem',
-                          color: 'var(--primary-gold, #B8860B)',
-                          pointerEvents: 'none',
-                          fontWeight: 700,
-                        }}
-                      >
-                        sqft
-                      </span>
-                    </div>
-                    {autoSum > 0 && !card.total_land_extent && (
-                      <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                        Auto-sum: {autoSum} sqft — override with manual entry above
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Final Land Extent */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
-                      <label
-                        style={{
-                          fontSize: '0.95rem',
-                          fontWeight: 700,
-                          color: '#0F172A',
-                          fontFamily: 'var(--font-heading)',
-                        }}
-                      >
-                        Final Land Extent
-                      </label>
-                      <span
-                        style={{
-                          fontSize: '0.72rem',
-                          color: 'var(--text-muted)',
-                          background: 'rgba(100,116,139,0.08)',
-                          border: '1px solid rgba(100,116,139,0.2)',
-                          padding: '2px 8px',
-                          borderRadius: '9999px',
-                          fontWeight: 600,
-                        }}
-                      >
-                        Manual Entry
-                      </span>
-                    </div>
-                    <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                      <input
-                        type="text"
-                        placeholder="Enter final land extent"
-                        className={styles.inputField}
-                        style={{
-                          width: '100%',
-                          paddingRight: '48px',
-                          fontWeight: 600,
-                          fontSize: '1rem',
-                        }}
-                        value={card.final_land_extent ?? ''}
-                        onChange={(e) => updateCardField(cardIdx, 'final_land_extent', e.target.value)}
-                      />
-                      <span
-                        style={{
-                          position: 'absolute',
-                          right: '12px',
-                          fontSize: '0.78rem',
-                          color: 'var(--text-muted)',
-                          pointerEvents: 'none',
-                          fontWeight: 700,
-                        }}
-                      >
-                        sqft
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              );
-            })()}
 
             {/* Description Box */}
             {showDescriptionBox && (
@@ -2899,6 +2670,102 @@ const MeasurementMatchingCard = ({
           </div>
         );
       })}
+
+      {/* ══ GLOBAL: Final / Total Land Extent (after all cards) ══ */}
+      <div
+        style={{
+          marginTop: '32px',
+          padding: '24px',
+          borderRadius: '12px',
+          border: '2px solid rgba(184, 134, 11, 0.25)',
+          background: 'rgba(184, 134, 11, 0.03)',
+        }}
+      >
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
+          <h3
+            style={{
+              fontSize: '1rem',
+              fontWeight: 700,
+              color: 'var(--primary-gold, #B8860B)',
+              fontFamily: 'var(--font-heading)',
+              margin: 0,
+            }}
+          >
+            Final / Total Land Extent
+          </h3>
+          <span
+            style={{
+              fontSize: '0.72rem',
+              fontWeight: 600,
+              padding: '2px 10px',
+              borderRadius: '9999px',
+              background: 'rgba(184,134,11,0.12)',
+              color: 'var(--primary-gold, #B8860B)',
+              border: '1px solid rgba(184,134,11,0.25)',
+            }}
+          >
+            Manual Entry
+          </span>
+        </div>
+
+        {/* 3 Fields */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: '20px',
+          }}
+        >
+          {[
+            { label: 'As per Actual',    stateKey: 'final_extent_actual' },
+            { label: 'As per Documents', stateKey: 'final_extent_documents' },
+            { label: 'As per Plan',      stateKey: 'final_extent_plan' },
+          ].map(({ label, stateKey }) => (
+            <div key={stateKey} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label
+                style={{
+                  fontSize: '0.9rem',
+                  fontWeight: 600,
+                  color: 'var(--text-primary)',
+                  fontFamily: 'var(--font-heading)',
+                }}
+              >
+                {label}
+              </label>
+              <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                <input
+                  type="text"
+                  placeholder="Enter"
+                  className={styles.inputField}
+                  style={{
+                    width: '100%',
+                    paddingRight: '48px',
+                    borderColor: 'rgba(184, 134, 11, 0.4)',
+                    fontWeight: 600,
+                    fontSize: '1rem',
+                    background: 'rgba(184,134,11,0.02)',
+                  }}
+                  value={(cards[0] || {})[stateKey] ?? ''}
+                  onChange={(e) => updateCardField(0, stateKey, e.target.value)}
+                />
+                <span
+                  style={{
+                    position: 'absolute',
+                    right: '12px',
+                    fontSize: '0.78rem',
+                    color: 'var(--primary-gold, #B8860B)',
+                    pointerEvents: 'none',
+                    fontWeight: 700,
+                  }}
+                >
+                  sqft
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </>
   );
 };
