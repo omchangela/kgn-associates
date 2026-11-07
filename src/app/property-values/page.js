@@ -2732,124 +2732,120 @@ const MeasurementMatchingCard = ({
                 </div>
               </div>
             )}
-          </div>
 
             {/* ── Building Specifications (merged) ── */}
-            {showBuildingSpecs && (() => {
-              const bsFieldPairs = [
-                [{ label: 'Carpet Area', key: 'carpet_area' }, { label: 'Plinth Area', key: 'plinth_area' }],
-                [{ label: 'Built-Up Area', key: 'built_up_area' }, { label: 'Super-Built-Up Area', key: 'super_built_up_area' }],
-                [{ label: 'Slab Area', key: 'slab_area' }, null],
-                [{ label: 'Property Age (years)', key: 'property_age' }, { label: 'Residual Age (years)', key: 'residual_age' }],
-              ];
-              return (
+            {showBuildingSpecs && (
+              <div
+                style={{
+                  marginTop: '28px',
+                  paddingTop: '24px',
+                  borderTop: '2px solid rgba(184, 134, 11, 0.18)',
+                }}
+              >
+                {/* Sub-header */}
                 <div
                   style={{
-                    marginTop: '28px',
-                    paddingTop: '24px',
-                    borderTop: '2px solid rgba(184, 134, 11, 0.18)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    marginBottom: '20px',
+                    flexWrap: 'wrap',
                   }}
                 >
-                  {/* Sub-header */}
-                  <div
+                  <h3
                     style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '12px',
-                      marginBottom: '20px',
-                      flexWrap: 'wrap',
+                      fontSize: '1.05rem',
+                      fontWeight: 700,
+                      color: 'var(--primary-gold, #B8860B)',
+                      fontFamily: 'var(--font-heading)',
+                      margin: 0,
                     }}
                   >
-                    <h3
-                      style={{
-                        fontSize: '1.05rem',
-                        fontWeight: 700,
-                        color: 'var(--primary-gold, #B8860B)',
-                        fontFamily: 'var(--font-heading)',
-                        margin: 0,
-                      }}
-                    >
-                      Building Specifications
-                    </h3>
-                    <span
-                      style={{
-                        fontSize: '0.78rem',
-                        fontWeight: 700,
-                        padding: '3px 10px',
-                        borderRadius: '12px',
-                        background: 'rgba(201, 168, 76, 0.15)',
-                        color: 'var(--primary-gold, #B8860B)',
-                        border: '1px solid rgba(201, 168, 76, 0.35)',
-                      }}
-                    >
-                      Floor #{cardIdx + 1}
-                    </span>
+                    Building Specifications
+                  </h3>
+                  <span
+                    style={{
+                      fontSize: '0.78rem',
+                      fontWeight: 700,
+                      padding: '3px 10px',
+                      borderRadius: '12px',
+                      background: 'rgba(201, 168, 76, 0.15)',
+                      color: 'var(--primary-gold, #B8860B)',
+                      border: '1px solid rgba(201, 168, 76, 0.35)',
+                    }}
+                  >
+                    Floor #{cardIdx + 1}
+                  </span>
 
-                    {/* Description + Document Number inline */}
-                    <div style={{ display: 'flex', gap: '10px', flex: '1 1 300px', minWidth: '240px' }}>
-                      <input
-                        type="text"
-                        placeholder="Description"
-                        className={styles.inputField}
-                        value={card.spec_description ?? ''}
-                        onChange={(e) => updateCardField(cardIdx, 'spec_description', e.target.value)}
-                        style={{ flex: 1, padding: '7px 12px', fontSize: '0.875rem' }}
-                      />
-                      <input
-                        type="text"
-                        placeholder="Document Number"
-                        className={styles.inputField}
-                        value={card.spec_document_number ?? ''}
-                        onChange={(e) => updateCardField(cardIdx, 'spec_document_number', e.target.value)}
-                        style={{ flex: 1, padding: '7px 12px', fontSize: '0.875rem' }}
-                      />
-                    </div>
+                  {/* Description + Document Number inline */}
+                  <div style={{ display: 'flex', gap: '10px', flex: '1 1 300px', minWidth: '240px' }}>
+                    <input
+                      type="text"
+                      placeholder="Description"
+                      className={styles.inputField}
+                      value={card.spec_description ?? ''}
+                      onChange={(e) => updateCardField(cardIdx, 'spec_description', e.target.value)}
+                      style={{ flex: 1, padding: '7px 12px', fontSize: '0.875rem' }}
+                    />
+                    <input
+                      type="text"
+                      placeholder="Document Number"
+                      className={styles.inputField}
+                      value={card.spec_document_number ?? ''}
+                      onChange={(e) => updateCardField(cardIdx, 'spec_document_number', e.target.value)}
+                      style={{ flex: 1, padding: '7px 12px', fontSize: '0.875rem' }}
+                    />
                   </div>
+                </div>
 
-                  {/* Area Fields 2-col grid */}
-                  <div
-                    style={{
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                      gap: '16px',
-                    }}
-                  >
-                    {bsFieldPairs.map(([left, right]) => (
-                      <React.Fragment key={left.key}>
+                {/* Area Fields 2-col grid */}
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                    gap: '16px',
+                  }}
+                >
+                  {[
+                    [{ label: 'Carpet Area', key: 'carpet_area' }, { label: 'Plinth Area', key: 'plinth_area' }],
+                    [{ label: 'Built-Up Area', key: 'built_up_area' }, { label: 'Super-Built-Up Area', key: 'super_built_up_area' }],
+                    [{ label: 'Slab Area', key: 'slab_area' }, null],
+                    [{ label: 'Property Age (years)', key: 'property_age' }, { label: 'Residual Age (years)', key: 'residual_age' }],
+                  ].map(([left, right]) => (
+                    <React.Fragment key={left.key}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <label style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-secondary, #94a3b8)' }}>
+                          {left.label}
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Enter"
+                          className={styles.inputField}
+                          value={card[left.key] ?? ''}
+                          onChange={(e) => updateCardField(cardIdx, left.key, e.target.value)}
+                        />
+                      </div>
+                      {right ? (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                           <label style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-secondary, #94a3b8)' }}>
-                            {left.label}
+                            {right.label}
                           </label>
                           <input
                             type="text"
                             placeholder="Enter"
                             className={styles.inputField}
-                            value={card[left.key] ?? ''}
-                            onChange={(e) => updateCardField(cardIdx, left.key, e.target.value)}
+                            value={card[right.key] ?? ''}
+                            onChange={(e) => updateCardField(cardIdx, right.key, e.target.value)}
                           />
                         </div>
-                        {right ? (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                            <label style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-secondary, #94a3b8)' }}>
-                              {right.label}
-                            </label>
-                            <input
-                              type="text"
-                              placeholder="Enter"
-                              className={styles.inputField}
-                              value={card[right.key] ?? ''}
-                              onChange={(e) => updateCardField(cardIdx, right.key, e.target.value)}
-                            />
-                          </div>
-                        ) : (
-                          <div />
-                        )}
-                      </React.Fragment>
-                    ))}
-                  </div>
+                      ) : (
+                        <div />
+                      )}
+                    </React.Fragment>
+                  ))}
                 </div>
-              );
-            })()}
+              </div>
+            )}
           </div>
         );
       })}
