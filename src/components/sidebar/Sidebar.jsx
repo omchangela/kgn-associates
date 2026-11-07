@@ -4,88 +4,83 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import styles from './Sidebar.module.css';
-import { LayoutDashboard, FilePlus, ListChecks, Building2, Users } from 'lucide-react';
+import {
+  LayoutDashboard,
+  FilePlus,
+  ListChecks,
+  Building2,
+  Users,
+  Settings,
+  HelpCircle,
+} from 'lucide-react';
 import { KgnCrest } from '@/components/common/SvgDecorations';
+
+const NAV_SECTIONS = [
+  {
+    label: 'Core Console',
+    items: [
+      { href: '/dashboard',       icon: LayoutDashboard, label: 'Valuation Dashboard' },
+      { href: '/property-values', icon: Building2,        label: 'Property Values',       badge: '10-Tab' },
+      { href: '/create-report',   icon: FilePlus,         label: 'Fast Report Intake' },
+      { href: '/report-list',     icon: ListChecks,       label: 'Certificates & Reports' },
+      { href: '/employees',       icon: Users,            label: 'Valuers & Staff' },
+    ],
+  },
+];
 
 const Sidebar = ({ isOpen, onClose }) => {
   const pathname = usePathname();
-
   const isActive = (path) => pathname === path;
 
   return (
     <>
       <aside className={`${styles.sidebar} ${isOpen ? styles.open : ''}`}>
-        <div>
-          {/* Brand Logo & Title */}
-          <div className={styles.logoContainer}>
-            <Link href="/dashboard" className={styles.brandRow} onClick={onClose}>
-              <KgnCrest size={42} />
-              <div className={styles.brandText}>
-                <span className={styles.brandTitle}>KGN ASSOCIATES</span>
-                <span className={styles.brandSub}>Engineers and Valuers</span>
-              </div>
-            </Link>
-          </div>
 
-          {/* Navigation Links */}
-          <nav className={styles.nav}>
-            <span className={styles.navLabel}>Core Console</span>
-
-            <Link
-              href="/dashboard"
-              className={`${styles.navItem} ${isActive('/dashboard') ? styles.active : ''}`}
-              onClick={onClose}
-            >
-              <LayoutDashboard size={20} className={styles.navIcon} />
-              <span>Valuation Dashboard</span>
-            </Link>
-
-            <Link
-              href="/property-values"
-              className={`${styles.navItem} ${isActive('/property-values') ? styles.active : ''}`}
-              onClick={onClose}
-            >
-              <Building2 size={20} className={styles.navIcon} />
-              <span>Property Values (10-Tab)</span>
-            </Link>
-
-            <Link
-              href="/create-report"
-              className={`${styles.navItem} ${isActive('/create-report') ? styles.active : ''}`}
-              onClick={onClose}
-            >
-              <FilePlus size={20} className={styles.navIcon} />
-              <span>Fast Report Intake</span>
-            </Link>
-
-            <Link
-              href="/report-list"
-              className={`${styles.navItem} ${isActive('/report-list') ? styles.active : ''}`}
-              onClick={onClose}
-            >
-              <ListChecks size={20} className={styles.navIcon} />
-              <span>Certificates &amp; Reports</span>
-            </Link>
-
-            <Link
-              href="/employees"
-              className={`${styles.navItem} ${isActive('/employees') ? styles.active : ''}`}
-              onClick={onClose}
-            >
-              <Users size={20} className={styles.navIcon} />
-              <span>Valuers &amp; Staff</span>
-            </Link>
-          </nav>
+        {/* ── Brand ── */}
+        <div className={styles.logoContainer}>
+          <Link href="/dashboard" className={styles.brandRow} onClick={onClose}>
+            <KgnCrest size={40} />
+            <div className={styles.brandText}>
+              <span className={styles.brandTitle}>KGN ASSOCIATES</span>
+              <span className={styles.brandSub}>Engineers &amp; Valuers</span>
+            </div>
+          </Link>
         </div>
 
-        {/* Footer status pill */}
+        {/* ── Navigation ── */}
+        <nav className={styles.nav}>
+          {NAV_SECTIONS.map((section) => (
+            <div key={section.label} className={styles.navGroup}>
+              <div className={styles.navLabel}>{section.label}</div>
+
+              {section.items.map(({ href, icon: Icon, label, badge }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  className={`${styles.navItem} ${isActive(href) ? styles.active : ''}`}
+                  onClick={onClose}
+                >
+                  <Icon size={18} className={styles.navIcon} />
+                  <span>{label}</span>
+                  {badge && <span className={styles.navBadge}>{badge}</span>}
+                </Link>
+              ))}
+            </div>
+          ))}
+        </nav>
+
+        {/* ── Footer Status Badge ── */}
         <div className={styles.sidebarFooter}>
           <div className={styles.systemBadge}>
-            <span className={styles.statusIndicator} />
+            <div className={styles.statusIndicatorWrap}>
+              <span className={styles.statusIndicator} />
+              <span className={styles.statusRing} />
+            </div>
             <div className={styles.systemText}>
               <span className={styles.systemTitle}>Valuation Engine v2.6</span>
               <span className={styles.systemSub}>IBBI &amp; Banking Mode</span>
             </div>
+            <div className={styles.versionDot} />
           </div>
         </div>
       </aside>
