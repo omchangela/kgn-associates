@@ -3129,7 +3129,10 @@ const LandExtentTable = ({ showSelectionOption = true }) => {
             hasChanges = true;
           }
         } else if (basis === 'final_selected') {
-          const adopt = computed[activeBasis] || computed.as_per_documents || computed.as_per_actual || computed.as_per_plan;
+          // Prefer the explicit final_land_extent entered in Technical tab, then fall back to selected basis
+          const cards = formData.technicalDetails?.landMeasurements || [];
+          const firstFinalExtent = cards.length > 0 ? (cards[0].final_land_extent || '') : '';
+          const adopt = firstFinalExtent || computed[activeBasis] || computed.as_per_documents || computed.as_per_actual || computed.as_per_plan;
           if (adopt && row.land_extent_sqft !== adopt) {
             newExtent = adopt;
             hasChanges = true;
@@ -3148,7 +3151,8 @@ const LandExtentTable = ({ showSelectionOption = true }) => {
       if (!hasChanges) return prev;
       return { ...prev, landExtentValuations: updated };
     });
-  }, [formData.technicalDetails?.landMeasurements, formData.land_valuation_basis]);
+  }, [formData.technicalDetails?.landMeasurements, formData.land_valuation_basis,
+      formData.technicalDetails?.landMeasurements?.[0]?.final_land_extent]);
 
   const syncFromLandMeasurements = () => {
     const computed = getComputedExtents(formData.technicalDetails);
@@ -3163,7 +3167,11 @@ const LandExtentTable = ({ showSelectionOption = true }) => {
         if (basis === 'as_per_actual' && computed.as_per_actual) newExtent = computed.as_per_actual;
         if (basis === 'as_per_plan' && computed.as_per_plan) newExtent = computed.as_per_plan;
         if (basis === 'final_selected') {
-          newExtent = computed[activeBasis] || computed.as_per_documents || computed.as_per_actual || computed.as_per_plan || row.land_extent_sqft;
+          newExtent = (() => {
+            const cards = formData.technicalDetails?.landMeasurements || [];
+            const firstFinalExtent = cards.length > 0 ? (cards[0].final_land_extent || '') : '';
+            return firstFinalExtent || computed[activeBasis] || computed.as_per_documents || computed.as_per_actual || computed.as_per_plan || row.land_extent_sqft;
+          })();
         }
 
         const extentNum = parseFloat(String(newExtent).replace(/,/g, '')) || 0;
@@ -3271,6 +3279,8 @@ const LandExtentTable = ({ showSelectionOption = true }) => {
             {(formData.landExtentValuations || []).map((row, idx) => {
               const isFinal = row.basis_of_valuation === 'final_selected';
               const isSelected = !isFinal && currentBasis === row.basis_of_valuation;
+              // Check if final_land_extent was set in Technical tab (reflection source)
+              const technicalFinalExtent = (formData.technicalDetails?.landMeasurements || [])[0]?.final_land_extent || '';
 
               return (
                 <tr
@@ -3375,12 +3385,40 @@ const LandExtentTable = ({ showSelectionOption = true }) => {
                       placeholder="Sq Ft"
                       value={row.land_extent_sqft || ''}
                       onChange={(e) => handleLandChange(idx, 'land_extent_sqft', e.target.value)}
+                      readOnly={isFinal && Boolean(technicalFinalExtent)}
+                      title={isFinal && technicalFinalExtent ? 'Reflected from Final Land Extent in Technical tab' : undefined}
                       style={
                         isFinal
-                          ? { borderColor: 'rgba(201, 168, 76, 0.6)', fontWeight: '600' }
+                          ? {
+                              borderColor: 'rgba(201, 168, 76, 0.6)',
+                              fontWeight: '600',
+                              ...(technicalFinalExtent
+                                ? {
+                                    background: 'rgba(184,134,11,0.05)',
+                                    cursor: 'not-allowed',
+                                    color: 'var(--primary-gold, #B8860B)',
+                                  }
+                                : {}),
+                            }
                           : undefined
                       }
                     />
+                    {isFinal && technicalFinalExtent && (
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          marginTop: '4px',
+                          fontSize: '0.68rem',
+                          color: '#60a5fa',
+                          fontWeight: 600,
+                        }}
+                      >
+                        <span>↑</span>
+                        <span>Reflected from Technical tab</span>
+                      </div>
+                    )}
                   </td>
                   <td>
                     <input
