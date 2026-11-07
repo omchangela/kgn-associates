@@ -2453,47 +2453,6 @@ const MeasurementMatchingCard = ({
                       </div>
                     </div>
 
-                    {/* Land Extent — per direction */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                      <label
-                        style={{
-                          fontSize: '0.85rem',
-                          fontWeight: 600,
-                          color: 'var(--primary-gold, #B8860B)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '5px',
-                        }}
-                      >
-                        Land Extent
-                      </label>
-                      <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                        <input
-                          type="text"
-                          placeholder="Enter"
-                          className={styles.inputField}
-                          style={{
-                            width: '100%',
-                            paddingRight: '44px',
-                            borderColor: 'rgba(184, 134, 11, 0.4)',
-                          }}
-                          value={dirData.land_extent ?? ''}
-                          onChange={(e) => updateMeasurement(cardIdx, key, 'land_extent', e.target.value)}
-                        />
-                        <span
-                          style={{
-                            position: 'absolute',
-                            right: '12px',
-                            fontSize: '0.78rem',
-                            color: 'var(--primary-gold, #B8860B)',
-                            pointerEvents: 'none',
-                            fontWeight: 600,
-                          }}
-                        >
-                          sqft
-                        </span>
-                      </div>
-                    </div>
                   </div>
                 </div>
               );
