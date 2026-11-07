@@ -2458,14 +2458,105 @@ const MeasurementMatchingCard = ({
               );
             })}
 
+            {/* ── Land Extent Row (As per Actual / Documents / Plan) ── */}
+            <div
+              style={{
+                marginTop: '24px',
+                paddingTop: '20px',
+                borderTop: '2px solid rgba(184, 134, 11, 0.15)',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  marginBottom: '14px',
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: '0.95rem',
+                    fontWeight: 700,
+                    color: 'var(--primary-gold, #B8860B)',
+                    fontFamily: 'var(--font-heading)',
+                  }}
+                >
+                  Land Extent
+                </span>
+                <span
+                  style={{
+                    fontSize: '0.72rem',
+                    color: 'var(--text-muted)',
+                    background: 'rgba(184,134,11,0.08)',
+                    border: '1px solid rgba(184,134,11,0.2)',
+                    padding: '2px 8px',
+                    borderRadius: '9999px',
+                    fontWeight: 600,
+                  }}
+                >
+                  sqft
+                </span>
+              </div>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                  gap: '16px',
+                }}
+              >
+                {[
+                  { label: 'As per Actual',    key: 'land_extent_actual' },
+                  { label: 'As per Documents', key: 'land_extent_documents' },
+                  { label: 'As per Plan',      key: 'land_extent_plan' },
+                ].map(({ label, key: fKey }) => (
+                  <div key={fKey} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <label
+                      style={{
+                        fontSize: '0.85rem',
+                        fontWeight: 500,
+                        color: 'var(--text-secondary, #64748b)',
+                      }}
+                    >
+                      {label}
+                    </label>
+                    <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                      <input
+                        type="text"
+                        placeholder="Enter"
+                        className={styles.inputField}
+                        style={{
+                          width: '100%',
+                          paddingRight: '44px',
+                          borderColor: 'rgba(184, 134, 11, 0.3)',
+                        }}
+                        value={card[fKey] ?? ''}
+                        onChange={(e) => updateCardField(cardIdx, fKey, e.target.value)}
+                      />
+                      <span
+                        style={{
+                          position: 'absolute',
+                          right: '12px',
+                          fontSize: '0.78rem',
+                          color: 'var(--primary-gold, #B8860B)',
+                          pointerEvents: 'none',
+                          fontWeight: 600,
+                        }}
+                      >
+                        sqft
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             {/* ── Total & Final Land Extent ── */}
             {(() => {
               const autoSum = directionsList.reduce((sum, { key }) => {
                 const val = parseFloat((card[key] || {}).land_extent || 0);
                 return sum + (isNaN(val) ? 0 : val);
-              }, 0);
-
-              return (
+              }, 0);              return (
                 <div
                   style={{
                     marginTop: '24px',
