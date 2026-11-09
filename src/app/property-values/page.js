@@ -1,5 +1,6 @@
 'use client';
-import React, { useState, createContext, useContext, useRef, useEffect } from 'react';
+import React, { useState, createContext, useContext, useRef, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import styles from './PropertyValues.module.css';
 import Sidebar from '@/components/sidebar/Sidebar';
 import Header from '@/components/header/Header';
@@ -48,13 +49,51 @@ const accessOptions = [
 ];
 
 const PropertyValues = () => {
+  const searchParams = useSearchParams();
+  const editId = searchParams.get('edit');
+
   const tabs = ["Institution Details", "Property", "Schedule", "Infrastructure", "Technical", "Property Market Value", "Final Valuation", "Location", "Characteristics", "Photos"];
   const [activeTab, setActiveTab] = useState("Institution Details");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [formData, setFormData] = useState(initialFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editReportId, setEditReportId] = useState(null);
+  const [loadingEdit, setLoadingEdit] = useState(false);
   const [showPropertyDetails, setShowPropertyDetails] = useState(false);
   const tabContentRef = useRef(null);
+
+  // ── Load existing report when ?edit=ID is in URL ──────────────────────────
+  useEffect(() => {
+    if (!editId) return;
+    setLoadingEdit(true);
+    setIsEditMode(true);
+    setEditReportId(editId);
+    fetch(`/api/valuations/${encodeURIComponent(editId)}/full_details`)
+      .then(r => r.json())
+      .then(data => {
+        if (data && !data.detail) {
+          setFormData(prev => ({
+            ...prev,
+            institutionDetails:        data.institution_details        || data.institutionDetails        || prev.institutionDetails,
+            verifiedDocuments:         data.verified_documents         || data.verifiedDocuments         || prev.verifiedDocuments,
+            propertyIdentification:    data.property_identification    || data.propertyIdentification    || prev.propertyIdentification,
+            scheduleDetails:           data.schedule_details           || data.scheduleDetails           || prev.scheduleDetails,
+            infrastructureDetails:     data.infrastructure_details     || data.infrastructureDetails     || prev.infrastructureDetails,
+            technicalDetails:          data.technical_details          || data.technicalDetails          || prev.technicalDetails,
+            finalValuation:            data.final_valuation            || data.finalValuation            || prev.finalValuation,
+            locationDetails:           data.location_details           || data.locationDetails           || prev.locationDetails,
+            propertyCharacteristics:   data.property_characteristics   || data.propertyCharacteristics   || prev.propertyCharacteristics,
+            ndmaParameters:            data.ndma_parameters            || data.ndmaParameters            || prev.ndmaParameters,
+            landExtentValuations:      data.land_extent_valuations     || data.landExtentValuations      || prev.landExtentValuations,
+            structureValuations:       data.structure_valuations       || data.structureValuations       || prev.structureValuations,
+            amenityValuations:         data.amenity_valuations         || data.amenityValuations         || prev.amenityValuations,
+          }));
+        }
+      })
+      .catch(err => console.error('Failed to load report for editing:', err))
+      .finally(() => setLoadingEdit(false));
+  }, [editId]);
 
   useEffect(() => {
     if (tabContentRef.current) {
@@ -389,12 +428,18 @@ const PropertyValues = () => {
       };
 
       // 1 single instant atomic save in MySQL (under 20ms)
-      const valuation = await propertyValuationAPI.saveFullValuation(payload);
-      const valId = valuation.id || valuation._id || id;
-
-      // Download certified PDF immediately
-      await propertyValuationAPI.generatePDF(valId);
-      alert('Valuation report submitted and PDF downloaded successfully!');
+      if (isEditMode && editReportId) {
+        // UPDATE existing report
+        await propertyValuationAPI.saveFullValuation({ ...payload, id: editReportId, _id: editReportId });
+        alert('Report updated successfully!');
+      } else {
+        // CREATE new report
+        const valuation = await propertyValuationAPI.saveFullValuation(payload);
+        const valId = valuation.id || valuation._id || id;
+        // Download certified PDF immediately
+        await propertyValuationAPI.generatePDF(valId);
+        alert('Valuation report submitted and PDF downloaded successfully!');
+      }
     } catch (error) {
       console.error('Error submitting form:', error);
       alert(`Error submitting form: ${error.message || 'Please try again.'}`);
@@ -431,6 +476,23 @@ const PropertyValues = () => {
 
           <main className={styles.mainScrollArea}>
             <div className={styles.contentPadding}>
+
+              {/* ── Edit Mode Banner ── */}
+              {isEditMode && (
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: '10px',
+                  background: 'rgba(184,134,11,0.1)', border: '1px solid rgba(184,134,11,0.4)',
+                  borderRadius: '10px', padding: '10px 18px', marginBottom: '16px', flexWrap: 'wrap',
+                }}>
+                  <span style={{ fontSize: '0.95rem', fontWeight: 700, color: '#B8860B' }}>
+                    ✏️ Edit Mode
+                  </span>
+                  <span style={{ fontSize: '0.85rem', color: '#64748b' }}>
+                    Editing report: <strong>{editReportId}</strong> — changes will update the existing report.
+                  </span>
+                  {loadingEdit && <span style={{ fontSize: '0.82rem', color: '#B8860B' }}>⏳ Loading data...</span>}
+                </div>
+              )}
               {/* Navigation Tabs */}
               <div className={styles.tabsContainer}>
                 {tabs.map((tab) => (
@@ -4976,4 +5038,10 @@ const SignatureField = ({ label, section = 'signatures', field }) => {
   );
 };
 
-export default PropertyValues;
+export default function PropertyValuesPage() {
+  return (
+    <Suspense fallback={<div style={{ padding: '40px', textAlign: 'center' }}>Loading...</div>}>
+      <PropertyValues />
+    </Suspense>
+  );
+}

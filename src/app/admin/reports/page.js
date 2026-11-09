@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminHeader from '@/components/admin/AdminHeader';
 import Footer from '@/components/footer/Footer';
@@ -24,11 +25,13 @@ import {
   X,
   MapPin,
   IndianRupee,
-  Briefcase
+  Briefcase,
+  Pencil,
 } from 'lucide-react';
 import { ArchitecturalGridSvg, KgnCrest } from '@/components/common/SvgDecorations';
 
 export default function AdminReportsPage() {
+  const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [reports, setReports] = useState([]);
   const [users, setUsers] = useState([]);
@@ -493,6 +496,18 @@ export default function AdminReportsPage() {
                                 >
                                   <Eye size={13} />
                                   <span>Details</span>
+                                </button>
+
+                                {/* Edit — open in property-values form */}
+                                <button
+                                  type="button"
+                                  onClick={() => router.push(`/property-values?edit=${encodeURIComponent(repId)}`)}
+                                  className={styles.secondaryBtn}
+                                  style={{ padding: '6px 10px', fontSize: '0.8rem', color: '#2563EB', borderColor: 'rgba(37,99,235,0.3)', background: 'rgba(37,99,235,0.07)' }}
+                                  title="Edit this valuation report"
+                                >
+                                  <Pencil size={13} />
+                                  <span>Edit</span>
                                 </button>
                               </div>
                             </td>
