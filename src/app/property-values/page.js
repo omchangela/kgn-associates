@@ -3704,7 +3704,7 @@ const StructureValuationTable = () => {
   // Get rows for a specific floor choice from per-floor store
   const getFloorRows = (prev, floorKey) => {
     const store = getPerFloorStore(prev);
-    return store[floorKey] ? normalizeRows(store[floorKey]) : normalizeRows(prev.structureValuations);
+    return store[floorKey] ? normalizeRows(store[floorKey]) : emptyRows();
   };
 
   // Helper: compute total area from buildingMeasurements for a given measurement field (actual/document/plan)
@@ -3762,14 +3762,16 @@ const StructureValuationTable = () => {
 
     // Specific floor index chosen (e.g. '0', '1', etc.)
     const floorIdx = parseInt(choice, 10);
-    if (!isNaN(floorIdx) && specList[floorIdx]) {
-      const floorVal = specList[floorIdx][flatKey];
-      // Return that specific floor's own value. NEVER fall back to 1st floor!
-      return floorVal !== undefined && floorVal !== null && floorVal !== '' ? String(floorVal) : '';
+    if (!isNaN(floorIdx)) {
+      if (specList[floorIdx]) {
+        const floorVal = specList[floorIdx][flatKey];
+        return floorVal !== undefined && floorVal !== null && floorVal !== '' ? String(floorVal) : '';
+      }
+      return '';
     }
 
     // Default fallback if only 1 floor exists or flat fields
-    if (specList.length > 0) {
+    if (specList.length === 1) {
       const floorVal = specList[0]?.[flatKey];
       return floorVal !== undefined && floorVal !== null && floorVal !== '' ? String(floorVal) : '';
     }
@@ -3811,25 +3813,14 @@ const StructureValuationTable = () => {
 
   const ORDERED_KEYS_CONST = ORDERED_KEYS;
 
-  // Ensure all 5 rows exist in formData.structureValuations in exact order
-  // Also seed perFloorStructureValuations for the current active floor if empty
+  // Ensure structureValuations rows are populated with active floor's values
   useEffect(() => {
     setFormData(prev => {
-      const existing = prev.structureValuations || [];
-      const isComplete = ORDERED_KEYS_CONST.length === existing.length && ORDERED_KEYS_CONST.every((k, i) => existing[i]?.floor_details === k);
       const currentChoice = prev.selected_building_spec_card || (specCards.length > 1 ? 'all' : '0');
-      const store = getPerFloorStore(prev);
-      // Seed the current floor's store if missing
-      const needsSeed = !store[currentChoice];
-      if (isComplete && !needsSeed) return prev;
-      const newList = ORDERED_KEYS_CONST.map(k => {
-        const found = existing.find(r => r.floor_details === k);
-        return found ? { ...found } : { floor_details: k, area_sqft: '', recommendation_of_funding: '', cost_per_sqft: '', total_value: '' };
-      });
-      const newStore = needsSeed ? { ...store, [currentChoice]: newList } : store;
-      return { ...prev, structureValuations: isComplete ? existing : newList, perFloorStructureValuations: newStore };
+      const basis = prev.structure_valuation_basis || 'as_per_actual';
+      return applyBasisFill(prev, basis, currentChoice);
     });
-  }, []);
+  }, [specCards.length]);
 
   // handleCellChange: save changes into BOTH structureValuations AND the per-floor store
   const handleCellChange = (idx, field, val) => {
@@ -3868,30 +3859,22 @@ const StructureValuationTable = () => {
 
   const handleBasisSelect = (basis) => {
     setFormData(prev => {
+      const currentChoice = prev.selected_building_spec_card || (specCards.length > 1 ? 'all' : '0');
       const withBasis = { ...prev, structure_valuation_basis: basis };
-      return applyBasisFill(withBasis, basis);
+      return applyBasisFill(withBasis, basis, currentChoice);
     });
   };
 
-  // handleFloorSelect: save current floor data into store, then load target floor data
+  // handleFloorSelect: save current floor data into store, then load target floor data with its reflected areas
   const handleFloorSelect = (floorChoice) => {
     setFormData(prev => {
       const currentChoice = prev.selected_building_spec_card || (specCards.length > 1 ? 'all' : '0');
       // Save current floor's rows into the store
       const store = getPerFloorStore(prev);
       const savedStore = { ...store, [currentChoice]: normalizeRows(prev.structureValuations) };
-      const prevWithSavedStore = { ...prev, perFloorStructureValuations: savedStore };
-      // Now load the target floor's rows
-      const targetRows = getFloorRows(prevWithSavedStore, floorChoice);
+      const prevWithSavedStore = { ...prev, perFloorStructureValuations: savedStore, selected_building_spec_card: floorChoice };
       const basis = prev.structure_valuation_basis || 'as_per_actual';
-      // If target floor has no data yet, auto-fill area from technical details
-      const hasData = targetRows.some(r => r.area_sqft || r.cost_per_sqft || r.total_value);
-      if (!hasData) {
-        return applyBasisFill(prevWithSavedStore, basis, floorChoice);
-      }
-      // Otherwise load the saved rows for that floor
-      const newStore = { ...savedStore, [floorChoice]: targetRows };
-      return { ...prevWithSavedStore, structureValuations: targetRows, selected_building_spec_card: floorChoice, perFloorStructureValuations: newStore };
+      return applyBasisFill(prevWithSavedStore, basis, floorChoice);
     });
   };
 
