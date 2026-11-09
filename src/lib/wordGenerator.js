@@ -287,3 +287,4 @@ export async function generateValuationWord(report) {
 
   return await Packer.toBuffer(doc);
 }
+
