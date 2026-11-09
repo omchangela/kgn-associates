@@ -85,9 +85,13 @@ const PropertyValues = () => {
             locationDetails:           data.location_details           || data.locationDetails           || prev.locationDetails,
             propertyCharacteristics:   data.property_characteristics   || data.propertyCharacteristics   || prev.propertyCharacteristics,
             ndmaParameters:            data.ndma_parameters            || data.ndmaParameters            || prev.ndmaParameters,
-            landExtentValuations:      data.land_extent_valuations     || data.landExtentValuations      || prev.landExtentValuations,
-            structureValuations:       data.structure_valuations       || data.structureValuations       || prev.structureValuations,
-            amenityValuations:         data.amenity_valuations         || data.amenityValuations         || prev.amenityValuations,
+            landExtentValuations:        data.land_extent_valuations        || data.landExtentValuations        || prev.landExtentValuations,
+            perCardLandExtentValuations: data.per_card_land_extent_valuations || data.perCardLandExtentValuations || prev.perCardLandExtentValuations,
+            selected_land_card:          data.selected_land_card            || prev.selected_land_card,
+            structureValuations:         data.structure_valuations          || data.structureValuations         || prev.structureValuations,
+            perFloorStructureValuations: data.per_floor_structure_valuations || data.perFloorStructureValuations || prev.perFloorStructureValuations,
+            selected_building_spec_card: data.selected_building_spec_card   || prev.selected_building_spec_card,
+            amenityValuations:           data.amenity_valuations           || data.amenityValuations           || prev.amenityValuations,
           }));
         }
       })
@@ -370,24 +374,52 @@ const PropertyValues = () => {
         locationDetails: formData.locationDetails,
         propertyCharacteristics: formData.propertyCharacteristics,
         ndmaParameters: formData.ndmaParameters,
-        landExtentValuations: formData.landExtentValuations
-          .filter((row) => row.land_extent_sqft || row.cost_per_sqft || row.total_value)
-          .map((row) => ({
-            basis_of_valuation: row.basis_of_valuation,
-            land_extent_sqft: parseNumber(row.land_extent_sqft),
-            cost_per_sqft: parseNumber(row.cost_per_sqft),
-            total_value: parseNumber(row.total_value),
-          })),
+        landExtentValuations: (() => {
+          const rawLand = formData.technicalDetails?.landMeasurements;
+          const cards = Array.isArray(rawLand) ? rawLand : (rawLand && typeof rawLand === 'object' ? [rawLand] : []);
+          const rows = (cards.length > 1 && formData.perCardLandExtentValuations?.['all'])
+            ? formData.perCardLandExtentValuations['all']
+            : (formData.landExtentValuations || []);
+          return rows
+            .filter((row) => row.land_extent_sqft || row.cost_per_sqft || row.total_value)
+            .map((row) => ({
+              basis_of_valuation: row.basis_of_valuation,
+              land_extent_sqft: parseNumber(row.land_extent_sqft),
+              cost_per_sqft: parseNumber(row.cost_per_sqft),
+              total_value: parseNumber(row.total_value),
+            }));
+        })(),
+        selected_land_card: formData.selected_land_card || 'all',
+        perCardLandExtentValuations: Object.fromEntries(
+          Object.entries(formData.perCardLandExtentValuations || {}).map(([cardKey, rows]) => [
+            cardKey,
+            (Array.isArray(rows) ? rows : [])
+              .filter((row) => row.land_extent_sqft || row.cost_per_sqft || row.total_value)
+              .map((row) => ({
+                basis_of_valuation: row.basis_of_valuation,
+                land_extent_sqft: parseNumber(row.land_extent_sqft),
+                cost_per_sqft: parseNumber(row.cost_per_sqft),
+                total_value: parseNumber(row.total_value),
+              })),
+          ])
+        ),
         land_valuation_basis: formData.land_valuation_basis || 'as_per_documents',
-        structureValuations: formData.structureValuations
-          .filter((row) => row.area_sqft || row.cost_per_sqft || row.total_value)
-          .map((row) => ({
-            floor_details: row.floor_details,
-            area_sqft: parseNumber(row.area_sqft),
-            recommendation_of_funding: row.recommendation_of_funding,
-            cost_per_sqft: parseNumber(row.cost_per_sqft),
-            total_value: parseNumber(row.total_value),
-          })),
+        structureValuations: (() => {
+          const rawBm = formData.technicalDetails?.buildingMeasurements;
+          const cards = Array.isArray(rawBm) ? rawBm : (rawBm && typeof rawBm === 'object' ? [rawBm] : []);
+          const rows = (cards.length > 1 && formData.perFloorStructureValuations?.['all'])
+            ? formData.perFloorStructureValuations['all']
+            : (formData.structureValuations || []);
+          return rows
+            .filter((row) => row.area_sqft || row.cost_per_sqft || row.total_value)
+            .map((row) => ({
+              floor_details: row.floor_details,
+              area_sqft: parseNumber(row.area_sqft),
+              recommendation_of_funding: row.recommendation_of_funding,
+              cost_per_sqft: parseNumber(row.cost_per_sqft),
+              total_value: parseNumber(row.total_value),
+            }));
+        })(),
         // Include all per-floor data so PDF/reports can reference any floor's values
         perFloorStructureValuations: Object.fromEntries(
           Object.entries(formData.perFloorStructureValuations || {}).map(([floorKey, rows]) => [
@@ -3102,6 +3134,14 @@ const LandExtentTable = ({ showSelectionOption = true }) => {
 
   const currentBasis = formData.land_valuation_basis || 'as_per_documents';
 
+  const resolveLandCards = (tech) => {
+    const raw = tech?.landMeasurements;
+    return Array.isArray(raw) ? raw : (raw && typeof raw === 'object' ? [raw] : []);
+  };
+
+  const landCards = resolveLandCards(formData.technicalDetails);
+  const activeCardChoice = formData.selected_land_card || (landCards.length > 1 ? 'all' : '0');
+
   const calculateCardArea = (card, field) => {
     if (!card) return 0;
     const parseDim = (v) => {
@@ -3126,60 +3166,228 @@ const LandExtentTable = ({ showSelectionOption = true }) => {
     return 0;
   };
 
-  const getComputedExtents = (technicalDetails) => {
-    const raw = technicalDetails?.landMeasurements;
-    const cards = Array.isArray(raw) ? raw : (raw && typeof raw === 'object' ? [raw] : []);
+  const getExtentForCard = (card, basisKey) => {
+    if (!card) return '';
+    const measureField = basisKey === 'as_per_actual' ? 'actual' : basisKey === 'as_per_documents' ? 'document' : 'plan';
+    const extentField = basisKey === 'as_per_actual' ? 'land_extent_actual' : basisKey === 'as_per_documents' ? 'land_extent_documents' : 'land_extent_plan';
 
-    let totalDoc = 0;
-    let totalAct = 0;
-    let totalPlan = 0;
+    const explicit = card[extentField];
+    if (explicit !== undefined && explicit !== null && String(explicit).trim() !== '') {
+      return String(explicit).trim();
+    }
 
-    cards.forEach((c) => {
-      totalDoc += calculateCardArea(c, 'document');
-      totalAct += calculateCardArea(c, 'actual');
-      totalPlan += calculateCardArea(c, 'plan');
-    });
-
-    return {
-      cardCount: cards.length,
-      as_per_documents: totalDoc > 0 ? String(totalDoc) : '',
-      as_per_actual: totalAct > 0 ? String(totalAct) : '',
-      as_per_plan: totalPlan > 0 ? String(totalPlan) : '',
-    };
+    const computed = calculateCardArea(card, measureField);
+    return computed > 0 ? String(computed) : '';
   };
 
-  // Ensure all 4 rows exist & ensure default basis
-  useEffect(() => {
-    const existing = formData.landExtentValuations || [];
-    const isComplete = ORDERED_BASIS.length === existing.length && ORDERED_BASIS.every((k, i) => existing[i]?.basis_of_valuation === k);
-    const hasBasis = Boolean(formData.land_valuation_basis);
+  const getCumulativeExtentForBasis = (basisKey, cards) => {
+    if (!cards || cards.length === 0) return '';
+    const bottomKey = basisKey === 'as_per_actual' ? 'final_extent_actual' : basisKey === 'as_per_documents' ? 'final_extent_documents' : 'final_extent_plan';
+    const bottomVal = cards[0]?.[bottomKey];
+    if (bottomVal !== undefined && bottomVal !== null && String(bottomVal).trim() !== '') {
+      return String(bottomVal).trim();
+    }
 
-    if (!isComplete || !hasBasis) {
-      setFormData((prev) => {
-        const prevList = prev.landExtentValuations || [];
-        const newList = ORDERED_BASIS.map((b) => {
-          const found = prevList.find((r) => r.basis_of_valuation === b);
-          return found
-            ? { ...found }
-            : {
-              basis_of_valuation: b,
-              land_extent_sqft: '',
-              cost_per_sqft: '',
-              total_value: '',
-            };
+    let sum = 0;
+    let hasAny = false;
+    cards.forEach((c) => {
+      const valStr = getExtentForCard(c, basisKey);
+      const val = parseFloat(String(valStr).replace(/,/g, ''));
+      if (!isNaN(val) && val > 0) {
+        sum += val;
+        hasAny = true;
+      }
+    });
+    return hasAny ? String(Math.round(sum)) : '';
+  };
+
+  const getLandExtentForChoice = (basisKey, tech, cardChoice, currentValuationBasis) => {
+    const cards = resolveLandCards(tech);
+    const activeBasis = currentValuationBasis || 'as_per_documents';
+    const choice = cardChoice !== undefined ? cardChoice : (cards.length > 1 ? 'all' : '0');
+
+    if (choice === 'all') {
+      if (basisKey === 'final_selected') {
+        const bottomFinal = cards[0]?.final_land_extent || '';
+        if (bottomFinal) return bottomFinal;
+        return getCumulativeExtentForBasis(activeBasis, cards);
+      }
+      return getCumulativeExtentForBasis(basisKey, cards);
+    }
+
+    const cardIdx = parseInt(choice, 10);
+    if (!isNaN(cardIdx) && cards[cardIdx]) {
+      const card = cards[cardIdx];
+      if (basisKey === 'final_selected') {
+        return card.final_land_extent || getExtentForCard(card, activeBasis);
+      }
+      return getExtentForCard(card, basisKey);
+    }
+
+    if (cards.length === 1) {
+      if (basisKey === 'final_selected') {
+        return cards[0].final_land_extent || getExtentForCard(cards[0], activeBasis);
+      }
+      return getExtentForCard(cards[0], basisKey);
+    }
+
+    return '';
+  };
+
+  const emptyRows = () => ORDERED_BASIS.map(b => ({
+    basis_of_valuation: b,
+    land_extent_sqft: '',
+    cost_per_sqft: '',
+    total_value: '',
+  }));
+
+  const normalizeRows = (rows) => {
+    const list = Array.isArray(rows) ? rows : [];
+    return ORDERED_BASIS.map(b => {
+      const found = list.find(r => r.basis_of_valuation === b);
+      return found ? { ...found } : { basis_of_valuation: b, land_extent_sqft: '', cost_per_sqft: '', total_value: '' };
+    });
+  };
+
+  const getPerCardStore = (prev) => prev.perCardLandExtentValuations || {};
+
+  const getCardRows = (prev, choice) => {
+    const store = getPerCardStore(prev);
+    return store[choice] ? normalizeRows(store[choice]) : emptyRows();
+  };
+
+  const applyLandBasisFill = (prev, basis, cardChoice) => {
+    const cards = resolveLandCards(prev.technicalDetails);
+    const choice = cardChoice !== undefined ? cardChoice : (prev.selected_land_card || (cards.length > 1 ? 'all' : '0'));
+    const store = getPerCardStore(prev);
+
+    if (choice === 'all') {
+      const existingAllRows = getCardRows(prev, 'all');
+      const updated = ORDERED_BASIS.map((b) => {
+        const extentVal = getLandExtentForChoice(b, prev.technicalDetails, 'all', basis);
+        const extentNum = parseFloat(String(extentVal || '').replace(/,/g, '')) || 0;
+
+        let sumTotal = 0;
+        let hasCardTotals = false;
+        cards.forEach((_, cIdx) => {
+          const cRows = store[String(cIdx)] || [];
+          const cRow = cRows.find(r => r.basis_of_valuation === b);
+          const val = parseFloat(String(cRow?.total_value || '').replace(/,/g, ''));
+          if (!isNaN(val) && val > 0) {
+            sumTotal += val;
+            hasCardTotals = true;
+          }
         });
+
+        const existingRow = existingAllRows.find(r => r.basis_of_valuation === b) || {};
+        if (hasCardTotals) {
+          const effectiveCost = extentNum > 0 ? String(Math.round(sumTotal / extentNum)) : (existingRow.cost_per_sqft || '');
+          return {
+            basis_of_valuation: b,
+            land_extent_sqft: extentVal,
+            cost_per_sqft: effectiveCost,
+            total_value: String(Math.round(sumTotal)),
+          };
+        } else {
+          const costNum = parseFloat(String(existingRow.cost_per_sqft || '').replace(/,/g, '')) || 0;
+          const totalVal = extentNum > 0 && costNum > 0 ? String(Math.round(extentNum * costNum)) : (existingRow.total_value || '');
+          return {
+            basis_of_valuation: b,
+            land_extent_sqft: extentVal,
+            cost_per_sqft: existingRow.cost_per_sqft || '',
+            total_value: totalVal,
+          };
+        }
+      });
+
+      const newStore = { ...store, all: updated };
+      return {
+        ...prev,
+        landExtentValuations: updated,
+        selected_land_card: 'all',
+        land_valuation_basis: basis,
+        perCardLandExtentValuations: newStore,
+      };
+    } else {
+      const existingRows = getCardRows(prev, choice);
+      const updated = ORDERED_BASIS.map((b) => {
+        const extentVal = getLandExtentForChoice(b, prev.technicalDetails, choice, basis);
+        const existingRow = existingRows.find(r => r.basis_of_valuation === b) || {};
+        const costNum = parseFloat(String(existingRow.cost_per_sqft || '').replace(/,/g, '')) || 0;
+        const extentNum = parseFloat(String(extentVal || '').replace(/,/g, '')) || 0;
+        const totalVal = extentNum > 0 && costNum > 0 ? String(Math.round(extentNum * costNum)) : (existingRow.total_value || '');
+
         return {
-          ...prev,
-          landExtentValuations: newList,
-          land_valuation_basis: prev.land_valuation_basis || 'as_per_documents',
+          basis_of_valuation: b,
+          land_extent_sqft: extentVal,
+          cost_per_sqft: existingRow.cost_per_sqft || '',
+          total_value: totalVal,
         };
       });
+
+      const tempStore = { ...store, [choice]: updated };
+      const cumulativeAllRows = ORDERED_BASIS.map((b) => {
+        const extentVal = getLandExtentForChoice(b, prev.technicalDetails, 'all', basis);
+        const extentNum = parseFloat(String(extentVal || '').replace(/,/g, '')) || 0;
+
+        let sumTotal = 0;
+        let hasCardTotals = false;
+        cards.forEach((_, cIdx) => {
+          const cRows = tempStore[String(cIdx)] || [];
+          const cRow = cRows.find(r => r.basis_of_valuation === b);
+          const val = parseFloat(String(cRow?.total_value || '').replace(/,/g, ''));
+          if (!isNaN(val) && val > 0) {
+            sumTotal += val;
+            hasCardTotals = true;
+          }
+        });
+
+        const existingAllRow = (tempStore['all'] || []).find(r => r.basis_of_valuation === b) || {};
+        if (hasCardTotals) {
+          const effectiveCost = extentNum > 0 ? String(Math.round(sumTotal / extentNum)) : (existingAllRow.cost_per_sqft || '');
+          return {
+            basis_of_valuation: b,
+            land_extent_sqft: extentVal,
+            cost_per_sqft: effectiveCost,
+            total_value: String(Math.round(sumTotal)),
+          };
+        } else {
+          const costNum = parseFloat(String(existingAllRow.cost_per_sqft || '').replace(/,/g, '')) || 0;
+          const totalVal = extentNum > 0 && costNum > 0 ? String(Math.round(extentNum * costNum)) : (existingAllRow.total_value || '');
+          return {
+            basis_of_valuation: b,
+            land_extent_sqft: extentVal,
+            cost_per_sqft: existingAllRow.cost_per_sqft || '',
+            total_value: totalVal,
+          };
+        }
+      });
+
+      const newStore = { ...tempStore, all: cumulativeAllRows };
+      return {
+        ...prev,
+        landExtentValuations: updated,
+        selected_land_card: choice,
+        land_valuation_basis: basis,
+        perCardLandExtentValuations: newStore,
+      };
     }
-  }, []);
+  };
+
+  // Ensure all 4 rows exist on mount
+  useEffect(() => {
+    setFormData((prev) => {
+      const currentCards = resolveLandCards(prev.technicalDetails);
+      const currentChoice = prev.selected_land_card || (currentCards.length > 1 ? 'all' : '0');
+      const basis = prev.land_valuation_basis || 'as_per_documents';
+      return applyLandBasisFill(prev, basis, currentChoice);
+    });
+  }, [landCards.length]);
 
   // Reflect selection into final_selected row immediately
   const handleSelectBasis = (basisKey) => {
     setFormData((prev) => {
+      const currentChoice = prev.selected_land_card || (landCards.length > 1 ? 'all' : '0');
       const list = [...(prev.landExtentValuations || [])];
       const sourceRow = list.find((r) => r.basis_of_valuation === basisKey);
       const finalIndex = list.findIndex((r) => r.basis_of_valuation === 'final_selected');
@@ -3188,7 +3396,6 @@ const LandExtentTable = ({ showSelectionOption = true }) => {
         const finalRow = { ...list[finalIndex] };
         finalRow.land_extent_sqft = sourceRow.land_extent_sqft || '';
 
-        // If source row has cost_per_sqft, mirror it; otherwise preserve existing final cost
         if (sourceRow.cost_per_sqft) {
           finalRow.cost_per_sqft = sourceRow.cost_per_sqft;
         }
@@ -3206,101 +3413,68 @@ const LandExtentTable = ({ showSelectionOption = true }) => {
         list[finalIndex] = finalRow;
       }
 
+      const store = getPerCardStore(prev);
+      const newStore = { ...store, [currentChoice]: list };
+
       return {
         ...prev,
         land_valuation_basis: basisKey,
         landExtentValuations: list,
+        perCardLandExtentValuations: newStore,
       };
     });
   };
 
-  // Automatically reflect computed land extents when land measurements change
-  useEffect(() => {
-    const computed = getComputedExtents(formData.technicalDetails);
-    const hasAnyComputed = Boolean(computed.as_per_documents || computed.as_per_actual || computed.as_per_plan);
-    if (!hasAnyComputed) return;
-
+  // handleCardSelect: save current card rows, switch to target card, load its values
+  const handleCardSelect = (targetChoice) => {
     setFormData((prev) => {
-      const prevList = prev.landExtentValuations || [];
-      const activeBasis = prev.land_valuation_basis || 'as_per_documents';
-      let hasChanges = false;
-
-      const updated = prevList.map((row) => {
-        const basis = row.basis_of_valuation;
-        let newExtent = row.land_extent_sqft;
-
-        if (basis === 'as_per_documents' && computed.as_per_documents) {
-          if (row.land_extent_sqft !== computed.as_per_documents) {
-            newExtent = computed.as_per_documents;
-            hasChanges = true;
-          }
-        } else if (basis === 'as_per_actual' && computed.as_per_actual) {
-          if (row.land_extent_sqft !== computed.as_per_actual) {
-            newExtent = computed.as_per_actual;
-            hasChanges = true;
-          }
-        } else if (basis === 'as_per_plan' && computed.as_per_plan) {
-          if (row.land_extent_sqft !== computed.as_per_plan) {
-            newExtent = computed.as_per_plan;
-            hasChanges = true;
-          }
-        } else if (basis === 'final_selected') {
-          // Prefer the explicit final_land_extent entered in Technical tab, then fall back to selected basis
-          const cards = formData.technicalDetails?.landMeasurements || [];
-          const firstFinalExtent = cards.length > 0 ? (cards[0].final_land_extent || '') : '';
-          const adopt = firstFinalExtent || computed[activeBasis] || computed.as_per_documents || computed.as_per_actual || computed.as_per_plan;
-          if (adopt && row.land_extent_sqft !== adopt) {
-            newExtent = adopt;
-            hasChanges = true;
-          }
-        }
-
-        if (newExtent !== row.land_extent_sqft) {
-          const extentNum = parseFloat(String(newExtent).replace(/,/g, '')) || 0;
-          const costNum = parseFloat(String(row.cost_per_sqft || '').replace(/,/g, '')) || 0;
-          const totalVal = extentNum > 0 && costNum > 0 ? String(Math.round(extentNum * costNum)) : row.total_value;
-          return { ...row, land_extent_sqft: newExtent, total_value: totalVal };
-        }
-        return row;
-      });
-
-      if (!hasChanges) return prev;
-      return { ...prev, landExtentValuations: updated };
+      const currentChoice = prev.selected_land_card || (landCards.length > 1 ? 'all' : '0');
+      const store = getPerCardStore(prev);
+      const savedStore = { ...store, [currentChoice]: normalizeRows(prev.landExtentValuations) };
+      const prevWithSaved = {
+        ...prev,
+        perCardLandExtentValuations: savedStore,
+        selected_land_card: targetChoice,
+      };
+      const basis = prev.land_valuation_basis || 'as_per_documents';
+      return applyLandBasisFill(prevWithSaved, basis, targetChoice);
     });
-  }, [formData.technicalDetails?.landMeasurements, formData.land_valuation_basis,
-      formData.technicalDetails?.landMeasurements?.[0]?.final_land_extent]);
+  };
+
+  // Automatically update when measurements or extents change in Technical tab
+  useEffect(() => {
+    setFormData((prev) => {
+      const currentCards = resolveLandCards(prev.technicalDetails);
+      const currentChoice = prev.selected_land_card || (currentCards.length > 1 ? 'all' : '0');
+      const basis = prev.land_valuation_basis || 'as_per_documents';
+      return applyLandBasisFill(prev, basis, currentChoice);
+    });
+  }, [
+    JSON.stringify(
+      (formData.technicalDetails?.landMeasurements || []).map(c => ({
+        doc: c.document_name,
+        desc: c.description,
+        ext_act: c.land_extent_actual,
+        ext_doc: c.land_extent_documents,
+        ext_plan: c.land_extent_plan,
+        n: c.north, s: c.south, e: c.east, w: c.west,
+        f_act: c.final_extent_actual,
+        f_doc: c.final_extent_documents,
+        f_plan: c.final_extent_plan,
+        f_land: c.final_land_extent,
+      }))
+    ),
+  ]);
 
   const syncFromLandMeasurements = () => {
-    const computed = getComputedExtents(formData.technicalDetails);
-    setFormData((prev) => {
-      const prevList = prev.landExtentValuations || [];
-      const activeBasis = prev.land_valuation_basis || 'as_per_documents';
-      const updated = prevList.map((row) => {
-        const basis = row.basis_of_valuation;
-        let newExtent = row.land_extent_sqft;
-
-        if (basis === 'as_per_documents' && computed.as_per_documents) newExtent = computed.as_per_documents;
-        if (basis === 'as_per_actual' && computed.as_per_actual) newExtent = computed.as_per_actual;
-        if (basis === 'as_per_plan' && computed.as_per_plan) newExtent = computed.as_per_plan;
-        if (basis === 'final_selected') {
-          newExtent = (() => {
-            const cards = formData.technicalDetails?.landMeasurements || [];
-            const firstFinalExtent = cards.length > 0 ? (cards[0].final_land_extent || '') : '';
-            return firstFinalExtent || computed[activeBasis] || computed.as_per_documents || computed.as_per_actual || computed.as_per_plan || row.land_extent_sqft;
-          })();
-        }
-
-        const extentNum = parseFloat(String(newExtent).replace(/,/g, '')) || 0;
-        const costNum = parseFloat(String(row.cost_per_sqft || '').replace(/,/g, '')) || 0;
-        const totalVal = extentNum > 0 && costNum > 0 ? String(Math.round(extentNum * costNum)) : row.total_value;
-        return { ...row, land_extent_sqft: newExtent, total_value: totalVal };
-      });
-      return { ...prev, landExtentValuations: updated };
-    });
+    const basis = formData.land_valuation_basis || 'as_per_documents';
+    const choice = formData.selected_land_card || (landCards.length > 1 ? 'all' : '0');
+    setFormData((prev) => applyLandBasisFill(prev, basis, choice));
   };
 
   const handleLandChange = (idx, field, value) => {
     setFormData((prev) => {
+      const currentChoice = prev.selected_land_card || (landCards.length > 1 ? 'all' : '0');
       const list = [...(prev.landExtentValuations || [])];
       const cur = { ...(list[idx] || {}) };
       cur[field] = value;
@@ -3345,19 +3519,74 @@ const LandExtentTable = ({ showSelectionOption = true }) => {
         }
       }
 
-      return { ...prev, landExtentValuations: list };
+      const store = getPerCardStore(prev);
+      const newStore = { ...store, [currentChoice]: list };
+
+      // Also refresh cumulative 'all' rows if currently modifying a specific document
+      if (currentChoice !== 'all' && landCards.length > 1) {
+        const cumulativeAll = ORDERED_BASIS.map((b) => {
+          const extentVal = getLandExtentForChoice(b, prev.technicalDetails, 'all', activeBasis);
+          const extentNum = parseFloat(String(extentVal || '').replace(/,/g, '')) || 0;
+
+          let sumTotal = 0;
+          let hasCardTotals = false;
+          landCards.forEach((_, cIdx) => {
+            const cRows = newStore[String(cIdx)] || [];
+            const cRow = cRows.find(r => r.basis_of_valuation === b);
+            const val = parseFloat(String(cRow?.total_value || '').replace(/,/g, ''));
+            if (!isNaN(val) && val > 0) {
+              sumTotal += val;
+              hasCardTotals = true;
+            }
+          });
+
+          const existingAllRow = (newStore['all'] || []).find(r => r.basis_of_valuation === b) || {};
+          if (hasCardTotals) {
+            const effectiveCost = extentNum > 0 ? String(Math.round(sumTotal / extentNum)) : (existingAllRow.cost_per_sqft || '');
+            return {
+              basis_of_valuation: b,
+              land_extent_sqft: extentVal,
+              cost_per_sqft: effectiveCost,
+              total_value: String(Math.round(sumTotal)),
+            };
+          } else {
+            const costNum = parseFloat(String(existingAllRow.cost_per_sqft || '').replace(/,/g, '')) || 0;
+            const totalVal = extentNum > 0 && costNum > 0 ? String(Math.round(extentNum * costNum)) : (existingAllRow.total_value || '');
+            return {
+              basis_of_valuation: b,
+              land_extent_sqft: extentVal,
+              cost_per_sqft: existingAllRow.cost_per_sqft || '',
+              total_value: totalVal,
+            };
+          }
+        });
+        newStore.all = cumulativeAll;
+      }
+
+      return {
+        ...prev,
+        landExtentValuations: list,
+        perCardLandExtentValuations: newStore,
+      };
     });
   };
 
-  const computedInfo = getComputedExtents(formData.technicalDetails);
+  const selectedDocIndex = parseInt(activeCardChoice, 10);
+  const selectedDocCard = !isNaN(selectedDocIndex) ? landCards[selectedDocIndex] : null;
+  const selectedDocLabel = selectedDocCard
+    ? (selectedDocCard.document_name || selectedDocCard.description || '')
+    : '';
 
   return (
     <div style={{ marginBottom: '15px' }}>
+      {/* Top Status & Reflect button */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '12px' }}>
         <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-          {computedInfo.as_per_documents || computedInfo.as_per_actual || computedInfo.as_per_plan
-            ? `Reflecting values calculated from Land Measurements (${computedInfo.cardCount} document${computedInfo.cardCount > 1 ? 's' : ''})`
-            : 'Enter Land Measurements in Technical tab to auto-reflect extents'}
+          {activeCardChoice === 'all'
+            ? (landCards.length > 0
+                ? `Reflecting cumulative values calculated from Land Measurements (${landCards.length} document${landCards.length > 1 ? 's' : ''})`
+                : 'Enter Land Measurements in Technical tab to auto-reflect extents')
+            : `Reflecting values for Document #${selectedDocIndex + 1}${selectedDocLabel ? ` (${selectedDocLabel})` : ''}`}
         </span>
         <button
           type="button"
@@ -3381,6 +3610,76 @@ const LandExtentTable = ({ showSelectionOption = true }) => {
         </button>
       </div>
 
+      {/* Document Selection Pills (when more than 1 document is added in Technical tab) */}
+      {landCards.length > 1 && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            flexWrap: 'wrap',
+            marginBottom: '16px',
+            padding: '10px 16px',
+            borderRadius: '8px',
+            background: 'rgba(201, 168, 76, 0.08)',
+            border: '1px solid rgba(201, 168, 76, 0.35)',
+          }}
+        >
+          <span style={{ fontSize: '0.85rem', fontWeight: '700', color: 'var(--primary-gold, #C9A84C)' }}>
+            Land Specification ({landCards.length} Documents Added):
+          </span>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+            <button
+              type="button"
+              onClick={() => handleCardSelect('all')}
+              style={{
+                padding: '5px 14px',
+                borderRadius: '16px',
+                fontSize: '0.8rem',
+                fontWeight: '700',
+                cursor: 'pointer',
+                border: activeCardChoice === 'all' ? '1px solid #C9A84C' : '1px solid rgba(255,255,255,0.15)',
+                background: activeCardChoice === 'all' ? 'var(--primary-gold, #C9A84C)' : 'rgba(255,255,255,0.06)',
+                color: activeCardChoice === 'all' ? '#000000' : 'var(--text-secondary)',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              ✦ All Documents (Cumulative Sum)
+            </button>
+            {landCards.map((c, idx) => {
+              const isActive = activeCardChoice === String(idx);
+              const docIdentifier = c.document_name || c.description || '';
+              const label = docIdentifier
+                ? `Document #${idx + 1}: ${docIdentifier}`
+                : `Document #${idx + 1}`;
+              return (
+                <button
+                  key={c.id || idx}
+                  type="button"
+                  onClick={() => handleCardSelect(String(idx))}
+                  style={{
+                    padding: '5px 14px',
+                    borderRadius: '16px',
+                    fontSize: '0.8rem',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    border: isActive ? '1px solid #3b82f6' : '1px solid rgba(255,255,255,0.15)',
+                    background: isActive ? '#2563eb' : 'rgba(255,255,255,0.06)',
+                    color: isActive ? '#ffffff' : 'var(--text-secondary)',
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginLeft: 'auto' }}>
+            Click a document to load its values
+          </span>
+        </div>
+      )}
+
       <div style={{ overflowX: 'auto', marginBottom: '10px' }}>
         <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '10px' }}>
           <thead>
@@ -3395,8 +3694,10 @@ const LandExtentTable = ({ showSelectionOption = true }) => {
             {(formData.landExtentValuations || []).map((row, idx) => {
               const isFinal = row.basis_of_valuation === 'final_selected';
               const isSelected = !isFinal && currentBasis === row.basis_of_valuation;
-              // Check if final_land_extent was set in Technical tab (reflection source)
-              const technicalFinalExtent = (formData.technicalDetails?.landMeasurements || [])[0]?.final_land_extent || '';
+
+              const technicalFinalExtent = activeCardChoice === 'all'
+                ? ((formData.technicalDetails?.landMeasurements || [])[0]?.final_land_extent || '')
+                : ((formData.technicalDetails?.landMeasurements || [])[parseInt(activeCardChoice, 10)]?.final_land_extent || '');
 
               return (
                 <tr
@@ -4289,16 +4590,34 @@ const FinalValueChartTable = () => {
   const { formData } = useFormContext();
 
   // ── Land Value ──────────────────────────────────────────────────────────────
-  const landFinalRow = (formData.landExtentValuations || []).find(
-    r => r.basis_of_valuation === 'final_selected'
-  );
+  const landFinalRow = (() => {
+    const rawLand = formData.technicalDetails?.landMeasurements;
+    const cards = Array.isArray(rawLand) ? rawLand : (rawLand && typeof rawLand === 'object' ? [rawLand] : []);
+    const perCard = formData.perCardLandExtentValuations;
+    if (cards.length > 1 && perCard && perCard['all']) {
+      const allFinal = perCard['all'].find(r => r.basis_of_valuation === 'final_selected');
+      if (allFinal?.total_value) return allFinal;
+    }
+    return (formData.landExtentValuations || []).find(
+      r => r.basis_of_valuation === 'final_selected'
+    );
+  })();
   const landMarket = landFinalRow?.total_value || '';
 
   // ── Structure Value ──────────────────────────────────────────────────────────
   const selectedFloorKey = formData.structure_valuation_selected_floor || 'built_up_area';
-  const structureRow = (formData.structureValuations || []).find(
-    r => r.floor_details === selectedFloorKey
-  );
+  const structureRow = (() => {
+    const rawBm = formData.technicalDetails?.buildingMeasurements;
+    const cards = Array.isArray(rawBm) ? rawBm : (rawBm && typeof rawBm === 'object' ? [rawBm] : []);
+    const perFloor = formData.perFloorStructureValuations;
+    if (cards.length > 1 && perFloor && perFloor['all']) {
+      const allRow = perFloor['all'].find(r => r.floor_details === selectedFloorKey);
+      if (allRow?.total_value) return allRow;
+    }
+    return (formData.structureValuations || []).find(
+      r => r.floor_details === selectedFloorKey
+    );
+  })();
   const structureMarket = structureRow?.total_value || '';
 
   // ── Amenities ────────────────────────────────────────────────────────────────
