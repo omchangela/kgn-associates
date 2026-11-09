@@ -88,6 +88,9 @@ const PropertyValues = () => {
             landExtentValuations:        data.land_extent_valuations        || data.landExtentValuations        || prev.landExtentValuations,
             perCardLandExtentValuations: data.per_card_land_extent_valuations || data.perCardLandExtentValuations || prev.perCardLandExtentValuations,
             selected_land_card:          data.selected_land_card            || prev.selected_land_card,
+            guidelineLandExtentValuations: data.guideline_land_extent_valuations || data.guidelineLandExtentValuations || prev.guidelineLandExtentValuations,
+            perCardGuidelineLandExtentValuations: data.per_card_guideline_land_extent_valuations || data.perCardGuidelineLandExtentValuations || prev.perCardGuidelineLandExtentValuations,
+            selected_guideline_land_card: data.selected_guideline_land_card || prev.selected_guideline_land_card,
             structureValuations:         data.structure_valuations          || data.structureValuations         || prev.structureValuations,
             perFloorStructureValuations: data.per_floor_structure_valuations || data.perFloorStructureValuations || prev.perFloorStructureValuations,
             selected_building_spec_card: data.selected_building_spec_card   || prev.selected_building_spec_card,
@@ -404,6 +407,36 @@ const PropertyValues = () => {
           ])
         ),
         land_valuation_basis: formData.land_valuation_basis || 'as_per_documents',
+        guidelineLandExtentValuations: (() => {
+          const rawLand = formData.technicalDetails?.landMeasurements;
+          const cards = Array.isArray(rawLand) ? rawLand : (rawLand && typeof rawLand === 'object' ? [rawLand] : []);
+          const rows = (cards.length > 1 && formData.perCardGuidelineLandExtentValuations?.['all'])
+            ? formData.perCardGuidelineLandExtentValuations['all']
+            : (formData.guidelineLandExtentValuations || []);
+          return rows
+            .filter((row) => row.land_extent_sqft || row.cost_per_sqft || row.total_value)
+            .map((row) => ({
+              basis_of_valuation: row.basis_of_valuation,
+              land_extent_sqft: parseNumber(row.land_extent_sqft),
+              cost_per_sqft: parseNumber(row.cost_per_sqft),
+              total_value: parseNumber(row.total_value),
+            }));
+        })(),
+        selected_guideline_land_card: formData.selected_guideline_land_card || 'all',
+        perCardGuidelineLandExtentValuations: Object.fromEntries(
+          Object.entries(formData.perCardGuidelineLandExtentValuations || {}).map(([cardKey, rows]) => [
+            cardKey,
+            (Array.isArray(rows) ? rows : [])
+              .filter((row) => row.land_extent_sqft || row.cost_per_sqft || row.total_value)
+              .map((row) => ({
+                basis_of_valuation: row.basis_of_valuation,
+                land_extent_sqft: parseNumber(row.land_extent_sqft),
+                cost_per_sqft: parseNumber(row.cost_per_sqft),
+                total_value: parseNumber(row.total_value),
+              })),
+          ])
+        ),
+        guideline_land_valuation_basis: formData.guideline_land_valuation_basis || 'as_per_documents',
         structureValuations: (() => {
           const rawBm = formData.technicalDetails?.buildingMeasurements;
           const cards = Array.isArray(rawBm) ? rawBm : (rawBm && typeof rawBm === 'object' ? [rawBm] : []);
@@ -1157,7 +1190,7 @@ const PropertyValues = () => {
                     <h1 className={styles.pageTitle} style={{ marginBottom: '5px' }}>Property Market Value Assessment</h1>
                     <p className={styles.subHeading} style={{ marginBottom: '20px' }}>Land Extent Valuation:</p>
                     <div className={styles.card} style={{ padding: '20px', marginBottom: '40px' }}>
-                      <LandExtentTable />
+                      <LandExtentTable isGuideline={false} />
                       <h2 className={styles.sectionHeading} style={{ fontSize: '1.2rem', marginTop: '10px', marginBottom: '14px' }}>Structure Valuation:</h2>
                       <StructureValuationTable />
                       <h2 className={styles.sectionHeading} style={{ fontSize: '1.2rem', marginTop: '10px', marginBottom: '15px' }}>Amenities Valuation:</h2>
@@ -1167,7 +1200,7 @@ const PropertyValues = () => {
                     <h1 className={styles.pageTitle} style={{ marginBottom: '5px', marginTop: '40px' }}>Property Guideline Value Assessment:</h1>
                     <p className={styles.subHeading} style={{ marginBottom: '20px' }}>Land Extent Valuation:</p>
                     <div className={styles.card} style={{ padding: '20px' }}>
-                      <LandExtentTable />
+                      <LandExtentTable isGuideline={true} />
                       <h2 className={styles.sectionHeading} style={{ fontSize: '1.2rem', marginTop: '10px', marginBottom: '15px' }}>Amenities Valuation:</h2>
                       <AmenitiesTable />
                     </div>
@@ -3115,8 +3148,15 @@ const BoundaryTable = () => {
   );
 };
 
-const LandExtentTable = ({ showSelectionOption = true }) => {
+const LandExtentTable = ({ isGuideline = false, showSelectionOption = true }) => {
   const { formData, setFormData } = useFormContext();
+
+  const stateKey = isGuideline ? 'guidelineLandExtentValuations' : 'landExtentValuations';
+  const basisKeyField = isGuideline ? 'guideline_land_valuation_basis' : 'land_valuation_basis';
+  const cardChoiceKey = isGuideline ? 'selected_guideline_land_card' : 'selected_land_card';
+  const perCardStoreKey = isGuideline ? 'perCardGuidelineLandExtentValuations' : 'perCardLandExtentValuations';
+  const radioPrefix = isGuideline ? 'guideline_land_val' : 'market_land_val';
+
   const labels = [
     'As Per Documents (Sq Ft)',
     'As Per Actual (Sq Ft)',
@@ -3132,7 +3172,7 @@ const LandExtentTable = ({ showSelectionOption = true }) => {
     as_per_plan: 'As Per Plan',
   };
 
-  const currentBasis = formData.land_valuation_basis || 'as_per_documents';
+  const currentBasis = formData[basisKeyField] || 'as_per_documents';
 
   const resolveLandCards = (tech) => {
     const raw = tech?.landMeasurements;
@@ -3140,7 +3180,7 @@ const LandExtentTable = ({ showSelectionOption = true }) => {
   };
 
   const landCards = resolveLandCards(formData.technicalDetails);
-  const activeCardChoice = formData.selected_land_card || (landCards.length > 1 ? 'all' : '0');
+  const activeCardChoice = formData[cardChoiceKey] || (landCards.length > 1 ? 'all' : '0');
 
   const calculateCardArea = (card, field) => {
     if (!card) return 0;
@@ -3249,7 +3289,7 @@ const LandExtentTable = ({ showSelectionOption = true }) => {
     });
   };
 
-  const getPerCardStore = (prev) => prev.perCardLandExtentValuations || {};
+  const getPerCardStore = (prev) => prev[perCardStoreKey] || {};
 
   const getCardRows = (prev, choice) => {
     const store = getPerCardStore(prev);
@@ -3258,7 +3298,7 @@ const LandExtentTable = ({ showSelectionOption = true }) => {
 
   const applyLandBasisFill = (prev, basis, cardChoice) => {
     const cards = resolveLandCards(prev.technicalDetails);
-    const choice = cardChoice !== undefined ? cardChoice : (prev.selected_land_card || (cards.length > 1 ? 'all' : '0'));
+    const choice = cardChoice !== undefined ? cardChoice : (prev[cardChoiceKey] || (cards.length > 1 ? 'all' : '0'));
     const store = getPerCardStore(prev);
 
     if (choice === 'all') {
@@ -3303,10 +3343,10 @@ const LandExtentTable = ({ showSelectionOption = true }) => {
       const newStore = { ...store, all: updated };
       return {
         ...prev,
-        landExtentValuations: updated,
-        selected_land_card: 'all',
-        land_valuation_basis: basis,
-        perCardLandExtentValuations: newStore,
+        [stateKey]: updated,
+        [cardChoiceKey]: 'all',
+        [basisKeyField]: basis,
+        [perCardStoreKey]: newStore,
       };
     } else {
       const existingRows = getCardRows(prev, choice);
@@ -3366,10 +3406,10 @@ const LandExtentTable = ({ showSelectionOption = true }) => {
       const newStore = { ...tempStore, all: cumulativeAllRows };
       return {
         ...prev,
-        landExtentValuations: updated,
-        selected_land_card: choice,
-        land_valuation_basis: basis,
-        perCardLandExtentValuations: newStore,
+        [stateKey]: updated,
+        [cardChoiceKey]: choice,
+        [basisKeyField]: basis,
+        [perCardStoreKey]: newStore,
       };
     }
   };
@@ -3378,8 +3418,8 @@ const LandExtentTable = ({ showSelectionOption = true }) => {
   useEffect(() => {
     setFormData((prev) => {
       const currentCards = resolveLandCards(prev.technicalDetails);
-      const currentChoice = prev.selected_land_card || (currentCards.length > 1 ? 'all' : '0');
-      const basis = prev.land_valuation_basis || 'as_per_documents';
+      const currentChoice = prev[cardChoiceKey] || (currentCards.length > 1 ? 'all' : '0');
+      const basis = prev[basisKeyField] || 'as_per_documents';
       return applyLandBasisFill(prev, basis, currentChoice);
     });
   }, [landCards.length]);
@@ -3387,8 +3427,8 @@ const LandExtentTable = ({ showSelectionOption = true }) => {
   // Reflect selection into final_selected row immediately
   const handleSelectBasis = (basisKey) => {
     setFormData((prev) => {
-      const currentChoice = prev.selected_land_card || (landCards.length > 1 ? 'all' : '0');
-      const list = [...(prev.landExtentValuations || [])];
+      const currentChoice = prev[cardChoiceKey] || (landCards.length > 1 ? 'all' : '0');
+      const list = [...(prev[stateKey] || [])];
       const sourceRow = list.find((r) => r.basis_of_valuation === basisKey);
       const finalIndex = list.findIndex((r) => r.basis_of_valuation === 'final_selected');
 
@@ -3418,9 +3458,9 @@ const LandExtentTable = ({ showSelectionOption = true }) => {
 
       return {
         ...prev,
-        land_valuation_basis: basisKey,
-        landExtentValuations: list,
-        perCardLandExtentValuations: newStore,
+        [basisKeyField]: basisKey,
+        [stateKey]: list,
+        [perCardStoreKey]: newStore,
       };
     });
   };
@@ -3428,15 +3468,15 @@ const LandExtentTable = ({ showSelectionOption = true }) => {
   // handleCardSelect: save current card rows, switch to target card, load its values
   const handleCardSelect = (targetChoice) => {
     setFormData((prev) => {
-      const currentChoice = prev.selected_land_card || (landCards.length > 1 ? 'all' : '0');
+      const currentChoice = prev[cardChoiceKey] || (landCards.length > 1 ? 'all' : '0');
       const store = getPerCardStore(prev);
-      const savedStore = { ...store, [currentChoice]: normalizeRows(prev.landExtentValuations) };
+      const savedStore = { ...store, [currentChoice]: normalizeRows(prev[stateKey]) };
       const prevWithSaved = {
         ...prev,
-        perCardLandExtentValuations: savedStore,
-        selected_land_card: targetChoice,
+        [perCardStoreKey]: savedStore,
+        [cardChoiceKey]: targetChoice,
       };
-      const basis = prev.land_valuation_basis || 'as_per_documents';
+      const basis = prev[basisKeyField] || 'as_per_documents';
       return applyLandBasisFill(prevWithSaved, basis, targetChoice);
     });
   };
@@ -3445,8 +3485,8 @@ const LandExtentTable = ({ showSelectionOption = true }) => {
   useEffect(() => {
     setFormData((prev) => {
       const currentCards = resolveLandCards(prev.technicalDetails);
-      const currentChoice = prev.selected_land_card || (currentCards.length > 1 ? 'all' : '0');
-      const basis = prev.land_valuation_basis || 'as_per_documents';
+      const currentChoice = prev[cardChoiceKey] || (currentCards.length > 1 ? 'all' : '0');
+      const basis = prev[basisKeyField] || 'as_per_documents';
       return applyLandBasisFill(prev, basis, currentChoice);
     });
   }, [
@@ -3467,15 +3507,15 @@ const LandExtentTable = ({ showSelectionOption = true }) => {
   ]);
 
   const syncFromLandMeasurements = () => {
-    const basis = formData.land_valuation_basis || 'as_per_documents';
-    const choice = formData.selected_land_card || (landCards.length > 1 ? 'all' : '0');
+    const basis = formData[basisKeyField] || 'as_per_documents';
+    const choice = formData[cardChoiceKey] || (landCards.length > 1 ? 'all' : '0');
     setFormData((prev) => applyLandBasisFill(prev, basis, choice));
   };
 
   const handleLandChange = (idx, field, value) => {
     setFormData((prev) => {
-      const currentChoice = prev.selected_land_card || (landCards.length > 1 ? 'all' : '0');
-      const list = [...(prev.landExtentValuations || [])];
+      const currentChoice = prev[cardChoiceKey] || (landCards.length > 1 ? 'all' : '0');
+      const list = [...(prev[stateKey] || [])];
       const cur = { ...(list[idx] || {}) };
       cur[field] = value;
 
@@ -3493,7 +3533,7 @@ const LandExtentTable = ({ showSelectionOption = true }) => {
       list[idx] = cur;
 
       // If this row is the currently selected basis, mirror it into Final Selected!
-      const activeBasis = prev.land_valuation_basis || 'as_per_documents';
+      const activeBasis = prev[basisKeyField] || 'as_per_documents';
       if (cur.basis_of_valuation === activeBasis) {
         const finalIndex = list.findIndex((r) => r.basis_of_valuation === 'final_selected');
         if (finalIndex !== -1 && finalIndex !== idx) {
@@ -3565,8 +3605,8 @@ const LandExtentTable = ({ showSelectionOption = true }) => {
 
       return {
         ...prev,
-        landExtentValuations: list,
-        perCardLandExtentValuations: newStore,
+        [stateKey]: list,
+        [perCardStoreKey]: newStore,
       };
     });
   };
@@ -3576,6 +3616,9 @@ const LandExtentTable = ({ showSelectionOption = true }) => {
   const selectedDocLabel = selectedDocCard
     ? (selectedDocCard.document_name || selectedDocCard.description || '')
     : '';
+
+  const activeRows = formData[stateKey] || [];
+  const currentCumulativeExtent = getCumulativeExtentForBasis(currentBasis, landCards);
 
   return (
     <div style={{ marginBottom: '15px' }}>
@@ -3644,14 +3687,13 @@ const LandExtentTable = ({ showSelectionOption = true }) => {
                 transition: 'all 0.2s ease',
               }}
             >
-              ✦ All Documents (Cumulative Sum)
+              ✦ All Documents (Cumulative: {currentCumulativeExtent || '—'} sqft)
             </button>
             {landCards.map((c, idx) => {
               const isActive = activeCardChoice === String(idx);
               const docIdentifier = c.document_name || c.description || '';
-              const label = docIdentifier
-                ? `Document #${idx + 1}: ${docIdentifier}`
-                : `Document #${idx + 1}`;
+              const docExtent = getExtentForCard(c, currentBasis) || getExtentForCard(c, 'as_per_documents') || getExtentForCard(c, 'as_per_actual') || '';
+              const label = `Document #${idx + 1}${docIdentifier ? `: ${docIdentifier}` : ''}${docExtent ? ` (${docExtent} sqft)` : ''}`;
               return (
                 <button
                   key={c.id || idx}
@@ -3691,7 +3733,7 @@ const LandExtentTable = ({ showSelectionOption = true }) => {
             </tr>
           </thead>
           <tbody>
-            {(formData.landExtentValuations || []).map((row, idx) => {
+            {activeRows.map((row, idx) => {
               const isFinal = row.basis_of_valuation === 'final_selected';
               const isSelected = !isFinal && currentBasis === row.basis_of_valuation;
 
@@ -3726,7 +3768,7 @@ const LandExtentTable = ({ showSelectionOption = true }) => {
                       >
                         <input
                           type="radio"
-                          name="land_valuation_basis_table_select"
+                          name={`${radioPrefix}_table_select`}
                           checked={isSelected}
                           onChange={() => handleSelectBasis(row.basis_of_valuation)}
                           style={{
@@ -3919,7 +3961,7 @@ const LandExtentTable = ({ showSelectionOption = true }) => {
                 >
                   <input
                     type="radio"
-                    name="land_valuation_basis_bottom_radio"
+                    name={`${radioPrefix}_bottom_radio`}
                     checked={active}
                     onChange={() => handleSelectBasis(opt.id)}
                     style={{
@@ -3937,6 +3979,94 @@ const LandExtentTable = ({ showSelectionOption = true }) => {
           <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginLeft: 'auto' }}>
             Reflected into: <strong style={{ color: 'var(--primary-gold, #C9A84C)' }}>Final Selected (Sq Ft)</strong>
           </span>
+        </div>
+      )}
+
+      {/* Document-wise Land Area Breakdown (reflects Document 1 & Document 2 land areas separately) */}
+      {landCards.length > 1 && (
+        <div
+          style={{
+            marginTop: '16px',
+            padding: '14px 18px',
+            borderRadius: '8px',
+            background: 'rgba(255, 255, 255, 0.03)',
+            border: '1px solid rgba(201, 168, 76, 0.25)',
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap', gap: '8px' }}>
+            <span style={{ fontSize: '0.85rem', fontWeight: '700', color: 'var(--primary-gold, #C9A84C)' }}>
+              Document-wise Land Area Breakdown ({landCards.length} Documents):
+            </span>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+              Reflecting Document 1 & Document 2 land areas separately
+            </span>
+          </div>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', fontSize: '0.85rem', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.1)', color: 'var(--text-secondary)' }}>
+                  <th style={{ textAlign: 'left', padding: '6px 10px' }}>Document</th>
+                  <th style={{ textAlign: 'right', padding: '6px 10px' }}>Land Extent ({basisLabels[currentBasis] || 'Selected'})</th>
+                  <th style={{ textAlign: 'right', padding: '6px 10px' }}>Cost / Sqft</th>
+                  <th style={{ textAlign: 'right', padding: '6px 10px' }}>Total Value</th>
+                  <th style={{ textAlign: 'center', padding: '6px 10px', width: '100px' }}>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {landCards.map((c, cIdx) => {
+                  const store = getPerCardStore(formData);
+                  const cRows = (store[String(cIdx)] || []);
+                  const cRow = cRows.find(r => r.basis_of_valuation === currentBasis) || cRows.find(r => r.basis_of_valuation === 'final_selected') || {};
+                  const cExtent = getExtentForCard(c, currentBasis) || cRow.land_extent_sqft || '—';
+                  const cCost = cRow.cost_per_sqft || '—';
+                  const cTotal = cRow.total_value ? `₹ ${Number(cRow.total_value).toLocaleString('en-IN')}` : '—';
+                  const docName = c.document_name || c.description || `Document #${cIdx + 1}`;
+                  const isRowSelected = activeCardChoice === String(cIdx);
+
+                  return (
+                    <tr
+                      key={cIdx}
+                      style={{
+                        borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+                        background: isRowSelected ? 'rgba(59, 130, 246, 0.08)' : 'transparent',
+                      }}
+                    >
+                      <td style={{ padding: '8px 10px', fontWeight: '600', color: 'var(--text-primary)' }}>
+                        Document #{cIdx + 1}: {docName}
+                      </td>
+                      <td style={{ padding: '8px 10px', textAlign: 'right', color: 'var(--primary-gold, #C9A84C)', fontWeight: '600' }}>
+                        {cExtent} sqft
+                      </td>
+                      <td style={{ padding: '8px 10px', textAlign: 'right', color: 'var(--text-primary)' }}>
+                        {cCost !== '—' ? `₹ ${cCost}` : '—'}
+                      </td>
+                      <td style={{ padding: '8px 10px', textAlign: 'right', fontWeight: '700', color: 'var(--text-primary)' }}>
+                        {cTotal}
+                      </td>
+                      <td style={{ padding: '8px 10px', textAlign: 'center' }}>
+                        <button
+                          type="button"
+                          onClick={() => handleCardSelect(String(cIdx))}
+                          style={{
+                            padding: '3px 10px',
+                            fontSize: '0.75rem',
+                            borderRadius: '12px',
+                            border: isRowSelected ? '1px solid #3b82f6' : '1px solid rgba(59, 130, 246, 0.4)',
+                            background: isRowSelected ? '#2563eb' : 'rgba(59, 130, 246, 0.1)',
+                            color: '#ffffff',
+                            cursor: 'pointer',
+                            fontWeight: '600',
+                          }}
+                        >
+                          {isRowSelected ? 'Editing' : `Edit Doc #${cIdx + 1}`}
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>
@@ -4604,6 +4734,20 @@ const FinalValueChartTable = () => {
   })();
   const landMarket = landFinalRow?.total_value || '';
 
+  const guidelineLandFinalRow = (() => {
+    const rawLand = formData.technicalDetails?.landMeasurements;
+    const cards = Array.isArray(rawLand) ? rawLand : (rawLand && typeof rawLand === 'object' ? [rawLand] : []);
+    const perCard = formData.perCardGuidelineLandExtentValuations;
+    if (cards.length > 1 && perCard && perCard['all']) {
+      const allFinal = perCard['all'].find(r => r.basis_of_valuation === 'final_selected');
+      if (allFinal?.total_value) return allFinal;
+    }
+    return (formData.guidelineLandExtentValuations || []).find(
+      r => r.basis_of_valuation === 'final_selected'
+    );
+  })();
+  const guidelineLandMarket = guidelineLandFinalRow?.total_value || '';
+
   // ── Structure Value ──────────────────────────────────────────────────────────
   const selectedFloorKey = formData.structure_valuation_selected_floor || 'built_up_area';
   const structureRow = (() => {
@@ -4661,7 +4805,7 @@ const FinalValueChartTable = () => {
 
   // ── Build rows ───────────────────────────────────────────────────────────────
   const fixedRows = [
-    { label: 'Land Value',      market: landMarket,    guideline: '' },
+    { label: 'Land Value',      market: landMarket,    guideline: guidelineLandMarket },
     { label: 'Structure Value', market: structureMarket, guideline: '' },
   ];
 

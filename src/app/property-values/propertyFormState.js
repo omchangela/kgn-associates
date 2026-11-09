@@ -244,6 +244,15 @@ export const initialFormData = {
   land_valuation_basis: 'as_per_documents',
   selected_land_card: 'all',
   perCardLandExtentValuations: {},
+  guidelineLandExtentValuations: [
+    { basis_of_valuation: 'as_per_documents', land_extent_sqft: '', cost_per_sqft: '', total_value: '' },
+    { basis_of_valuation: 'as_per_actual', land_extent_sqft: '', cost_per_sqft: '', total_value: '' },
+    { basis_of_valuation: 'as_per_plan', land_extent_sqft: '', cost_per_sqft: '', total_value: '' },
+    { basis_of_valuation: 'final_selected', land_extent_sqft: '', cost_per_sqft: '', total_value: '' },
+  ],
+  guideline_land_valuation_basis: 'as_per_documents',
+  selected_guideline_land_card: 'all',
+  perCardGuidelineLandExtentValuations: {},
   structureValuations: [
     { floor_details: 'carpet_area', area_sqft: '', recommendation_of_funding: '', cost_per_sqft: '', total_value: '' },
     { floor_details: 'plinth_area', area_sqft: '', recommendation_of_funding: '', cost_per_sqft: '', total_value: '' },
@@ -555,6 +564,15 @@ export const getSampleFormData = () => {
     land_valuation_basis: 'as_per_documents',
     selected_land_card: 'all',
     perCardLandExtentValuations: {},
+    guidelineLandExtentValuations: [
+      { basis_of_valuation: 'as_per_documents', land_extent_sqft: '1200', cost_per_sqft: '1500', total_value: '1800000' },
+      { basis_of_valuation: 'as_per_actual', land_extent_sqft: '1100', cost_per_sqft: '1500', total_value: '1650000' },
+      { basis_of_valuation: 'as_per_plan', land_extent_sqft: '1300', cost_per_sqft: '1500', total_value: '1950000' },
+      { basis_of_valuation: 'final_selected', land_extent_sqft: '1200', cost_per_sqft: '1500', total_value: '1800000' },
+    ],
+    guideline_land_valuation_basis: 'as_per_documents',
+    selected_guideline_land_card: 'all',
+    perCardGuidelineLandExtentValuations: {},
     structureValuations: [
       { floor_details: 'carpet_area', area_sqft: '900', recommendation_of_funding: '80%', cost_per_sqft: '1500', total_value: '1080000' },
       { floor_details: 'plinth_area', area_sqft: '1000', recommendation_of_funding: '80%', cost_per_sqft: '1500', total_value: '1200000' },
