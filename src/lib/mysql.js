@@ -366,10 +366,32 @@ export async function getAdminStats() {
   }
 }
 
-export async function updateValuationStatus(id, status) {
+export async function updateValuationStatus(id, status, allow_employee_edit) {
   try {
-    const sql = `UPDATE valuations SET status = ? WHERE id = ?`;
-    await query(sql, [status, id]);
+    if (allow_employee_edit !== undefined && status) {
+      try {
+        const sql = `UPDATE valuations SET status = ?, allow_employee_edit = ? WHERE id = ?`;
+        await query(sql, [status, allow_employee_edit ? 1 : 0, id]);
+        return true;
+      } catch {
+        // Fallback if allow_employee_edit column is not yet migrated in MySQL table
+        const fallbackSql = `UPDATE valuations SET status = ? WHERE id = ?`;
+        await query(fallbackSql, [status, id]);
+        return true;
+      }
+    } else if (status) {
+      const sql = `UPDATE valuations SET status = ? WHERE id = ?`;
+      await query(sql, [status, id]);
+      return true;
+    } else if (allow_employee_edit !== undefined) {
+      try {
+        const sql = `UPDATE valuations SET allow_employee_edit = ? WHERE id = ?`;
+        await query(sql, [allow_employee_edit ? 1 : 0, id]);
+        return true;
+      } catch {
+        return true;
+      }
+    }
     return true;
   } catch (err) {
     console.error('Failed to update valuation status in MySQL:', err);

@@ -20,6 +20,9 @@ import {
   TrendingUp,
   Sparkles,
   Users,
+  Lock,
+  Unlock,
+  Pencil,
 } from 'lucide-react';
 import { propertyValuationAPI } from '@/services/api';
 import gsap from 'gsap';
@@ -405,23 +408,48 @@ const Dashboard = () => {
                               </span>
                             </td>
                             <td style={{ textAlign: 'right' }}>
-                              <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                                <button
-                                  onClick={(e) => handleDownloadWord(repId, e)}
-                                  className={styles.wordButton}
-                                  disabled={isWordDownloading || isDownloading}
-                                >
-                                  <Download size={14} />
-                                  <span>{isWordDownloading ? 'Preparing…' : 'Word'}</span>
-                                </button>
-                                <button
-                                  onClick={(e) => handleDownloadPDF(repId, e)}
-                                  className={styles.pdfButton}
-                                  disabled={isDownloading || isWordDownloading}
-                                >
-                                  <Download size={14} />
-                                  <span>{isDownloading ? 'Preparing…' : 'PDF'}</span>
-                                </button>
+                              <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', alignItems: 'center' }}>
+                                {rep.allow_employee_edit || rep.status === 'correction_needed' ? (
+                                  <Link
+                                    href={`/property-values?edit=${encodeURIComponent(repId)}`}
+                                    style={{
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '5px',
+                                      padding: '5px 12px',
+                                      borderRadius: '6px',
+                                      background: 'rgba(245, 158, 11, 0.12)',
+                                      border: '1px solid rgba(245, 158, 11, 0.4)',
+                                      color: '#d97706',
+                                      fontSize: '0.8rem',
+                                      fontWeight: '600',
+                                      textDecoration: 'none',
+                                    }}
+                                    title="Edit corrections granted by Admin"
+                                  >
+                                    <Pencil size={13} />
+                                    <span>Edit Correction</span>
+                                  </Link>
+                                ) : (
+                                  <span
+                                    style={{
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '5px',
+                                      padding: '4px 10px',
+                                      borderRadius: '6px',
+                                      background: 'rgba(100, 116, 139, 0.08)',
+                                      border: '1px solid rgba(100, 116, 139, 0.25)',
+                                      color: '#64748b',
+                                      fontSize: '0.78rem',
+                                      fontWeight: '500',
+                                    }}
+                                    title="Report submitted. Contact Admin to request edit access for corrections."
+                                  >
+                                    <Lock size={12} />
+                                    <span>Locked</span>
+                                  </span>
+                                )}
                               </div>
                             </td>
                           </tr>

@@ -365,10 +365,15 @@ class MemoryStore {
     return user;
   }
 
-  updateValuationStatus(id, status) {
+  updateValuationStatus(id, status, allow_employee_edit) {
     const val = this.valuations.find(v => v.id === id || v._id === id);
     if (!val) return false;
-    val.status = status;
+    if (status !== undefined && status !== null) {
+      val.status = status;
+    }
+    if (allow_employee_edit !== undefined) {
+      val.allow_employee_edit = Boolean(allow_employee_edit);
+    }
     val.updatedAt = new Date().toISOString();
     return true;
   }

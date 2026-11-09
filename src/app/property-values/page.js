@@ -5,7 +5,7 @@ import styles from './PropertyValues.module.css';
 import Sidebar from '@/components/sidebar/Sidebar';
 import Header from '@/components/header/Header';
 import Footer from '@/components/footer/Footer';
-import { Calendar, ChevronRight, ChevronDown, Plus, Trash2, Upload, PenTool, RotateCcw } from 'lucide-react';
+import { Calendar, ChevronRight, ChevronDown, Plus, Trash2, Upload, PenTool, RotateCcw, Lock, Unlock, ShieldCheck } from 'lucide-react';
 import { propertyValuationAPI } from '@/services/api';
 import { initialFormData, getSampleFormData, sanitizePayload, parseNumber, roundCoord, emptyPhoto, emptyPhotoGroup } from './propertyFormState';
 import gsap from 'gsap';
@@ -51,6 +51,7 @@ const accessOptions = [
 const PropertyValues = () => {
   const searchParams = useSearchParams();
   const editId = searchParams.get('edit');
+  const isAdminParam = searchParams.get('admin') === '1';
 
   const tabs = ["Institution Details", "Property", "Schedule", "Infrastructure", "Technical", "Property Market Value", "Final Valuation", "Location", "Characteristics", "Photos"];
   const [activeTab, setActiveTab] = useState("Institution Details");
@@ -61,7 +62,27 @@ const PropertyValues = () => {
   const [editReportId, setEditReportId] = useState(null);
   const [loadingEdit, setLoadingEdit] = useState(false);
   const [showPropertyDetails, setShowPropertyDetails] = useState(false);
+  const [reportStatus, setReportStatus] = useState('draft');
+  const [allowEmployeeEdit, setAllowEmployeeEdit] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
   const tabContentRef = useRef(null);
+
+  // ── Detect Admin Session ──────────────────────────────────────────────────
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const isAdm = isAdminParam || Boolean(localStorage.getItem('admin_token')) || document.referrer.includes('/admin');
+      setIsAdmin(isAdm);
+    }
+  }, [isAdminParam]);
+
+  // ── Lockout check: employees cannot edit unless unlocked or draft ─────────
+  const isLockedForUser = Boolean(
+    editId &&
+    !isAdmin &&
+    !allowEmployeeEdit &&
+    reportStatus !== 'draft' &&
+    reportStatus !== 'correction_needed'
+  );
 
   // ── Load existing report when ?edit=ID is in URL ──────────────────────────
   useEffect(() => {
@@ -73,6 +94,8 @@ const PropertyValues = () => {
       .then(r => r.json())
       .then(data => {
         if (data && !data.detail) {
+          setReportStatus(data.status || 'draft');
+          setAllowEmployeeEdit(Boolean(data.allow_employee_edit));
           setFormData(prev => ({
             ...prev,
             institutionDetails:        data.institution_details        || data.institutionDetails        || prev.institutionDetails,
@@ -494,16 +517,52 @@ const PropertyValues = () => {
 
       // 1 single instant atomic save in MySQL (under 20ms)
       if (isEditMode && editReportId) {
+        if (isLockedForUser) {
+          alert('This report is locked for editing. Please contact Administrator to grant edit access before making corrections.');
+          return;
+        }
+
+        const updatedStatus = isAdmin ? (reportStatus || 'completed') : 'under_review';
+        const updatedAllowEdit = isAdmin ? allowEmployeeEdit : false;
+
         // UPDATE existing report
-        await propertyValuationAPI.saveFullValuation({ ...payload, id: editReportId, _id: editReportId });
-        alert('Report updated successfully!');
+        await propertyValuationAPI.saveFullValuation({
+          ...payload,
+          id: editReportId,
+          _id: editReportId,
+          status: updatedStatus,
+          allow_employee_edit: updatedAllowEdit,
+        });
+
+        // Sync report status & lock to memory store / database
+        try {
+          await fetch('/api/admin/reports/status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              reportId: editReportId,
+              status: updatedStatus,
+              allow_employee_edit: updatedAllowEdit,
+            }),
+          });
+        } catch (_) {}
+
+        if (isAdmin) {
+          alert('Report updated successfully by Administrator!');
+        } else {
+          alert('Corrections saved and submitted to Admin for review. Report is now locked.');
+          setAllowEmployeeEdit(false);
+          setReportStatus('under_review');
+        }
       } else {
         // CREATE new report
-        const valuation = await propertyValuationAPI.saveFullValuation(payload);
-        const valId = valuation.id || valuation._id || id;
-        // Download certified PDF immediately
-        await propertyValuationAPI.generatePDF(valId);
-        alert('Valuation report submitted and PDF downloaded successfully!');
+        await propertyValuationAPI.saveFullValuation({
+          ...payload,
+          status: 'under_review',
+          allow_employee_edit: false,
+        });
+        // Automatic PDF download removed for employee panel as requested
+        alert('Valuation report submitted successfully!');
       }
     } catch (error) {
       console.error('Error submitting form:', error);
@@ -542,20 +601,79 @@ const PropertyValues = () => {
           <main className={styles.mainScrollArea}>
             <div className={styles.contentPadding}>
 
-              {/* ── Edit Mode Banner ── */}
-              {isEditMode && (
+              {/* ── Status & Access Banners ── */}
+              {isEditMode && isLockedForUser && (
+                <div style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px',
+                  background: '#fef2f2', border: '1.5px solid #ef4444',
+                  borderRadius: '10px', padding: '12px 18px', marginBottom: '16px', flexWrap: 'wrap',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <Lock size={22} color="#dc2626" />
+                    <div>
+                      <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#dc2626' }}>
+                        Report Locked for Editing
+                      </div>
+                      <div style={{ fontSize: '0.84rem', color: '#7f1d1d' }}>
+                        This report is submitted and locked. If you need to make corrections, please contact your Administrator to grant edit access.
+                      </div>
+                    </div>
+                  </div>
+                  <span style={{ fontSize: '0.78rem', background: '#fee2e2', color: '#991b1b', padding: '5px 12px', borderRadius: '6px', fontWeight: 700 }}>
+                    Report #{editReportId} · Read-Only
+                  </span>
+                </div>
+              )}
+
+              {isEditMode && isAdmin && (
+                <div style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px',
+                  background: '#faf5ff', border: '1.5px solid #c084fc',
+                  borderRadius: '10px', padding: '12px 18px', marginBottom: '16px', flexWrap: 'wrap',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <ShieldCheck size={22} color="#7e22ce" />
+                    <div>
+                      <div style={{ fontSize: '0.94rem', fontWeight: 700, color: '#7e22ce' }}>
+                        Administrator Full Edit Access
+                      </div>
+                      <div style={{ fontSize: '0.84rem', color: '#6b21a8' }}>
+                        You have full authority to modify any part of this valuation report at any time.
+                      </div>
+                    </div>
+                  </div>
+                  <a
+                    href="/admin/reports"
+                    style={{
+                      fontSize: '0.82rem',
+                      background: '#7e22ce',
+                      color: '#ffffff',
+                      padding: '6px 14px',
+                      borderRadius: '6px',
+                      textDecoration: 'none',
+                      fontWeight: 600,
+                    }}
+                  >
+                    ← Back to Admin Reports
+                  </a>
+                </div>
+              )}
+
+              {isEditMode && !isAdmin && !isLockedForUser && (
                 <div style={{
                   display: 'flex', alignItems: 'center', gap: '10px',
-                  background: 'rgba(184,134,11,0.1)', border: '1px solid rgba(184,134,11,0.4)',
-                  borderRadius: '10px', padding: '10px 18px', marginBottom: '16px', flexWrap: 'wrap',
+                  background: '#fff7ed', border: '1.5px solid #f97316',
+                  borderRadius: '10px', padding: '12px 18px', marginBottom: '16px', flexWrap: 'wrap',
                 }}>
-                  <span style={{ fontSize: '0.95rem', fontWeight: 700, color: '#B8860B' }}>
-                    ✏️ Edit Mode
-                  </span>
-                  <span style={{ fontSize: '0.85rem', color: '#64748b' }}>
-                    Editing report: <strong>{editReportId}</strong> — changes will update the existing report.
-                  </span>
-                  {loadingEdit && <span style={{ fontSize: '0.82rem', color: '#B8860B' }}>⏳ Loading data...</span>}
+                  <Unlock size={22} color="#ea580c" />
+                  <div>
+                    <div style={{ fontSize: '0.94rem', fontWeight: 700, color: '#c2410c' }}>
+                      Correction Mode Active (Unlocked by Admin)
+                    </div>
+                    <div style={{ fontSize: '0.84rem', color: '#9a3412' }}>
+                      Administrator has granted you temporary access to make corrections. When you click Submit Corrections, this report will automatically re-lock for administrative review.
+                    </div>
+                  </div>
                 </div>
               )}
               {/* Navigation Tabs */}
@@ -571,7 +689,7 @@ const PropertyValues = () => {
                 ))}
               </div>
 
-              <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap', alignItems: 'center' }}>
                 <button type="button" className={styles.blueBtn} onClick={fillSampleData}>
                   Fill Sample Data
                 </button>
@@ -591,6 +709,45 @@ const PropertyValues = () => {
                 >
                   Clear Form
                 </button>
+
+                {isEditMode && (
+                  <button
+                    type="button"
+                    onClick={handleSubmit}
+                    disabled={isSubmitting || isLockedForUser}
+                    style={{
+                      background: isLockedForUser ? '#94a3b8' : isAdmin ? '#7e22ce' : '#ea580c',
+                      color: '#ffffff',
+                      border: 'none',
+                      padding: '8px 18px',
+                      borderRadius: 'var(--border-radius)',
+                      cursor: isLockedForUser ? 'not-allowed' : 'pointer',
+                      fontWeight: 600,
+                      fontSize: '0.9rem',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      marginLeft: 'auto',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.08)',
+                    }}
+                  >
+                    {isSubmitting ? (
+                      'Saving...'
+                    ) : isLockedForUser ? (
+                      <>
+                        <Lock size={16} /> Report Locked (Contact Admin)
+                      </>
+                    ) : isAdmin ? (
+                      <>
+                        <ShieldCheck size={16} /> Save Changes (Admin)
+                      </>
+                    ) : (
+                      <>
+                        <Unlock size={16} /> Submit Corrections
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
 
               <div ref={tabContentRef} style={{ width: '100%' }}>
@@ -1418,8 +1575,32 @@ const PropertyValues = () => {
                     </div>
 
                     <div className={styles.footerActions}>
-                      <button className={styles.nextBtn} onClick={handleSubmit} disabled={isSubmitting}>
-                        {isSubmitting ? 'Submitting...' : 'Submit'} <ChevronRight size={18} />
+                      <button
+                        className={styles.nextBtn}
+                        onClick={handleSubmit}
+                        disabled={isSubmitting || isLockedForUser}
+                        style={{
+                          opacity: isLockedForUser ? 0.6 : 1,
+                          cursor: isLockedForUser ? 'not-allowed' : 'pointer',
+                          background: isLockedForUser ? '#94a3b8' : undefined,
+                        }}
+                      >
+                        {isSubmitting ? (
+                          'Submitting...'
+                        ) : isLockedForUser ? (
+                          <>
+                            <Lock size={16} style={{ marginRight: '6px' }} /> Report Locked (Contact Admin)
+                          </>
+                        ) : isEditMode ? (
+                          isAdmin ? (
+                            'Update Report (Admin)'
+                          ) : (
+                            'Submit Corrections'
+                          )
+                        ) : (
+                          'Submit'
+                        )}{' '}
+                        <ChevronRight size={18} />
                       </button>
                     </div>
                   </>

@@ -27,6 +27,9 @@ import {
   IndianRupee,
   Briefcase,
   Pencil,
+  Lock,
+  Unlock,
+  Send,
 } from 'lucide-react';
 import { ArchitecturalGridSvg, KgnCrest } from '@/components/common/SvgDecorations';
 
@@ -134,6 +137,50 @@ export default function AdminReportsPage() {
     }
   };
 
+  // Toggle employee edit access (granting access when employee calls for corrections)
+  const handleToggleEmployeeEdit = async (reportId, currentAccess) => {
+    setUpdatingId(reportId);
+    const newAccess = !currentAccess;
+    try {
+      const res = await fetch('/api/admin/reports/status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: reportId,
+          allow_employee_edit: newAccess,
+          status: newAccess ? 'correction_needed' : undefined,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showNotification(
+          newAccess
+            ? 'Edit access granted to valuer (sent back for corrections)'
+            : 'Employee edit access revoked / locked',
+          'success'
+        );
+        setReports(prev => prev.map(r => (r.id === reportId || r._id === reportId) ? {
+          ...r,
+          allow_employee_edit: newAccess,
+          status: newAccess ? 'correction_needed' : (r.status === 'correction_needed' ? 'pending' : r.status),
+        } : r));
+        if (selectedReport && (selectedReport.id === reportId || selectedReport._id === reportId)) {
+          setSelectedReport(prev => ({
+            ...prev,
+            allow_employee_edit: newAccess,
+            status: newAccess ? 'correction_needed' : (prev.status === 'correction_needed' ? 'pending' : prev.status),
+          }));
+        }
+      } else {
+        showNotification(data.error || 'Failed to update edit access', 'error');
+      }
+    } catch {
+      showNotification('Network error updating edit access', 'error');
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
   // Filtered reports
   const filteredReports = useMemo(() => {
     return reports.filter(r => {
@@ -173,8 +220,20 @@ export default function AdminReportsPage() {
     return `₹ ${n.toLocaleString('en-IN')}`;
   };
 
-  const getStatusBadge = (status) => {
+  const getStatusBadge = (status, allowEdit) => {
     const s = (status || 'draft').toLowerCase();
+    if (s === 'correction_needed' || allowEdit) {
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+          <span className={styles.statusBadge} style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#d97706', border: '1px solid rgba(245, 158, 11, 0.4)' }}>
+            <Unlock size={12} /> Sent for Correction
+          </span>
+          <span style={{ fontSize: '0.68rem', color: '#10b981', fontWeight: 600 }}>
+            ● Valuer Has Edit Access
+          </span>
+        </div>
+      );
+    }
     if (s === 'approved' || s === 'completed') {
       return <span className={`${styles.statusBadge} ${styles.statusApproved}`}><CheckCircle size={13} /> Approved</span>;
     }
@@ -444,10 +503,10 @@ export default function AdminReportsPage() {
 
                             {/* Status */}
                             <td>
-                              {getStatusBadge(r.status)}
+                              {getStatusBadge(r.status, Boolean(r.allow_employee_edit))}
                             </td>
 
-                            {/* Actions: View PDF, Approve, Reject */}
+                            {/* Actions: View PDF, Edit, Grant/Revoke Access, Approve, Reject */}
                             <td>
                               <div className={styles.actionsCell}>
                                 {/* View PDF button */}
@@ -461,6 +520,50 @@ export default function AdminReportsPage() {
                                   <ExternalLink size={13} />
                                   <span>View PDF</span>
                                 </a>
+
+                                {/* Edit — open in property-values form for Admin anytime */}
+                                <button
+                                  type="button"
+                                  onClick={() => router.push(`/property-values?edit=${encodeURIComponent(repId)}&admin=1`)}
+                                  className={styles.secondaryBtn}
+                                  style={{
+                                    padding: '6px 12px',
+                                    fontSize: '0.8rem',
+                                    fontWeight: '700',
+                                    color: '#2563EB',
+                                    borderColor: 'rgba(37,99,235,0.4)',
+                                    background: 'rgba(37,99,235,0.08)',
+                                  }}
+                                  title="Edit this valuation document anytime as Admin"
+                                >
+                                  <Pencil size={13} />
+                                  <span>Edit</span>
+                                </button>
+
+                                {/* Send Back Access / Toggle Employee Edit */}
+                                <button
+                                  type="button"
+                                  onClick={() => handleToggleEmployeeEdit(repId, Boolean(r.allow_employee_edit))}
+                                  disabled={isUpdating}
+                                  style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '5px',
+                                    padding: '6px 10px',
+                                    fontSize: '0.78rem',
+                                    fontWeight: '600',
+                                    borderRadius: '6px',
+                                    cursor: isUpdating ? 'wait' : 'pointer',
+                                    transition: 'all 0.15s ease',
+                                    border: r.allow_employee_edit ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid rgba(245, 158, 11, 0.5)',
+                                    background: r.allow_employee_edit ? 'rgba(239, 68, 68, 0.08)' : 'rgba(245, 158, 11, 0.12)',
+                                    color: r.allow_employee_edit ? '#dc2626' : '#d97706',
+                                  }}
+                                  title={r.allow_employee_edit ? 'Click to lock / revoke employee edit access' : 'Send back edit access to employee for corrections'}
+                                >
+                                  {r.allow_employee_edit ? <Lock size={12} /> : <Unlock size={12} />}
+                                  <span>{r.allow_employee_edit ? 'Revoke Access' : 'Grant Valuer Access'}</span>
+                                </button>
 
                                 {/* Approve button */}
                                 <button
@@ -496,18 +599,6 @@ export default function AdminReportsPage() {
                                 >
                                   <Eye size={13} />
                                   <span>Details</span>
-                                </button>
-
-                                {/* Edit — open in property-values form */}
-                                <button
-                                  type="button"
-                                  onClick={() => router.push(`/property-values?edit=${encodeURIComponent(repId)}`)}
-                                  className={styles.secondaryBtn}
-                                  style={{ padding: '6px 10px', fontSize: '0.8rem', color: '#2563EB', borderColor: 'rgba(37,99,235,0.3)', background: 'rgba(37,99,235,0.07)' }}
-                                  title="Edit this valuation report"
-                                >
-                                  <Pencil size={13} />
-                                  <span>Edit</span>
                                 </button>
                               </div>
                             </td>
@@ -602,19 +693,68 @@ export default function AdminReportsPage() {
               </div>
             </div>
 
-            <div className={styles.modalFooter}>
-              {/* PDF button */}
-              <a
-                href={`/api/valuations/${encodeURIComponent(selectedReport.id)}/generate-pdf`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={styles.pdfBtn}
-              >
-                <ExternalLink size={14} />
-                <span>Open Full Certified PDF</span>
-              </a>
+            <div className={styles.modalFooter} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                {/* PDF button */}
+                <a
+                  href={`/api/valuations/${encodeURIComponent(selectedReport.id)}/generate-pdf`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.pdfBtn}
+                >
+                  <ExternalLink size={14} />
+                  <span>Open Certified PDF</span>
+                </a>
 
-              <div style={{ display: 'flex', gap: '8px' }}>
+                {/* Edit document anytime as Admin */}
+                <button
+                  type="button"
+                  onClick={() => router.push(`/property-values?edit=${encodeURIComponent(selectedReport.id)}&admin=1`)}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '7px 14px',
+                    borderRadius: '6px',
+                    background: '#2563eb',
+                    border: '1px solid #1d4ed8',
+                    color: '#ffffff',
+                    fontSize: '0.85rem',
+                    fontWeight: '700',
+                    cursor: 'pointer',
+                  }}
+                  title="Edit this report as Admin"
+                >
+                  <Pencil size={14} />
+                  <span>Edit Report</span>
+                </button>
+              </div>
+
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                {/* Send back access / toggle employee edit */}
+                <button
+                  type="button"
+                  onClick={() => handleToggleEmployeeEdit(selectedReport.id, Boolean(selectedReport.allow_employee_edit))}
+                  disabled={updatingId === selectedReport.id}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '7px 13px',
+                    borderRadius: '6px',
+                    border: selectedReport.allow_employee_edit ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid rgba(245, 158, 11, 0.5)',
+                    background: selectedReport.allow_employee_edit ? 'rgba(239, 68, 68, 0.1)' : 'rgba(245, 158, 11, 0.12)',
+                    color: selectedReport.allow_employee_edit ? '#dc2626' : '#d97706',
+                    fontSize: '0.85rem',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                  }}
+                  title={selectedReport.allow_employee_edit ? 'Revoke employee edit access' : 'Send back edit access to valuer for corrections'}
+                >
+                  {selectedReport.allow_employee_edit ? <Lock size={14} /> : <Unlock size={14} />}
+                  <span>{selectedReport.allow_employee_edit ? 'Revoke Valuer Access' : 'Grant Valuer Edit Access'}</span>
+                </button>
+
                 <button
                   type="button"
                   onClick={() => handleUpdateStatus(selectedReport.id, 'rejected')}

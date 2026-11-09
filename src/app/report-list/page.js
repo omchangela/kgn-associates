@@ -6,7 +6,7 @@ import styles from './ReportList.module.css';
 import Sidebar from '@/components/sidebar/Sidebar';
 import Header from '@/components/header/Header';
 import Footer from '@/components/footer/Footer';
-import { Search, Eye, Download, Trash2, PlusCircle, RefreshCw, CheckCircle2, Clock } from 'lucide-react';
+import { Search, Eye, Download, Trash2, PlusCircle, RefreshCw, CheckCircle2, Clock, Lock, Unlock, Pencil } from 'lucide-react';
 import { propertyValuationAPI } from '@/services/api';
 import gsap from 'gsap';
 import { ApprovedValuerBadge } from '@/components/common/SvgDecorations';
@@ -249,42 +249,83 @@ const ReportList = () => {
                             <td>{date}</td>
                             <td className={styles.valueCell}>{val}</td>
                             <td>
-                              <span
-                                className={`${styles.status} ${
-                                  status === 'completed' ? styles.statusCompleted : styles.statusDraft
-                                }`}
-                              >
-                                {status === 'completed' ? (
-                                  <>
-                                    <CheckCircle2 size={12} />
-                                    <span>CERTIFIED</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Clock size={12} />
-                                    <span>DRAFT</span>
-                                  </>
-                                )}
-                              </span>
+                              {report.allow_employee_edit || report.status === 'correction_needed' ? (
+                                <span
+                                  className={styles.status}
+                                  style={{
+                                    background: 'rgba(245, 158, 11, 0.12)',
+                                    color: '#f59e0b',
+                                    border: '1px solid rgba(245, 158, 11, 0.3)',
+                                  }}
+                                  title="Admin granted edit access for corrections"
+                                >
+                                  <Unlock size={12} />
+                                  <span>CORRECTION UNLOCKED</span>
+                                </span>
+                              ) : status === 'completed' || status === 'approved' ? (
+                                <span
+                                  className={`${styles.status} ${styles.statusCompleted}`}
+                                  title="Submitted and locked. Contact Admin for edit access."
+                                >
+                                  <Lock size={12} />
+                                  <span>CERTIFIED (LOCKED)</span>
+                                </span>
+                              ) : (
+                                <span className={`${styles.status} ${styles.statusDraft}`}>
+                                  <Clock size={12} />
+                                  <span>DRAFT</span>
+                                </span>
+                              )}
                             </td>
                             <td style={{ textAlign: 'right' }}>
-                              <div className={styles.actions} style={{ justifyContent: 'flex-end' }}>
-                                <button
-                                  className={styles.actionBtn}
-                                  onClick={(e) => handleDownloadPDF(repId, e)}
-                                  disabled={isDownloading}
-                                  title="Download Certified PDF"
-                                >
-                                  <Download size={14} />
-                                  <span>{isDownloading ? 'Building...' : 'PDF'}</span>
-                                </button>
-                                <button
-                                  className={`${styles.actionBtn} ${styles.deleteBtn}`}
-                                  onClick={() => handleDelete(repId)}
-                                  title="Delete Report"
-                                >
-                                  <Trash2 size={14} />
-                                </button>
+                              <div className={styles.actions} style={{ justifyContent: 'flex-end', alignItems: 'center', gap: '8px' }}>
+                                {report.allow_employee_edit || status === 'draft' || status === 'correction_needed' ? (
+                                  <Link
+                                    href={`/property-values?edit=${encodeURIComponent(repId)}`}
+                                    className={styles.actionBtn}
+                                    style={{
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '5px',
+                                      color: '#2563eb',
+                                      borderColor: 'rgba(37, 99, 235, 0.3)',
+                                      background: 'rgba(37, 99, 235, 0.08)',
+                                      textDecoration: 'none',
+                                      fontWeight: '600',
+                                    }}
+                                    title="Edit report"
+                                  >
+                                    <Pencil size={13} />
+                                    <span>Edit Report</span>
+                                  </Link>
+                                ) : (
+                                  <span
+                                    style={{
+                                      fontSize: '0.78rem',
+                                      color: 'var(--text-muted)',
+                                      padding: '4px 8px',
+                                      borderRadius: '4px',
+                                      background: 'rgba(100, 116, 139, 0.08)',
+                                      border: '1px solid rgba(100, 116, 139, 0.2)',
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '4px',
+                                    }}
+                                    title="Report locked. Call Admin to request edit access for corrections."
+                                  >
+                                    <Lock size={12} />
+                                    <span>Locked</span>
+                                  </span>
+                                )}
+                                {status === 'draft' && (
+                                  <button
+                                    className={`${styles.actionBtn} ${styles.deleteBtn}`}
+                                    onClick={() => handleDelete(repId)}
+                                    title="Delete Draft"
+                                  >
+                                    <Trash2 size={14} />
+                                  </button>
+                                )}
                               </div>
                             </td>
                           </tr>
