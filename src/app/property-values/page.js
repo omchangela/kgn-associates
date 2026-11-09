@@ -2093,18 +2093,30 @@ const MeasurementMatchingCard = ({
     }));
   };
 
+  const isBuilding = sectionKey === 'buildingMeasurements' || showBuildingSpecs;
+  const extentTitle = isBuilding ? 'Building Area' : 'Land Extent';
+  const finalExtentTitle = isBuilding ? 'Final / Total Building Area' : 'Final / Total Land Extent';
+
   const updateShape = (cardIdx, shape) => {
     const updated = cards.map((c, i) => (i === cardIdx ? { ...c, shape } : c));
     updateCards(updated);
   };
 
   const updateDocumentName = (cardIdx, document_name) => {
-    const updated = cards.map((c, i) => (i === cardIdx ? { ...c, document_name } : c));
+    const updated = cards.map((c, i) => (i === cardIdx ? {
+      ...c,
+      document_name,
+      spec_document_number: document_name,
+    } : c));
     updateCards(updated);
   };
 
   const updateDescription = (cardIdx, description) => {
-    const updated = cards.map((c, i) => (i === cardIdx ? { ...c, description } : c));
+    const updated = cards.map((c, i) => (i === cardIdx ? {
+      ...c,
+      description,
+      spec_description: description,
+    } : c));
     updateCards(updated);
   };
 
@@ -2520,7 +2532,7 @@ const MeasurementMatchingCard = ({
               );
             })}
 
-            {/* ── Land Extent (repeats inside each card) ── */}
+            {/* ── Land Extent / Building Area (repeats inside each card) ── */}
             <div
               style={{
                 marginTop: '24px',
@@ -2530,7 +2542,7 @@ const MeasurementMatchingCard = ({
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
                 <span style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--primary-gold, #B8860B)', fontFamily: 'var(--font-heading)' }}>
-                  Land Extent
+                  {extentTitle}
                 </span>
                 <span style={{ fontSize: '0.72rem', fontWeight: 600, padding: '2px 8px', borderRadius: '9999px', background: 'rgba(184,134,11,0.08)', color: 'var(--primary-gold, #B8860B)', border: '1px solid rgba(184,134,11,0.2)' }}>
                   sqft
@@ -2538,9 +2550,9 @@ const MeasurementMatchingCard = ({
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
                 {[
-                  { label: 'As per Actual',    fk: 'land_extent_actual' },
-                  { label: 'As per Documents', fk: 'land_extent_documents' },
-                  { label: 'As per Plan',      fk: 'land_extent_plan' },
+                  { label: 'As per Actual',    fk: isBuilding ? 'building_area_actual' : 'land_extent_actual' },
+                  { label: 'As per Documents', fk: isBuilding ? 'building_area_documents' : 'land_extent_documents' },
+                  { label: 'As per Plan',      fk: isBuilding ? 'building_area_plan' : 'land_extent_plan' },
                 ].map(({ label, fk }) => (
                   <div key={fk} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <label style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-secondary, #64748b)' }}>
@@ -2552,8 +2564,13 @@ const MeasurementMatchingCard = ({
                         placeholder="Enter"
                         className={styles.inputField}
                         style={{ width: '100%', paddingRight: '44px', borderColor: 'rgba(184,134,11,0.3)' }}
-                        value={card[fk] ?? ''}
-                        onChange={(e) => updateCardField(cardIdx, fk, e.target.value)}
+                        value={card[fk] ?? (isBuilding ? card[fk.replace('building_area_', 'land_extent_')] : '') ?? ''}
+                        onChange={(e) => {
+                          updateCardField(cardIdx, fk, e.target.value);
+                          if (isBuilding) {
+                            updateCardField(cardIdx, fk.replace('building_area_', 'land_extent_'), e.target.value);
+                          }
+                        }}
                       />
                       <span style={{ position: 'absolute', right: '12px', fontSize: '0.78rem', color: 'var(--primary-gold, #B8860B)', pointerEvents: 'none', fontWeight: 600 }}>
                         sqft
@@ -2702,23 +2719,31 @@ const MeasurementMatchingCard = ({
                     Floor #{cardIdx + 1}
                   </span>
 
-                  {/* Description + Document Number inline */}
+                  {/* Description + Document Number inline (reflected from card) */}
                   <div style={{ display: 'flex', gap: '10px', flex: '1 1 300px', minWidth: '240px' }}>
                     <input
                       type="text"
                       placeholder="Description"
                       className={styles.inputField}
-                      value={card.spec_description ?? ''}
-                      onChange={(e) => updateCardField(cardIdx, 'spec_description', e.target.value)}
+                      value={card.spec_description ?? card.description ?? ''}
+                      onChange={(e) => {
+                        updateCardField(cardIdx, 'spec_description', e.target.value);
+                        updateDescription(cardIdx, e.target.value);
+                      }}
                       style={{ flex: 1, padding: '7px 12px', fontSize: '0.875rem' }}
+                      title="Reflected from Description above"
                     />
                     <input
                       type="text"
                       placeholder="Document Number"
                       className={styles.inputField}
-                      value={card.spec_document_number ?? ''}
-                      onChange={(e) => updateCardField(cardIdx, 'spec_document_number', e.target.value)}
+                      value={card.spec_document_number ?? card.document_name ?? ''}
+                      onChange={(e) => {
+                        updateCardField(cardIdx, 'spec_document_number', e.target.value);
+                        updateDocumentName(cardIdx, e.target.value);
+                      }}
                       style={{ flex: 1, padding: '7px 12px', fontSize: '0.875rem' }}
+                      title="Reflected from Document above"
                     />
                   </div>
                 </div>
@@ -2775,7 +2800,7 @@ const MeasurementMatchingCard = ({
         );
       })}
 
-      {/* ── Final / Total Land Extent — appears once after all cards ── */}
+      {/* ── Final / Total Land Extent / Building Area — appears once after all cards ── */}
       <div
         style={{
           marginTop: '8px',
@@ -2787,7 +2812,7 @@ const MeasurementMatchingCard = ({
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
           <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--primary-gold, #B8860B)', fontFamily: 'var(--font-heading)' }}>
-            Final / Total Land Extent
+            {finalExtentTitle}
           </span>
           <span style={{ fontSize: '0.72rem', fontWeight: 600, padding: '2px 8px', borderRadius: '9999px', background: 'rgba(184,134,11,0.12)', color: 'var(--primary-gold, #B8860B)', border: '1px solid rgba(184,134,11,0.25)' }}>
             Manual Entry
@@ -2795,9 +2820,9 @@ const MeasurementMatchingCard = ({
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
           {[
-            { label: 'As per Actual',    sk: 'final_extent_actual' },
-            { label: 'As per Documents', sk: 'final_extent_documents' },
-            { label: 'As per Plan',      sk: 'final_extent_plan' },
+            { label: 'As per Actual',    sk: isBuilding ? 'final_building_area_actual' : 'final_extent_actual' },
+            { label: 'As per Documents', sk: isBuilding ? 'final_building_area_documents' : 'final_extent_documents' },
+            { label: 'As per Plan',      sk: isBuilding ? 'final_building_area_plan' : 'final_extent_plan' },
           ].map(({ label, sk }) => (
             <div key={sk} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               <label style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)', fontFamily: 'var(--font-heading)' }}>
@@ -2809,8 +2834,13 @@ const MeasurementMatchingCard = ({
                   placeholder="Enter"
                   className={styles.inputField}
                   style={{ width: '100%', paddingRight: '48px', borderColor: 'rgba(184,134,11,0.4)', fontWeight: 600, fontSize: '1rem' }}
-                  value={(cards[0] || {})[sk] ?? ''}
-                  onChange={(e) => updateCardField(0, sk, e.target.value)}
+                  value={(cards[0] || {})[sk] ?? (isBuilding ? (cards[0] || {})[sk.replace('final_building_area_', 'final_extent_')] : '') ?? ''}
+                  onChange={(e) => {
+                    updateCardField(0, sk, e.target.value);
+                    if (isBuilding) {
+                      updateCardField(0, sk.replace('final_building_area_', 'final_extent_'), e.target.value);
+                    }
+                  }}
                 />
                 <span style={{ position: 'absolute', right: '12px', fontSize: '0.78rem', color: 'var(--primary-gold, #B8860B)', pointerEvents: 'none', fontWeight: 700 }}>
                   sqft
