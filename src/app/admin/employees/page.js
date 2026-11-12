@@ -190,7 +190,8 @@ function AdminEmployeesContent() {
     const fullName = `${u.first_name || ''} ${u.last_name || ''}`.toLowerCase();
     const matchSearch = !q || fullName.includes(q) ||
       (u.username && u.username.toLowerCase().includes(q)) ||
-      (u.email && u.email.toLowerCase().includes(q));
+      (u.email && u.email.toLowerCase().includes(q)) ||
+      (u.phone_number && u.phone_number.replace(/\s+/g, '').includes(q.replace(/\s+/g, '')));
     const matchStatus = filterStatus === 'all' ||
       (filterStatus === 'active' && u.status !== 'inactive') ||
       (filterStatus === 'inactive' && u.status === 'inactive');
@@ -203,7 +204,7 @@ function AdminEmployeesContent() {
   const getRoleBadge = (role) => {
     if (role === 'admin') return <span className={`${styles.roleBadge} ${styles.roleAdmin}`}><ShieldCheck size={13} /> Admin</span>;
     if (role === 'inspector' || role === 'field_inspector') return <span className={`${styles.roleBadge} ${styles.roleInspector}`}><Briefcase size={13} /> Inspector</span>;
-    return <span className={`${styles.roleBadge} ${styles.roleValuer}`}><ApprovedValuerBadge size={13} /> Valuer</span>;
+    return <span className={`${styles.roleBadge} ${styles.roleValuer}`}><ApprovedValuerBadge size={13} /> KGN Associates Engineers</span>;
   };
 
   const secureInputProps = {
@@ -272,7 +273,7 @@ function AdminEmployeesContent() {
               <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
                 <div style={{ position: 'relative', width: '220px' }}>
                   <Search size={15} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
-                  <input type="text" placeholder="Search name / email..." value={searchQuery}
+                  <input type="text" placeholder="Search name / email / mobile..." value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     style={{ width: '100%', padding: '8px 12px 8px 34px', borderRadius: '6px', background: '#f8fafc', border: '1.5px solid #cbd5e1', color: '#1e293b', fontSize: '0.85rem', outline: 'none' }}
                   />
@@ -293,9 +294,9 @@ function AdminEmployeesContent() {
                     <tr>
                       <th>Employee</th>
                       <th>Designation</th>
+                      <th>Location</th>
                       <th>Email</th>
                       <th>Phone</th>
-                      <th>City</th>
                       <th>Status</th>
                       <th>Joined</th>
                       <th style={{ textAlign: 'right' }}>Actions</th>
@@ -323,9 +324,14 @@ function AdminEmployeesContent() {
                             </div>
                           </td>
                           <td>{getRoleBadge(u.role)}</td>
+                          <td>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: 'var(--text-muted)', fontSize: '0.87rem' }}>
+                              <MapPin size={13} style={{ color: 'var(--primary-gold)', flexShrink: 0 }} />
+                              {u.city || '—'}
+                            </div>
+                          </td>
                           <td><div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: 'var(--text-muted)', fontSize: '0.87rem' }}><Mail size={13} />{u.email}</div></td>
                           <td style={{ color: 'var(--text-muted)', fontSize: '0.87rem' }}>{u.phone_number || '—'}</td>
-                          <td style={{ color: 'var(--text-muted)', fontSize: '0.87rem' }}>{u.city || '—'}</td>
                           <td>
                             <span className={`${styles.statusPill} ${isActive ? styles.statusActive : styles.statusInactive}`}>
                               <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: isActive ? '#10b981' : '#f59e0b' }} />

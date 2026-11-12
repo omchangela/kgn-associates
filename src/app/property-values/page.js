@@ -10,6 +10,8 @@ import { propertyValuationAPI } from '@/services/api';
 import { initialFormData, getSampleFormData, sanitizePayload, parseNumber, roundCoord, emptyPhoto, emptyPhotoGroup } from './propertyFormState';
 import gsap from 'gsap';
 import { ApprovedValuerBadge } from '@/components/common/SvgDecorations';
+import dynamic from 'next/dynamic';
+const MapPicker = dynamic(() => import('@/components/MapPicker/MapPicker'), { ssr: false });
 
 const FormContext = createContext(null);
 
@@ -972,7 +974,7 @@ const PropertyValues = () => {
                         </button>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
-                        <button className={styles.nextBtn} onClick={handleNext}>Next <ChevronRight size={20} /></button>
+                        <button className={styles.nextBtn} onClick={handleNext}>Save <ChevronRight size={20} /></button>
                       </div>
                     </div>
                   </>
@@ -1064,7 +1066,7 @@ const PropertyValues = () => {
                       </div>
 
                       <div className={styles.footerActions}>
-                        <button className={styles.nextBtn} onClick={handleNext}>Next <ChevronRight size={18} /></button>
+                        <button className={styles.nextBtn} onClick={handleNext}>Save <ChevronRight size={18} /></button>
                       </div>
                     </div>
                   </>
@@ -1073,7 +1075,7 @@ const PropertyValues = () => {
                 {/* TAB 3: SCHEDULE */}
                 {activeTab === "Schedule" && (
                   <>
-                    <h1 className={styles.pageTitle}>Schedule Details</h1>
+                    <h1 className={styles.pageTitle}>Demarcation Details</h1>
                     <div className={styles.card}>
                       <BoundaryTable />
                     </div>
@@ -1194,7 +1196,7 @@ const PropertyValues = () => {
                     </div>
 
                     <div className={styles.footerActions}>
-                      <button className={styles.nextBtn} onClick={handleNext}>Next <ChevronRight size={18} /></button>
+                      <button className={styles.nextBtn} onClick={handleNext}>Save <ChevronRight size={18} /></button>
                     </div>
                   </>
                 )}
@@ -1299,7 +1301,7 @@ const PropertyValues = () => {
                       </div>
                     </div>
                     <div className={styles.footerActions}>
-                      <button className={styles.nextBtn} onClick={handleNext}>Next <ChevronRight size={18} /></button>
+                      <button className={styles.nextBtn} onClick={handleNext}>Save <ChevronRight size={18} /></button>
                     </div>
                   </>
                 )}
@@ -1336,7 +1338,7 @@ const PropertyValues = () => {
                       <TextAreaField label="Technical Assessment" section="technicalDetails" field="technical_assessment" placeholder="Enter technical assessment details" />
                     </div>
                     <div className={styles.footerActions}>
-                      <button className={styles.nextBtn} onClick={handleNext}>Next <ChevronRight size={18} /></button>
+                      <button className={styles.nextBtn} onClick={handleNext}>Save <ChevronRight size={18} /></button>
                     </div>
                   </>
                 )}
@@ -1358,11 +1360,9 @@ const PropertyValues = () => {
                     <p className={styles.subHeading} style={{ marginBottom: '20px' }}>Land Extent Valuation:</p>
                     <div className={styles.card} style={{ padding: '20px' }}>
                       <LandExtentTable isGuideline={true} />
-                      <h2 className={styles.sectionHeading} style={{ fontSize: '1.2rem', marginTop: '10px', marginBottom: '15px' }}>Amenities Valuation:</h2>
-                      <AmenitiesTable />
                     </div>
                     <div className={styles.footerActions}>
-                      <button className={styles.nextBtn} onClick={handleNext}>Next <ChevronRight size={18} /></button>
+                      <button className={styles.nextBtn} onClick={handleNext}>Save <ChevronRight size={18} /></button>
                     </div>
                   </>
                 )}
@@ -1374,14 +1374,7 @@ const PropertyValues = () => {
 
                     <div className={styles.card}>
                       <h2 className={styles.sectionHeading}>Final Values</h2>
-                      <div className={styles.formGrid}>
-                        <InputGroup label="Final Market Value" placeholder="Enter" type="number" section="finalValuation" field="final_market_value" />
-                        <InputGroup label="Final Guideline Value" placeholder="Enter" type="number" section="finalValuation" field="final_guideline_value" />
-                        <InputGroup label="Realised Value" placeholder="Enter" type="number" section="finalValuation" field="distress_value" />
-                        <InputGroup label="Distress Value" placeholder="Enter" type="number" section="finalValuation" field="forced_sale_value" />
-                        <InputGroup label="Replacement Cost" placeholder="Enter" type="number" section="finalValuation" field="replacement_cost" />
-                        <InputGroup label="Depreciated Cost" placeholder="Enter" type="number" section="finalValuation" field="depreciated_cost" />
-                      </div>
+                      <FinalValuationAutoFields />
                     </div>
 
                     <div className={styles.card}>
@@ -1390,7 +1383,7 @@ const PropertyValues = () => {
                     </div>
 
                     <div className={styles.footerActions}>
-                      <button className={styles.nextBtn} onClick={handleNext}>Next <ChevronRight size={18} /></button>
+                      <button className={styles.nextBtn} onClick={handleNext}>Save <ChevronRight size={18} /></button>
                     </div>
                   </>
                 )}
@@ -1443,6 +1436,33 @@ const PropertyValues = () => {
                         <InputGroup label="Latitude" placeholder="Enter Latitude" section="locationDetails" field="latitude" />
                         <InputGroup label="Longitude" placeholder="Enter Longitude" section="locationDetails" field="longitude" />
                       </div>
+
+                      {/* — Interactive Map Picker — */}
+                      <div style={{ marginTop: '18px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                          <span style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--primary-gold, #B8860B)', fontFamily: 'var(--font-heading)' }}>
+                            📍 Select on Map
+                          </span>
+                          <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                            Click anywhere on the map or drag the pin to set coordinates
+                          </span>
+                        </div>
+                        <MapPicker
+                          lat={formData.locationDetails?.latitude || ''}
+                          lng={formData.locationDetails?.longitude || ''}
+                          onChange={(lat, lng) => {
+                            updateField('locationDetails', 'latitude', lat);
+                            updateField('locationDetails', 'longitude', lng);
+                          }}
+                        />
+                        {(formData.locationDetails?.latitude || formData.locationDetails?.longitude) && (
+                          <div style={{ marginTop: '8px', fontSize: '0.82rem', color: '#64748b', display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+                            <span>📍 Lat: <strong style={{ color: 'var(--primary-gold, #B8860B)' }}>{formData.locationDetails?.latitude || '—'}</strong></span>
+                            <span>📍 Lng: <strong style={{ color: 'var(--primary-gold, #B8860B)' }}>{formData.locationDetails?.longitude || '—'}</strong></span>
+                          </div>
+                        )}
+                      </div>
+
                       <h2 className={styles.sectionHeading} style={{ marginTop: '20px' }}>Manual Gps Co-Ordinates:</h2>
                       <div className={styles.formGrid}>
                         <InputGroup label="Latitude" placeholder="Enter Latitude" section="locationDetails" field="manual_latitude" />
@@ -1450,7 +1470,7 @@ const PropertyValues = () => {
                       </div>
                     </div>
                     <div className={styles.footerActions}>
-                      <button className={styles.nextBtn} onClick={handleNext}>Next <ChevronRight size={18} /></button>
+                      <button className={styles.nextBtn} onClick={handleNext}>Save <ChevronRight size={18} /></button>
                     </div>
                   </>
                 )}
@@ -1500,7 +1520,7 @@ const PropertyValues = () => {
                     </div>
 
                     <div className={styles.footerActions}>
-                      <button className={styles.nextBtn} onClick={handleNext}>Next <ChevronRight size={18} /></button>
+                      <button className={styles.nextBtn} onClick={handleNext}>Save <ChevronRight size={18} /></button>
                     </div>
                   </>
                 )}
@@ -1762,10 +1782,23 @@ const TextOrImageField = ({ label, textField, imageField, placeholder, isTextare
 const EngineerDetailsFields = () => {
   const { formData, updateField } = useFormContext();
 
+  // ---- Engineer Photo upload handler ----
+  const engineerPhotoRef = useRef(null);
+  const handleEngineerPhoto = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      updateField('finalValuation', 'engineer_photo', ev.target.result);
+    };
+    reader.readAsDataURL(file);
+  };
+  const engineerPhoto = formData.finalValuation?.engineer_photo || '';
+
   return (
     <>
+      {/* Row 1: Engineer Name + Signature Date */}
       <div className={styles.formGrid} style={{ marginBottom: '18px' }}>
-        {/* Engineer Name occupies left column; Signature Date stays in right column */}
         <TextOrImageField
           label="Engineer Name"
           textField="valuer_name"
@@ -1780,6 +1813,78 @@ const EngineerDetailsFields = () => {
               className={styles.inputField}
               value={formData.finalValuation?.report_date ?? ''}
               onChange={(e) => updateField('finalValuation', 'report_date', e.target.value)}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Row 2: Engineer Contact Number + Engineer Photo */}
+      <div className={styles.formGrid} style={{ marginBottom: '18px', alignItems: 'flex-start' }}>
+        {/* Contact Phone */}
+        <div className={styles.inputStack}>
+          <label className={styles.label}>Engineer Contact Number</label>
+          <div className={styles.fieldWrapper}>
+            <input
+              type="tel"
+              placeholder="Enter contact number"
+              className={styles.inputField}
+              value={formData.finalValuation?.engineer_contact || ''}
+              onChange={(e) => updateField('finalValuation', 'engineer_contact', e.target.value)}
+            />
+          </div>
+        </div>
+
+        {/* Engineer Photo */}
+        <div className={styles.inputStack}>
+          <label className={styles.label}>Engineer Photo</label>
+          <div
+            onClick={() => engineerPhotoRef.current?.click()}
+            style={{
+              position: 'relative',
+              width: '100%',
+              minHeight: '130px',
+              borderRadius: '10px',
+              border: engineerPhoto ? '2px solid rgba(184,134,11,0.4)' : '2px dashed rgba(184,134,11,0.3)',
+              background: engineerPhoto ? 'transparent' : 'rgba(184,134,11,0.03)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              overflow: 'hidden',
+            }}
+          >
+            {engineerPhoto ? (
+              <>
+                <img
+                  src={engineerPhoto}
+                  alt="Engineer"
+                  style={{ width: '100%', height: '130px', objectFit: 'cover', borderRadius: '8px' }}
+                />
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); updateField('finalValuation', 'engineer_photo', ''); }}
+                  style={{
+                    position: 'absolute', top: '6px', right: '6px',
+                    background: 'rgba(220,38,38,0.85)', color: '#fff',
+                    border: 'none', borderRadius: '50%',
+                    width: '24px', height: '24px',
+                    fontSize: '14px', cursor: 'pointer', lineHeight: '24px', textAlign: 'center',
+                  }}
+                >×</button>
+              </>
+            ) : (
+              <div style={{ textAlign: 'center', color: 'var(--primary-gold, #B8860B)', padding: '16px' }}>
+                <div style={{ fontSize: '2rem', marginBottom: '6px' }}>📷</div>
+                <div style={{ fontSize: '0.8rem', fontWeight: 600 }}>Click to upload photo</div>
+                <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: '4px' }}>JPG / PNG</div>
+              </div>
+            )}
+            <input
+              ref={engineerPhotoRef}
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={handleEngineerPhoto}
             />
           </div>
         </div>
@@ -2035,56 +2140,14 @@ const ValueReferenceSection = ({ title, sectionKey }) => {
           {/* Fields */}
           <div className={styles.formGrid}>
             <div className={styles.inputStack}>
-              <label className={styles.label}>Source / Reference</label>
+              <label className={styles.label}>Per Sft Value (₹)</label>
               <div className={styles.fieldWrapper}>
                 <input
                   type="text"
-                  placeholder="e.g. Govt. Gazette, Market Survey…"
-                  className={styles.inputField}
-                  value={ref.source ?? ''}
-                  onChange={(e) => updateRef(idx, 'source', e.target.value)}
-                  style={{ width: '100%' }}
-                />
-              </div>
-            </div>
-
-            <div className={styles.inputStack}>
-              <label className={styles.label}>Rate per Sq.ft (₹)</label>
-              <div className={styles.fieldWrapper}>
-                <input
-                  type="text"
-                  placeholder="Enter rate"
+                  placeholder="Enter per sft value"
                   className={styles.inputField}
                   value={ref.rate_per_sqft ?? ''}
                   onChange={(e) => updateRef(idx, 'rate_per_sqft', e.target.value)}
-                  style={{ width: '100%' }}
-                />
-              </div>
-            </div>
-
-            <div className={styles.inputStack}>
-              <label className={styles.label}>Total Value (₹)</label>
-              <div className={styles.fieldWrapper}>
-                <input
-                  type="text"
-                  placeholder="Enter total value"
-                  className={styles.inputField}
-                  value={ref.total_value ?? ''}
-                  onChange={(e) => updateRef(idx, 'total_value', e.target.value)}
-                  style={{ width: '100%' }}
-                />
-              </div>
-            </div>
-
-            <div className={styles.inputStack}>
-              <label className={styles.label}>Remarks</label>
-              <div className={styles.fieldWrapper}>
-                <input
-                  type="text"
-                  placeholder="Enter remarks"
-                  className={styles.inputField}
-                  value={ref.remarks ?? ''}
-                  onChange={(e) => updateRef(idx, 'remarks', e.target.value)}
                   style={{ width: '100%' }}
                 />
               </div>
@@ -2386,12 +2449,41 @@ const MeasurementMatchingCard = ({
         autoMatch = true;
       }
 
-      return {
+      // ── Auto-calculate Land Extent from direction measurements ──────────
+      // Formula: Area = (North+South)/2 × (East+West)/2  (works for both regular & irregular)
+      const updatedCard = {
         ...card,
-        [dirKey]: {
-          ...newDirData,
-          match: autoMatch,
-        },
+        [dirKey]: { ...newDirData, match: autoMatch },
+      };
+
+      const dirs = ['north', 'south', 'east', 'west'];
+      const getVal = (d, f) => {
+        const src = d === dirKey ? newDirData : (updatedCard[d] || {});
+        return parseFloat(src[f] || '') || 0;
+      };
+
+      const calcArea = (f) => {
+        const n = getVal('north', f);
+        const s = getVal('south', f);
+        const e = getVal('east', f);
+        const w = getVal('west', f);
+        if ((n || s) && (e || w)) {
+          const avgNS = s ? (n + s) / 2 : n;
+          const avgEW = w ? (e + w) / 2 : e;
+          return (avgNS * avgEW).toFixed(2);
+        }
+        return '';
+      };
+
+      const areaActual    = calcArea('actual');
+      const areaDocuments = calcArea('document');
+      const areaPlan      = calcArea('plan');
+
+      return {
+        ...updatedCard,
+        ...(areaActual    !== '' && { [isBuilding ? 'building_area_actual'    : 'land_extent_actual']:    areaActual }),
+        ...(areaDocuments !== '' && { [isBuilding ? 'building_area_documents' : 'land_extent_documents']: areaDocuments }),
+        ...(areaPlan      !== '' && { [isBuilding ? 'building_area_plan'      : 'land_extent_plan']:      areaPlan }),
       };
     });
     updateCards(updated);
@@ -2801,22 +2893,18 @@ const MeasurementMatchingCard = ({
                   { label: 'As per Plan',      fk: isBuilding ? 'building_area_plan' : 'land_extent_plan' },
                 ].map(({ label, fk }) => (
                   <div key={fk} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <label style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-secondary, #64748b)' }}>
+                    <label style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-secondary, #64748b)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                       {label}
+                      <span style={{ fontSize: '0.72rem', padding: '1px 6px', borderRadius: '8px', background: 'rgba(184,134,11,0.1)', color: 'var(--primary-gold, #B8860B)', border: '1px solid rgba(184,134,11,0.2)', fontWeight: 600 }}>Auto</span>
                     </label>
                     <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                       <input
                         type="text"
-                        placeholder="Enter"
+                        placeholder="Auto-calculated"
                         className={styles.inputField}
-                        style={{ width: '100%', paddingRight: '44px', borderColor: 'rgba(184,134,11,0.3)' }}
+                        style={{ width: '100%', paddingRight: '44px', borderColor: 'rgba(184,134,11,0.3)', background: 'rgba(184,134,11,0.04)', cursor: 'default' }}
                         value={card[fk] ?? (isBuilding ? card[fk.replace('building_area_', 'land_extent_')] : '') ?? ''}
-                        onChange={(e) => {
-                          updateCardField(cardIdx, fk, e.target.value);
-                          if (isBuilding) {
-                            updateCardField(cardIdx, fk.replace('building_area_', 'land_extent_'), e.target.value);
-                          }
-                        }}
+                        readOnly
                       />
                       <span style={{ position: 'absolute', right: '12px', fontSize: '0.78rem', color: 'var(--primary-gold, #B8860B)', pointerEvents: 'none', fontWeight: 600 }}>
                         sqft
@@ -3061,39 +3149,41 @@ const MeasurementMatchingCard = ({
             {finalExtentTitle}
           </span>
           <span style={{ fontSize: '0.72rem', fontWeight: 600, padding: '2px 8px', borderRadius: '9999px', background: 'rgba(184,134,11,0.12)', color: 'var(--primary-gold, #B8860B)', border: '1px solid rgba(184,134,11,0.25)' }}>
-            Manual Entry
+            Auto
           </span>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
           {[
-            { label: 'As per Actual',    sk: isBuilding ? 'final_building_area_actual' : 'final_extent_actual' },
-            { label: 'As per Documents', sk: isBuilding ? 'final_building_area_documents' : 'final_extent_documents' },
-            { label: 'As per Plan',      sk: isBuilding ? 'final_building_area_plan' : 'final_extent_plan' },
-          ].map(({ label, sk }) => (
-            <div key={sk} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)', fontFamily: 'var(--font-heading)' }}>
-                {label}
-              </label>
-              <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                <input
-                  type="text"
-                  placeholder="Enter"
-                  className={styles.inputField}
-                  style={{ width: '100%', paddingRight: '48px', borderColor: 'rgba(184,134,11,0.4)', fontWeight: 600, fontSize: '1rem' }}
-                  value={(cards[0] || {})[sk] ?? (isBuilding ? (cards[0] || {})[sk.replace('final_building_area_', 'final_extent_')] : '') ?? ''}
-                  onChange={(e) => {
-                    updateCardField(0, sk, e.target.value);
-                    if (isBuilding) {
-                      updateCardField(0, sk.replace('final_building_area_', 'final_extent_'), e.target.value);
-                    }
-                  }}
-                />
-                <span style={{ position: 'absolute', right: '12px', fontSize: '0.78rem', color: 'var(--primary-gold, #B8860B)', pointerEvents: 'none', fontWeight: 700 }}>
-                  sqft
-                </span>
+            { label: 'As per Actual',    srcKey: isBuilding ? 'building_area_actual'    : 'land_extent_actual' },
+            { label: 'As per Documents', srcKey: isBuilding ? 'building_area_documents' : 'land_extent_documents' },
+            { label: 'As per Plan',      srcKey: isBuilding ? 'building_area_plan'      : 'land_extent_plan' },
+          ].map(({ label, srcKey }) => {
+            const total = cards.reduce((sum, c) => {
+              const v = parseFloat(c[srcKey] || '') || 0;
+              return sum + v;
+            }, 0);
+            const displayVal = total > 0 ? total.toFixed(2) : '';
+            return (
+              <div key={srcKey} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)', fontFamily: 'var(--font-heading)' }}>
+                  {label}
+                </label>
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                  <input
+                    type="text"
+                    placeholder="Auto-calculated"
+                    className={styles.inputField}
+                    style={{ width: '100%', paddingRight: '48px', borderColor: 'rgba(184,134,11,0.4)', fontWeight: 600, fontSize: '1rem', background: 'rgba(184,134,11,0.04)', cursor: 'default' }}
+                    value={displayVal}
+                    readOnly
+                  />
+                  <span style={{ position: 'absolute', right: '12px', fontSize: '0.78rem', color: 'var(--primary-gold, #B8860B)', pointerEvents: 'none', fontWeight: 700 }}>
+                    sqft
+                  </span>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </>
@@ -3672,7 +3762,10 @@ const LandExtentTable = ({ isGuideline = false, showSelectionOption = true }) =>
     });
   }, [
     JSON.stringify(
-      (formData.technicalDetails?.landMeasurements || []).map(c => ({
+      (Array.isArray(formData.technicalDetails?.landMeasurements)
+        ? formData.technicalDetails.landMeasurements
+        : Object.values(formData.technicalDetails?.landMeasurements || {})
+      ).map(c => ({
         doc: c.document_name,
         desc: c.description,
         ext_act: c.land_extent_actual,
@@ -3919,8 +4012,8 @@ const LandExtentTable = ({ isGuideline = false, showSelectionOption = true }) =>
               const isSelected = !isFinal && currentBasis === row.basis_of_valuation;
 
               const technicalFinalExtent = activeCardChoice === 'all'
-                ? ((formData.technicalDetails?.landMeasurements || [])[0]?.final_land_extent || '')
-                : ((formData.technicalDetails?.landMeasurements || [])[parseInt(activeCardChoice, 10)]?.final_land_extent || '');
+                ? (resolveLandCards(formData.technicalDetails)[0]?.final_land_extent || '')
+                : (resolveLandCards(formData.technicalDetails)[parseInt(activeCardChoice, 10)]?.final_land_extent || '');
 
               return (
                 <tr
@@ -4897,6 +4990,128 @@ const AmenitiesTable = () => {
   );
 };
 
+// ─── Auto-computed Final Valuation Fields ───────────────────────────────────
+const FinalValuationAutoFields = () => {
+  const { formData, setFormData } = useFormContext();
+
+  // ── Resolve land market total ──────────────────────────────────────────────
+  const getLandMarket = () => {
+    const rawLand = formData.technicalDetails?.landMeasurements;
+    const cards = Array.isArray(rawLand) ? rawLand : (rawLand && typeof rawLand === 'object' ? [rawLand] : []);
+    const perCard = formData.perCardLandExtentValuations;
+    if (cards.length > 1 && perCard?.['all']) {
+      const row = perCard['all'].find(r => r.basis_of_valuation === 'final_selected');
+      if (row?.total_value) return parseFloat(row.total_value) || 0;
+    }
+    const row = (formData.landExtentValuations || []).find(r => r.basis_of_valuation === 'final_selected');
+    return parseFloat(row?.total_value) || 0;
+  };
+
+  // ── Resolve guideline land total ───────────────────────────────────────────
+  const getGuidelineLand = () => {
+    const rawLand = formData.technicalDetails?.landMeasurements;
+    const cards = Array.isArray(rawLand) ? rawLand : (rawLand && typeof rawLand === 'object' ? [rawLand] : []);
+    const perCard = formData.perCardGuidelineLandExtentValuations;
+    if (cards.length > 1 && perCard?.['all']) {
+      const row = perCard['all'].find(r => r.basis_of_valuation === 'final_selected');
+      if (row?.total_value) return parseFloat(row.total_value) || 0;
+    }
+    const row = (formData.guidelineLandExtentValuations || []).find(r => r.basis_of_valuation === 'final_selected');
+    return parseFloat(row?.total_value) || 0;
+  };
+
+  // ── Resolve structure market total ────────────────────────────────────────
+  const getStructureMarket = () => {
+    const selectedFloorKey = formData.structure_valuation_selected_floor || 'built_up_area';
+    const rawBm = formData.technicalDetails?.buildingMeasurements;
+    const cards = Array.isArray(rawBm) ? rawBm : (rawBm && typeof rawBm === 'object' ? [rawBm] : []);
+    const perFloor = formData.perFloorStructureValuations;
+    if (cards.length > 1 && perFloor?.['all']) {
+      const row = perFloor['all'].find(r => r.floor_details === selectedFloorKey);
+      if (row?.total_value) return parseFloat(row.total_value) || 0;
+    }
+    const row = (formData.structureValuations || []).find(r => r.floor_details === selectedFloorKey);
+    return parseFloat(row?.total_value) || 0;
+  };
+
+  // ── Resolve amenities total ───────────────────────────────────────────────
+  const getAmenitiesTotal = () =>
+    (formData.amenityValuations || [])
+      .filter(a => a.amenity_name?.trim())
+      .reduce((s, a) => s + (parseFloat(a.total_value) || 0), 0);
+
+  // ── Compute values ────────────────────────────────────────────────────────
+  const landMarket      = getLandMarket();
+  const structureMarket = getStructureMarket();
+  const amenitiesTotal  = getAmenitiesTotal();
+  const guidelineLand   = getGuidelineLand();
+
+  const finalMarket    = landMarket + structureMarket + amenitiesTotal;
+  const finalGuideline = guidelineLand;
+  const realisedValue  = finalMarket > 0 ? Math.round(finalMarket * 0.9) : 0;
+  const distressValue  = finalMarket > 0 ? Math.round(finalMarket * 0.8) : 0;
+
+  // ── Persist computed values into formData so PDF/API can read them ─────────
+  React.useEffect(() => {
+    if (finalMarket > 0 || finalGuideline > 0) {
+      setFormData(prev => ({
+        ...prev,
+        finalValuation: {
+          ...prev.finalValuation,
+          final_market_value:    finalMarket    > 0 ? String(finalMarket)    : prev.finalValuation?.final_market_value    || '',
+          final_guideline_value: finalGuideline > 0 ? String(finalGuideline) : prev.finalValuation?.final_guideline_value || '',
+          distress_value:        realisedValue  > 0 ? String(realisedValue)  : prev.finalValuation?.distress_value        || '',
+          forced_sale_value:     distressValue  > 0 ? String(distressValue)  : prev.finalValuation?.forced_sale_value     || '',
+          depreciated_cost:      'N/A',
+        },
+      }));
+    }
+  }, [finalMarket, finalGuideline, realisedValue, distressValue]);
+
+  const fmt = (n) => n > 0 ? '₹ ' + n.toLocaleString('en-IN') : '';
+
+  const autoInputStyle = {
+    width: '100%',
+    background: 'rgba(184,134,11,0.04)',
+    borderColor: 'rgba(184,134,11,0.3)',
+    fontWeight: 600,
+    cursor: 'default',
+  };
+
+  const fields = [
+    { label: 'Final Valuation',    value: fmt(finalMarket),    hint: 'Market Value (Land + Structure + Amenities)' },
+    { label: 'Final Guide Value',  value: fmt(finalGuideline), hint: 'Guideline Land Value' },
+    { label: 'Realised Value',     value: fmt(realisedValue),  hint: '90% of Final Valuation' },
+    { label: 'Distress Value',     value: fmt(distressValue),  hint: '80% of Final Valuation' },
+    { label: 'Depreciation Cost',  value: 'N/A',               hint: 'Not applicable' },
+  ];
+
+  return (
+    <div className={styles.formGrid}>
+      {fields.map(({ label, value, hint }) => (
+        <div key={label} className={styles.inputStack}>
+          <label className={styles.label} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {label}
+            <span style={{ fontSize: '0.7rem', padding: '1px 6px', borderRadius: '8px', background: 'rgba(184,134,11,0.1)', color: 'var(--primary-gold,#B8860B)', border: '1px solid rgba(184,134,11,0.2)', fontWeight: 600 }}>Auto</span>
+          </label>
+          <div className={styles.fieldWrapper}>
+            <input
+              type="text"
+              className={styles.inputField}
+              value={value}
+              readOnly
+              placeholder="—"
+              title={hint}
+              style={autoInputStyle}
+            />
+          </div>
+          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '3px' }}>{hint}</span>
+        </div>
+      ))}
+    </div>
+  );
+};
+
 const FinalValueChartTable = () => {
   const { formData } = useFormContext();
 
@@ -4949,19 +5164,25 @@ const FinalValueChartTable = () => {
   const amenities = (formData.amenityValuations || []).filter(
     a => a.amenity_name?.trim() !== ''
   );
-  const hasAmenities = amenities.length > 0;
 
-  // ── Final Values (from Final Valuation tab) ──────────────────────────────────
-  const totalMarket     = formData.finalValuation?.final_market_value    || '';
-  const totalGuideline  = formData.finalValuation?.final_guideline_value || '';
-  const realisedValue   = formData.finalValuation?.distress_value        || '';  // "Realised Value"
-  const distressValue   = formData.finalValuation?.forced_sale_value     || '';  // "Distress Value"
+  // ── Compute totals ────────────────────────────────────────────────────────
+  const toNum = (v) => { const n = parseFloat(String(v || '').replace(/,/g, '')); return isNaN(n) ? 0 : n; };
+
+  const landNum      = toNum(landMarket);
+  const structureNum = toNum(structureMarket);
+  const totalAmenities = amenities.reduce((s, a) => s + toNum(a.total_value), 0);
+
+  const totalValue    = landNum + structureNum + totalAmenities;
+  const realisedValue = totalValue > 0 ? Math.round(totalValue * 0.9) : 0;
+  const distressValue = totalValue > 0 ? Math.round(totalValue * 0.8) : 0;
+
+  const guidelineNum  = toNum(guidelineLandMarket);
 
   // ── Helper: format a value for display ──────────────────────────────────────
   const fmt = (v) => {
     if (!v && v !== 0) return '';
     const n = parseFloat(String(v).replace(/,/g, ''));
-    if (isNaN(n)) return '';
+    if (isNaN(n) || n === 0) return '';
     return '₹ ' + n.toLocaleString('en-IN');
   };
 
@@ -4973,38 +5194,36 @@ const FinalValueChartTable = () => {
     fontWeight: '500',
   };
 
-  const renderCell = (val) => (
+  const summaryStyle = {
+    background: 'rgba(184,134,11,0.07)',
+    border: '1px solid rgba(184,134,11,0.35)',
+    color: 'var(--primary-gold, #B8860B)',
+    cursor: 'not-allowed',
+    fontWeight: '700',
+  };
+
+  const renderCell = (val, isSummary = false) => (
     <input
       type="text"
       className={styles.inputField}
       value={fmt(val)}
       placeholder="₹ 0"
       readOnly
-      style={val ? readOnlyStyle : {}}
+      style={isSummary ? summaryStyle : (val ? readOnlyStyle : {})}
     />
   );
 
   // ── Build rows ───────────────────────────────────────────────────────────────
   const fixedRows = [
-    { label: 'Land Value',      market: landMarket,    guideline: guidelineLandMarket },
-    { label: 'Structure Value', market: structureMarket, guideline: '' },
+    { label: 'Land Value',       market: landNum,       guideline: guidelineNum, summary: false },
+    { label: 'Structure Value',  market: structureNum,  guideline: '',           summary: false },
+    { label: 'Total Amenities',  market: totalAmenities,guideline: '',           summary: false },
+    { label: 'Total Value',      market: totalValue,    guideline: guidelineNum, summary: true  },
+    { label: 'Realised Value',   market: realisedValue, guideline: '',           summary: true  },
+    { label: 'Distress Value',   market: distressValue, guideline: '',           summary: true  },
   ];
 
-  const amenityRowsData = hasAmenities
-    ? amenities.map(a => ({
-        label: a.amenity_name,
-        market: a.total_value || '',
-        guideline: '',
-      }))
-    : [{ label: 'Amenities Value', market: '', guideline: '' }];
-
-  const summaryRows = [
-    { label: 'Total Value',    market: totalMarket,   guideline: totalGuideline },
-    { label: 'Realised Value', market: realisedValue, guideline: '' },
-    { label: 'Distress Value', market: distressValue, guideline: '' },
-  ];
-
-  const allRows = [...fixedRows, ...amenityRowsData, ...summaryRows];
+  const allRows = fixedRows;
 
   return (
     <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '10px' }}>
@@ -5017,10 +5236,10 @@ const FinalValueChartTable = () => {
       </thead>
       <tbody>
         {allRows.map((row, idx) => (
-          <tr key={idx}>
-            <td style={{ fontSize: '0.95rem', fontWeight: '600', color: 'var(--text-primary)', paddingRight: '15px' }}>{row.label}</td>
-            <td>{renderCell(row.market)}</td>
-            <td>{renderCell(row.guideline)}</td>
+          <tr key={idx} style={{ background: row.summary ? 'rgba(184,134,11,0.04)' : 'transparent' }}>
+            <td style={{ fontSize: '0.95rem', fontWeight: row.summary ? '700' : '600', color: row.summary ? 'var(--primary-gold,#B8860B)' : 'var(--text-primary)', paddingRight: '15px' }}>{row.label}</td>
+            <td>{renderCell(row.market, row.summary)}</td>
+            <td>{renderCell(row.guideline, row.summary)}</td>
           </tr>
         ))}
       </tbody>
@@ -5066,18 +5285,16 @@ const PhotoGroupSectionList = () => {
   };
 
   const handleFile = (groupId, photoId, e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const preview = URL.createObjectURL(file);
-    const captured_at = new Date().toISOString();
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+
     const locality = formData.propertyIdentification?.locality_name || '';
     const region = formData.propertyIdentification?.state || formData.propertyIdentification?.district || '';
+    const captured_at = new Date().toISOString();
 
-    updatePhotoInGroup(groupId, photoId, { file, preview, captured_at, locality, region });
-
-    const applyCoords = (lat, lon, heading) => {
+    const applyCoords = (targetGroupId, targetPhotoId, lat, lon, heading) => {
       const bearing = heading != null && !Number.isNaN(heading) ? Math.round(heading) : '';
-      updatePhotoInGroup(groupId, photoId, {
+      updatePhotoInGroup(targetGroupId, targetPhotoId, {
         latitude: roundCoord(lat),
         longitude: roundCoord(lon),
         bearing_degrees: bearing !== '' ? String(bearing) : '',
@@ -5085,20 +5302,59 @@ const PhotoGroupSectionList = () => {
       });
     };
 
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => applyCoords(pos.coords.latitude, pos.coords.longitude, pos.coords.heading),
-        () => {
-          const lat = formData.locationDetails?.latitude || formData.locationDetails?.manual_latitude;
-          const lon = formData.locationDetails?.longitude || formData.locationDetails?.manual_longitude;
-          if (lat && lon) applyCoords(lat, lon, null);
-        },
-        { enableHighAccuracy: true, timeout: 10000 }
-      );
-    } else {
-      const lat = formData.locationDetails?.latitude || formData.locationDetails?.manual_latitude;
-      const lon = formData.locationDetails?.longitude || formData.locationDetails?.manual_longitude;
-      if (lat && lon) applyCoords(lat, lon, null);
+    const getCoords = (targetGroupId, targetPhotoId) => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => applyCoords(targetGroupId, targetPhotoId, pos.coords.latitude, pos.coords.longitude, pos.coords.heading),
+          () => {
+            const lat = formData.locationDetails?.latitude || formData.locationDetails?.manual_latitude;
+            const lon = formData.locationDetails?.longitude || formData.locationDetails?.manual_longitude;
+            if (lat && lon) applyCoords(targetGroupId, targetPhotoId, lat, lon, null);
+          },
+          { enableHighAccuracy: true, timeout: 10000 }
+        );
+      } else {
+        const lat = formData.locationDetails?.latitude || formData.locationDetails?.manual_latitude;
+        const lon = formData.locationDetails?.longitude || formData.locationDetails?.manual_longitude;
+        if (lat && lon) applyCoords(targetGroupId, targetPhotoId, lat, lon, null);
+      }
+    };
+
+    // First file goes into the existing slot
+    const firstFile = files[0];
+    const preview0 = URL.createObjectURL(firstFile);
+    updatePhotoInGroup(groupId, photoId, { file: firstFile, preview: preview0, captured_at, locality, region });
+    getCoords(groupId, photoId);
+
+    // Remaining files: add new slots and fill them
+    if (files.length > 1) {
+      setFormData(prev => {
+        const groups = prev.photoGroups || [];
+        const updatedGroups = groups.map(g => {
+          if (g.id !== groupId) return g;
+          const newPhotos = files.slice(1).map(file => ({
+            ...emptyPhoto(),
+            file,
+            preview: URL.createObjectURL(file),
+            captured_at,
+            locality,
+            region,
+          }));
+          return { ...g, photos: [...(g.photos || []), ...newPhotos] };
+        });
+        return { ...prev, photoGroups: updatedGroups };
+      });
+
+      // Apply GPS to the new slots after state settles
+      setTimeout(() => {
+        setFormData(prev => {
+          const group = (prev.photoGroups || []).find(g => g.id === groupId);
+          if (!group) return prev;
+          const newSlots = group.photos.slice(-(files.length - 1));
+          newSlots.forEach(p => getCoords(groupId, p.id));
+          return prev;
+        });
+      }, 100);
     }
   };
 
@@ -5198,7 +5454,7 @@ const PhotoGroupSectionList = () => {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '14px' }}>
                 <div>
                   <h2 className={styles.sectionHeading} style={{ margin: 0 }}>Photos</h2>
-                  <p className={styles.subHeading} style={{ margin: '4px 0 0 0' }}>Upload photos and add a description for each picture.</p>
+                  <p className={styles.subHeading} style={{ margin: '4px 0 0 0' }}>Upload photos and add a description for each picture. You can select multiple photos at once.</p>
                 </div>
                 {/* Internal + button: adds another photo to this group */}
                 <button
@@ -5240,7 +5496,7 @@ const PhotoGroupSectionList = () => {
                           <span>Click to upload</span>
                         </div>
                       )}
-                      <input type="file" accept="image/*" capture="environment" onChange={(e) => handleFile(group.id, photo.id, e)} style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }} />
+                      <input type="file" accept="image/*" multiple onChange={(e) => handleFile(group.id, photo.id, e)} style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }} />
                     </div>
                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
                       <label style={{ fontSize: '0.85rem', fontWeight: '600', color: 'var(--text-primary)' }}>Photo {pIdx + 1}</label>

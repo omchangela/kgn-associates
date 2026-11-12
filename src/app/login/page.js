@@ -4,10 +4,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import styles from './Login.module.css';
-import { Mail, Lock, Eye, EyeOff, ShieldCheck, Calculator, FileCheck, ArrowRight } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, ShieldCheck, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import gsap from 'gsap';
-import { KgnCrest, ApprovedValuerBadge, ArchitecturalGridSvg } from '@/components/common/SvgDecorations';
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -80,68 +79,12 @@ const Login = () => {
 
   return (
     <div className={styles.pageWrapper} ref={containerRef}>
-      <ArchitecturalGridSvg />
-
       <div className={styles.loginContainer}>
-        {/* Left Side: Luxury Branding & Credentials */}
+        {/* Left Side: Branding */}
         <div className={styles.leftPanel}>
           <div className={styles.leftPanelContent} ref={leftPanelRef}>
-            <div className={styles.brandBadge}>
-              <ApprovedValuerBadge size={18} />
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '20px' }}>
-              <KgnCrest size={64} />
-              <div>
-                <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', letterSpacing: '2px', textTransform: 'uppercase' }}>
-                  ESTD. &amp; REGISTERED
-                </span>
-                <h2 style={{ fontFamily: 'var(--font-heading)', color: 'var(--primary-gold)', margin: 0, fontSize: '1.4rem' }}>
-                  
-                </h2>
-              </div>
-            </div>
-
             <div className={styles.welcomeText}>
-              <p>Welcome to</p>
               <h1>KGN ASSOCIATES</h1>
-            </div>
-
-            <p className={styles.brandDescription}>
-              
-            </p>
-
-            {/* Feature highlights with animated SVG icons */}
-            <div className={styles.featureList} ref={featuresRef}>
-              <div className={styles.featureItem}>
-                <div className={styles.featureIcon}>
-                  <ShieldCheck size={20} />
-                </div>
-                <div className={styles.featureText}>
-                  <h4>Bank &amp; NBFC Standards Compliant</h4>
-                  <p>Adheres strictly to State Bank, HDFC, ICICI &amp; IBBI valuation schedules.</p>
-                </div>
-              </div>
-
-              <div className={styles.featureItem}>
-                <div className={styles.featureIcon}>
-                  <Calculator size={20} />
-                </div>
-                <div className={styles.featureText}>
-                  <h4>Automated Rate &amp; Depreciation Matrix</h4>
-                  <p>Auto-computes plinth rates, salvage ratios, and land area values instantly.</p>
-                </div>
-              </div>
-
-              <div className={styles.featureItem}>
-                <div className={styles.featureIcon}>
-                  <FileCheck size={20} />
-                </div>
-                <div className={styles.featureText}>
-                  <h4>Instant Certified PDF Generation</h4>
-                  <p>Produces multi-page signed valuation dossiers with photo attachments.</p>
-                </div>
-              </div>
             </div>
           </div>
         </div>

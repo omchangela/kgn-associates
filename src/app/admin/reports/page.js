@@ -30,8 +30,11 @@ import {
   Lock,
   Unlock,
   Send,
+  Download,
 } from 'lucide-react';
 import { ArchitecturalGridSvg, KgnCrest } from '@/components/common/SvgDecorations';
+import JSZip from 'jszip';
+import { saveAs } from 'file-saver';
 
 export default function AdminReportsPage() {
   const router = useRouter();
@@ -48,6 +51,125 @@ export default function AdminReportsPage() {
   const showNotification = (text, type = 'success') => {
     setNotification({ text, type });
     setTimeout(() => setNotification({ text: '', type: '' }), 4000);
+  };
+
+  const [downloadingId, setDownloadingId] = useState(null);
+
+  const handleDownloadZip = async (r) => {
+    const repId = r.id || r._id;
+    setDownloadingId(repId);
+    try {
+      const zip = new JSZip();
+      const caseId = r.case_id || r.report_number || repId;
+      const mobile = (
+        r.institution_details?.contact_number ||
+        r.institution_details?.mobile ||
+        r.phone_number || r.mobile_number || r.mobile || 'NA'
+      ).replace(/\s+/g, '');
+      const folderName = `${caseId}_${mobile}`;
+      const folder = zip.folder(folderName);
+
+      const errors = [];
+
+      // 1. PDF report
+      try {
+        const pdfUrl = `/api/valuations/${encodeURIComponent(repId)}/generate-pdf`;
+        const pdfRes = await fetch(pdfUrl);
+        if (pdfRes.ok) {
+          const pdfBlob = await pdfRes.blob();
+          folder.file(`${caseId}_Valuation_Report.pdf`, pdfBlob);
+        } else {
+          errors.push('PDF not available');
+        }
+      } catch (e) {
+        errors.push('PDF fetch failed');
+      }
+
+      // 2. Photographs — scan all photo fields in the report
+      const photoPaths = [];
+      const scanForPhotos = (obj, depth = 0) => {
+        if (!obj || depth > 8) return;
+        if (Array.isArray(obj)) {
+          obj.forEach(item => scanForPhotos(item, depth + 1));
+        } else if (typeof obj === 'object') {
+          for (const key of Object.keys(obj)) {
+            const val = obj[key];
+            if (typeof val === 'string' && (
+              val.match(/\.(jpg|jpeg|png|gif|webp|bmp)/i) ||
+              val.startsWith('/uploads/') ||
+              val.startsWith('data:image/')
+            )) {
+              if (!photoPaths.includes(val)) photoPaths.push(val);
+            } else {
+              scanForPhotos(val, depth + 1);
+            }
+          }
+        }
+      };
+      scanForPhotos(r);
+
+      let photoIdx = 1;
+      for (const photoUrl of photoPaths) {
+        try {
+          if (photoUrl.startsWith('data:image/')) {
+            // base64 inline image
+            const matches = photoUrl.match(/^data:image\/([a-zA-Z]+);base64,(.+)$/);
+            if (matches) {
+              const ext = matches[1];
+              const b64 = matches[2];
+              folder.file(`Photo_${photoIdx}.${ext}`, b64, { base64: true });
+              photoIdx++;
+            }
+          } else {
+            const absUrl = photoUrl.startsWith('http') ? photoUrl : photoUrl;
+            const imgRes = await fetch(absUrl);
+            if (imgRes.ok) {
+              const imgBlob = await imgRes.blob();
+              const ext = imgRes.headers.get('content-type')?.split('/')[1] || 'jpg';
+              folder.file(`Photo_${photoIdx}.${ext}`, imgBlob);
+              photoIdx++;
+            }
+          }
+        } catch (e) {
+          errors.push(`Photo ${photoIdx} failed`);
+        }
+      }
+
+      // 3. JSON data export
+      const jsonStr = JSON.stringify(r, null, 2);
+      folder.file(`${caseId}_Data.json`, jsonStr);
+
+      // 4. Summary TXT
+      const customerName = r.customer_name || r.institution_details?.applicant_name || 'N/A';
+      const bankName = r.institution_details?.bank_name || r.bank_name || 'N/A';
+      const locality = r.property_identification?.locality_name || r.locality_name || 'N/A';
+      const finalVal = r.final_valuation?.final_market_value || r.final_market_value || 'N/A';
+      const summary = [
+        'KGN ASSOCIATES — VALUATION REPORT SUMMARY',
+        '==========================================',
+        `Case ID       : ${caseId}`,
+        `Mobile        : ${mobile}`,
+        `Customer      : ${customerName}`,
+        `Bank          : ${bankName}`,
+        `Locality      : ${locality}`,
+        `Status        : ${r.status || 'N/A'}`,
+        `Final Value   : ${finalVal}`,
+        `Photos        : ${photoIdx - 1}`,
+        `Generated On  : ${new Date().toLocaleString('en-IN')}`,
+        '',
+        errors.length ? 'NOTES: ' + errors.join('; ') : '',
+      ].join('\n');
+      folder.file(`${caseId}_Summary.txt`, summary);
+
+      const zipBlob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
+      saveAs(zipBlob, `${folderName}.zip`);
+      showNotification(`ZIP downloaded: ${folderName}.zip`, 'success');
+    } catch (err) {
+      console.error('ZIP download failed:', err);
+      showNotification('ZIP download failed. Please try again.', 'error');
+    } finally {
+      setDownloadingId(null);
+    }
   };
 
   const fetchData = async () => {
@@ -189,9 +311,11 @@ export default function AdminReportsPage() {
       const bank = (r.institution_details?.bank_name || r.bank_name || '').toLowerCase();
       const locality = (r.property_identification?.locality_name || r.locality_name || '').toLowerCase();
       const emp = getEmployeeInfo(r).name.toLowerCase();
-      const q = searchQuery.toLowerCase();
+      const mobile = (r.institution_details?.contact_number || r.institution_details?.mobile || r.phone_number || r.mobile_number || r.mobile || '').replace(/\s+/g, '').toLowerCase();
+      const caseId = (r.case_id || r.id || '').toString().toLowerCase();
+      const q = searchQuery.toLowerCase().replace(/\s+/g, '');
 
-      const matchSearch = !q || customer.includes(q) || repNo.includes(q) || bank.includes(q) || locality.includes(q) || emp.includes(q);
+      const matchSearch = !q || customer.includes(q) || repNo.includes(q) || bank.includes(q) || locality.includes(q) || emp.includes(q) || mobile.includes(q) || caseId.includes(q);
 
       const rStatus = (r.status || 'draft').toLowerCase();
       const matchStatus = 
@@ -355,7 +479,7 @@ export default function AdminReportsPage() {
                 <Search size={16} className={styles.searchIcon} />
                 <input
                   type="text"
-                  placeholder="Search by customer, employee, report # or bank..."
+                  placeholder="Search by customer, mobile, case ID, report # or bank..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className={styles.searchInput}
@@ -599,6 +723,35 @@ export default function AdminReportsPage() {
                                 >
                                   <Eye size={13} />
                                   <span>Details</span>
+                                </button>
+
+                                {/* Download ZIP */}
+                                <button
+                                  type="button"
+                                  onClick={() => handleDownloadZip(r)}
+                                  disabled={downloadingId === repId}
+                                  style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '5px',
+                                    padding: '6px 10px',
+                                    fontSize: '0.78rem',
+                                    fontWeight: '700',
+                                    borderRadius: '6px',
+                                    cursor: downloadingId === repId ? 'wait' : 'pointer',
+                                    border: '1px solid rgba(161,120,25,0.5)',
+                                    background: downloadingId === repId ? 'rgba(161,120,25,0.05)' : 'rgba(161,120,25,0.12)',
+                                    color: '#a17819',
+                                    transition: 'all 0.15s ease',
+                                    whiteSpace: 'nowrap',
+                                  }}
+                                  title={`Download all files as ZIP (Case: ${r.case_id || r.report_number || repId})`}
+                                >
+                                  {downloadingId === repId
+                                    ? <RefreshCw size={12} className="spin" />
+                                    : <Download size={12} />
+                                  }
+                                  <span>{downloadingId === repId ? 'Zipping...' : 'Download ZIP'}</span>
                                 </button>
                               </div>
                             </td>
