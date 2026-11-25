@@ -26,7 +26,6 @@ import {
   X,
 } from 'lucide-react';
 import { propertyValuationAPI } from '@/services/api';
-import { ApprovedValuerBadge } from '@/components/common/SvgDecorations';
 
 const STARRED_STORAGE_KEY = 'kgn_emp_starred_reports';
 const READ_STORAGE_KEY = 'kgn_emp_read_reports';
@@ -220,22 +219,7 @@ const ReportList = () => {
         <Header onMenuToggle={toggleSidebar} />
 
         <main className={styles.mainScrollArea}>
-          <div className={styles.contentPadding}>
-            <div className={styles.pageHeader} style={{ marginBottom: '20px' }}>
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                  <ApprovedValuerBadge size={16} />
-                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                    Report Status &amp; Approval Inbox
-                  </span>
-                </div>
-                <h1 className={styles.pageTitle}>Certificates &amp; Reports Inbox</h1>
-                <p className={styles.pageSubtitle}>
-                  Track Admin approvals, correction requests, and valuation statuses in one inbox
-                </p>
-              </div>
-            </div>
-
+          <div className={styles.fullScreenInboxWrap}>
             {/* ── Gmail Inbox Shell ── */}
             <div className={styles.gmailShell}>
               {/* Top Search Toolbar */}
