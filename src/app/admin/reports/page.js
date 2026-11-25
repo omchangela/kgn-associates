@@ -31,10 +31,12 @@ import {
   Unlock,
   Send,
   Download,
+  FileSpreadsheet,
 } from 'lucide-react';
 import { ArchitecturalGridSvg, KgnCrest } from '@/components/common/SvgDecorations';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
+import ExcelJS from 'exceljs';
 
 export default function AdminReportsPage() {
   const router = useRouter();
@@ -45,6 +47,9 @@ export default function AdminReportsPage() {
   const [updatingId, setUpdatingId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('all');
+  const [exportFromDate, setExportFromDate] = useState('');
+  const [exportToDate, setExportToDate] = useState('');
+  const [exportingExcel, setExportingExcel] = useState(false);
   const [notification, setNotification] = useState({ text: '', type: '' });
   const [selectedReport, setSelectedReport] = useState(null); // For detail preview modal
 
@@ -325,9 +330,161 @@ export default function AdminReportsPage() {
         (selectedStatus === 'pending' && (rStatus === 'pending' || rStatus === 'in_progress')) ||
         (selectedStatus === 'draft' && rStatus === 'draft');
 
-      return matchSearch && matchStatus;
+      let matchDate = true;
+      if (exportFromDate || exportToDate) {
+        const rawDate = r.institution_details?.date_of_report || r.final_valuation?.report_date || r.created_at || r.updated_at;
+        const parsed = rawDate ? new Date(rawDate) : null;
+        if (!parsed || Number.isNaN(parsed.getTime())) {
+          matchDate = false;
+        } else {
+          const ymd = parsed.toISOString().slice(0, 10);
+          if (exportFromDate && ymd < exportFromDate) matchDate = false;
+          if (exportToDate && ymd > exportToDate) matchDate = false;
+        }
+      }
+
+      return matchSearch && matchStatus && matchDate;
     });
-  }, [reports, searchQuery, selectedStatus, users]);
+  }, [reports, searchQuery, selectedStatus, exportFromDate, exportToDate, users]);
+
+  // Excel (.xlsx) Export with yellow header matching KGN sheet format
+  const handleExportExcel = async () => {
+    if (filteredReports.length === 0) {
+      showNotification('No reports found for the selected date/filter criteria.', 'error');
+      return;
+    }
+    setExportingExcel(true);
+    try {
+      const workbook = new ExcelJS.Workbook();
+      const sheet = workbook.addWorksheet('Valuation Reports');
+
+      const columns = [
+        { header: 'S.NO', key: 'sno', width: 8 },
+        { header: 'REPORT DATE', key: 'report_date', width: 15 },
+        { header: 'INSTITUTION NAME', key: 'institution_name', width: 20 },
+        { header: 'BANK NAME', key: 'bank_name', width: 24 },
+        { header: 'TYPE OF CASE', key: 'type_of_case', width: 15 },
+        { header: 'BRANCH NAME', key: 'branch_name', width: 18 },
+        { header: 'CASE ID', key: 'case_id', width: 22 },
+        { header: 'NAME OF THE APPLICANT', key: 'applicant_name', width: 26 },
+        { header: 'CONTACT', key: 'contact', width: 18 },
+        { header: 'PROPERTY ADDRESS', key: 'property_address', width: 48 },
+        { header: 'DISTANCE FROM BRANCH', key: 'distance_from_branch', width: 18 },
+        { header: 'BILL AMOUNT', key: 'bill_amount', width: 16 },
+        { header: 'VISITED PERSON', key: 'visited_person', width: 22 },
+        { header: 'AMOUNT TO VISIT PERSON', key: 'amount_to_visit_person', width: 20 },
+        { header: 'FILE STATUS', key: 'file_status', width: 15 },
+      ];
+      sheet.columns = columns;
+
+      // Style header row (yellow background #FFFF00, bold black text, thin borders)
+      const headerRow = sheet.getRow(1);
+      headerRow.height = 28;
+      headerRow.eachCell((cell) => {
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFFFFF00' },
+        };
+        cell.font = {
+          name: 'Calibri',
+          size: 10,
+          bold: true,
+          color: { argb: 'FF000000' },
+        };
+        cell.alignment = {
+          vertical: 'middle',
+          horizontal: 'center',
+          wrapText: true,
+        };
+        cell.border = {
+          top: { style: 'thin', color: { argb: 'FF94A3B8' } },
+          left: { style: 'thin', color: { argb: 'FF94A3B8' } },
+          bottom: { style: 'thin', color: { argb: 'FF94A3B8' } },
+          right: { style: 'thin', color: { argb: 'FF94A3B8' } },
+        };
+      });
+
+      sheet.autoFilter = {
+        from: { row: 1, column: 1 },
+        to: { row: 1, column: columns.length },
+      };
+
+      const formatExcelDate = (raw) => {
+        if (!raw) return 'NA';
+        const d = new Date(raw);
+        if (Number.isNaN(d.getTime())) return String(raw);
+        return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
+      };
+
+      filteredReports.forEach((r, idx) => {
+        const inst = r.institution_details || r.institutionDetails || {};
+        const prop = r.property_identification || r.propertyIdentification || {};
+        const chars = r.property_characteristics || r.propertyCharacteristics || {};
+        const finalVal = r.final_valuation || r.finalValuation || {};
+        const emp = getEmployeeInfo(r);
+
+        const rawDate = inst.date_of_report || finalVal.report_date || r.created_at || r.updated_at;
+        const dist = chars.distance_from_branch_km;
+        const distVal = dist !== undefined && dist !== null && String(dist).trim() !== '' ? String(dist) : 'NA';
+        const billVal = finalVal.final_market_value || r.final_market_value || '';
+        const statusLower = (r.status || 'draft').toLowerCase();
+        const fileStatus =
+          statusLower === 'approved' || statusLower === 'completed'
+            ? 'CLOSED'
+            : statusLower.toUpperCase();
+
+        const row = sheet.addRow({
+          sno: idx + 1,
+          report_date: formatExcelDate(rawDate),
+          institution_name: (inst.vendor_engineer_institution_name || 'KGN ASSOCIATES').toUpperCase(),
+          bank_name: (inst.bank_name || r.bank_name || 'NA').toUpperCase(),
+          type_of_case: 'REGULAR',
+          branch_name: (inst.branch_name || 'NA').toUpperCase(),
+          case_id: inst.loan_application_id || r.case_id || r.report_number || 'NA',
+          applicant_name: (inst.applicant_name || r.customer_name || 'NA').toUpperCase(),
+          contact: inst.applicant_contact_number || inst.contact_number || inst.mobile || r.phone_number || 'NA',
+          property_address: (prop.address_as_per_actual_site || prop.address_as_per_documents || prop.locality_name || 'NA').toUpperCase(),
+          distance_from_branch: distVal,
+          bill_amount: billVal !== '' ? Number(billVal) || billVal : '',
+          visited_person: (inst.site_engineer_name || emp.name || 'NA').toUpperCase(),
+          amount_to_visit_person: '',
+          file_status: fileStatus,
+        });
+
+        row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+          cell.font = { name: 'Calibri', size: 10, color: { argb: 'FF0F172A' } };
+          cell.alignment = {
+            vertical: 'middle',
+            horizontal: colNumber === 10 ? 'left' : 'center',
+            wrapText: true,
+          };
+          cell.border = {
+            top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+            left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+            bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+            right: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+          };
+        });
+      });
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+      const dateTag =
+        exportFromDate || exportToDate
+          ? `${exportFromDate || 'start'}_to_${exportToDate || 'end'}`
+          : new Date().toISOString().slice(0, 10);
+      saveAs(blob, `KGN_Valuation_Reports_${dateTag}.xlsx`);
+      showNotification(`Excel exported (${filteredReports.length} reports)`, 'success');
+    } catch (err) {
+      console.error('Excel export failed:', err);
+      showNotification('Excel export failed. Please try again.', 'error');
+    } finally {
+      setExportingExcel(false);
+    }
+  };
 
   // Metric counts
   const counts = useMemo(() => {
@@ -474,7 +631,7 @@ export default function AdminReportsPage() {
             </div>
 
             {/* Filter and Search Toolbar */}
-            <div className={styles.toolbarCard}>
+            <div className={styles.toolbarCard} style={{ flexWrap: 'wrap', gap: '12px' }}>
               <div className={styles.searchBox}>
                 <Search size={16} className={styles.searchIcon} />
                 <input
@@ -484,6 +641,62 @@ export default function AdminReportsPage() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className={styles.searchInput}
                 />
+              </div>
+
+              {/* Date Range + Excel Download */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '5px 10px' }}>
+                  <Calendar size={14} style={{ color: '#64748b' }} />
+                  <input
+                    type="date"
+                    value={exportFromDate}
+                    onChange={(e) => setExportFromDate(e.target.value)}
+                    title="From Date"
+                    style={{ border: 'none', background: 'transparent', fontSize: '0.8rem', color: '#1e293b', outline: 'none' }}
+                  />
+                  <span style={{ color: '#94a3b8', fontSize: '0.78rem' }}>to</span>
+                  <input
+                    type="date"
+                    value={exportToDate}
+                    onChange={(e) => setExportToDate(e.target.value)}
+                    title="To Date"
+                    style={{ border: 'none', background: 'transparent', fontSize: '0.8rem', color: '#1e293b', outline: 'none' }}
+                  />
+                  {(exportFromDate || exportToDate) && (
+                    <button
+                      type="button"
+                      onClick={() => { setExportFromDate(''); setExportToDate(''); }}
+                      title="Clear dates"
+                      style={{ border: 'none', background: 'transparent', color: '#64748b', cursor: 'pointer', display: 'flex', padding: 0 }}
+                    >
+                      <X size={13} />
+                    </button>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleExportExcel}
+                  disabled={exportingExcel}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '8px 14px',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(21, 128, 61, 0.4)',
+                    background: 'rgba(22, 163, 74, 0.12)',
+                    color: '#15803d',
+                    fontSize: '0.82rem',
+                    fontWeight: 700,
+                    cursor: exportingExcel ? 'wait' : 'pointer',
+                    whiteSpace: 'nowrap',
+                  }}
+                  title="Download Excel (.xlsx) for selected date range"
+                >
+                  <FileSpreadsheet size={15} />
+                  <span>{exportingExcel ? 'Exporting...' : 'Download Excel'}</span>
+                </button>
               </div>
 
               <div className={styles.filterTabs}>

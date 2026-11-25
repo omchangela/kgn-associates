@@ -53,6 +53,7 @@ export async function GET(req) {
         customer_name: inst.applicant_name || inst.borrowerName || r.applicant_name || inst.vendor_engineer_institution_name || '',
         institution_details: inst,
         property_identification: prop,
+        property_characteristics: r.propertyCharacteristics || r.property_characteristics || {},
         final_valuation: finalVal,
         photos_count: r.photos ? r.photos.length : 0,
       };
