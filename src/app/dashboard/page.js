@@ -19,7 +19,6 @@ import {
   Clock,
   TrendingUp,
   Sparkles,
-  Users,
   Lock,
   Unlock,
   Pencil,
@@ -280,15 +279,6 @@ const Dashboard = () => {
                     <div className={styles.actionTextGroup}>
                       <div className={styles.actionTitle}>Download Dossiers</div>
                       <div className={styles.actionSub}>Access Certified PDFs</div>
-                    </div>
-                    <ArrowRight size={16} className={styles.actionArrow} />
-                  </Link>
-
-                  <Link href="/employees" className={styles.actionTile}>
-                    <div className={styles.actionIconBox}><Users size={18} /></div>
-                    <div className={styles.actionTextGroup}>
-                      <div className={styles.actionTitle}>Valuers &amp; Staff</div>
-                      <div className={styles.actionSub}>Team Management</div>
                     </div>
                     <ArrowRight size={16} className={styles.actionArrow} />
                   </Link>

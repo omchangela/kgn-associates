@@ -4,13 +4,16 @@ import memoryStore from '@/lib/memoryStore';
 import { getAuthUser } from '@/lib/auth';
 
 export async function GET(req) {
+  const authUser = getAuthUser(req);
   const { searchParams } = new URL(req.url);
   const search = searchParams.get('search') || '';
   const status = searchParams.get('status');
   const limit = parseInt(searchParams.get('limit') || '50', 10);
 
+  const isEmployeeScoped = Boolean(authUser && authUser.role !== 'admin');
+
   try {
-    let list = await getAllValuations({ search, limit });
+    let list = await getAllValuations({ search, limit: isEmployeeScoped ? 500 : limit });
 
     if (!list || list.length === 0) {
       // Memory store fallback if table empty
@@ -20,8 +23,17 @@ export async function GET(req) {
       }
     }
 
+    // For logged-in non-admin employees, only show reports created by that user
+    if (isEmployeeScoped) {
+      list = list.filter((r) => (r.createdBy || r.created_by) === authUser.userId);
+    }
+
     if (status && status !== 'all') {
       list = list.filter((r) => r.status === status);
+    }
+
+    if (isEmployeeScoped && list.length > limit) {
+      list = list.slice(0, limit);
     }
 
     const formatted = list.map((r) => {
@@ -49,7 +61,10 @@ export async function GET(req) {
     return NextResponse.json({ count: formatted.length, results: formatted });
   } catch (error) {
     console.error('Valuations GET error:', error);
-    const list = memoryStore.getValuations({ search });
+    let list = memoryStore.getValuations({ search });
+    if (isEmployeeScoped) {
+      list = list.filter((r) => (r.createdBy || r.created_by) === authUser.userId);
+    }
     return NextResponse.json({ count: list.length, results: list });
   }
 }

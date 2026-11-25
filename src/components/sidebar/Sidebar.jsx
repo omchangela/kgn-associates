@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import styles from './Sidebar.module.css';
-import { LayoutDashboard, FilePlus, ListChecks, Building2, Users } from 'lucide-react';
+import { LayoutDashboard, FilePlus, ListChecks, Building2 } from 'lucide-react';
 import { KgnCrest } from '@/components/common/SvgDecorations';
 
 const Sidebar = ({ isOpen, onClose }) => {
@@ -65,27 +65,7 @@ const Sidebar = ({ isOpen, onClose }) => {
               <ListChecks size={20} className={styles.navIcon} />
               <span>Certificates &amp; Reports</span>
             </Link>
-
-            <Link
-              href="/employees"
-              className={`${styles.navItem} ${isActive('/employees') ? styles.active : ''}`}
-              onClick={onClose}
-            >
-              <Users size={20} className={styles.navIcon} />
-              <span>Valuers &amp; Staff</span>
-            </Link>
           </nav>
-        </div>
-
-        {/* Footer status pill */}
-        <div className={styles.sidebarFooter}>
-          <div className={styles.systemBadge}>
-            <span className={styles.statusIndicator} />
-            <div className={styles.systemText}>
-              <span className={styles.systemTitle}>Valuation Engine v2.6</span>
-              <span className={styles.systemSub}>IBBI &amp; Banking Mode</span>
-            </div>
-          </div>
         </div>
       </aside>
 
