@@ -18,6 +18,7 @@ const CreateReport = () => {
     bank_name: 'State Bank of India',
     property_id: '',
     report_type: 'valuation',
+    custom_report_type: '',
     priority: 'high',
     description: '',
   });
@@ -52,6 +53,11 @@ const CreateReport = () => {
       return;
     }
 
+    const resolvedDossierType =
+      formData.report_type === 'others'
+        ? formData.custom_report_type.trim() || 'Custom Valuation'
+        : formData.report_type;
+
     setLoading(true);
     try {
       await propertyValuationAPI.create({
@@ -59,6 +65,7 @@ const CreateReport = () => {
           loan_application_id: formData.property_id || `APP-${Date.now().toString().slice(-6)}`,
           applicant_name: formData.report_name,
           bank_name: formData.bank_name,
+          product_loan_type: resolvedDossierType,
         },
         propertyIdentification: {
           locality_name: formData.description || 'Hyderabad',
@@ -152,7 +159,19 @@ const CreateReport = () => {
                     <option value="valuation">Full Residential &amp; Commercial Valuation</option>
                     <option value="inspection">Site Inspection &amp; Progress Valuation</option>
                     <option value="market">Fair Market Value &amp; Realizable Estimate</option>
+                    <option value="others">Others (Manual Entry)</option>
                   </select>
+                  {formData.report_type === 'others' && (
+                    <input
+                      type="text"
+                      name="custom_report_type"
+                      placeholder="Enter custom Valuation Dossier Type..."
+                      className={styles.input}
+                      style={{ marginTop: '8px' }}
+                      value={formData.custom_report_type}
+                      onChange={handleChange}
+                    />
+                  )}
                 </div>
 
                 <div className={styles.inputGroup} style={{ gridColumn: '1 / -1' }}>
