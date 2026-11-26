@@ -22,8 +22,13 @@ import {
   Lock,
   Unlock,
   Pencil,
+  Calendar,
+  FileSpreadsheet,
+  X,
 } from 'lucide-react';
 import { propertyValuationAPI } from '@/services/api';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 import gsap from 'gsap';
 import {
   ValuationTrendChart,
@@ -40,6 +45,10 @@ const Dashboard = () => {
     staff: 0,
   });
   const [recentReports, setRecentReports] = useState([]);
+  const [allReports, setAllReports] = useState([]);
+  const [exportFromDate, setExportFromDate] = useState('');
+  const [exportToDate, setExportToDate] = useState('');
+  const [exportingExcel, setExportingExcel] = useState(false);
   const [loading, setLoading] = useState(true);
   const [downloadingId, setDownloadingId] = useState(null);
   const [downloadingWordId, setDownloadingWordId] = useState(null);
@@ -54,12 +63,13 @@ const Dashboard = () => {
   useEffect(() => {
     async function loadData() {
       try {
-        const data    = await propertyValuationAPI.getAll('?limit=6');
+        const data    = await propertyValuationAPI.getAll('?limit=500');
         const results = data.results || [];
-        setRecentReports(results);
+        setAllReports(results);
+        setRecentReports(results.slice(0, 6));
         const total = data.count || results.length;
-        const comp  = results.filter((r) => r.status === 'completed').length;
-        const drf   = results.filter((r) => r.status !== 'completed').length;
+        const comp  = results.filter((r) => r.status === 'completed' || r.status === 'approved').length;
+        const drf   = results.filter((r) => r.status !== 'completed' && r.status !== 'approved').length;
         setStats({ totalValuations: total, completed: comp, drafts: drf, staff: 0 });
       } catch (err) {
         console.error('Failed to load dashboard data:', err);
@@ -116,6 +126,152 @@ const Dashboard = () => {
       alert(`Error downloading Word document: ${err.message}`);
     } finally {
       setDownloadingWordId(null);
+    }
+  };
+
+  const getDateFilteredReports = () => {
+    if (!exportFromDate && !exportToDate) return allReports;
+    return allReports.filter((r) => {
+      const rawDate =
+        r.institution_details?.date_of_report ||
+        r.final_valuation?.report_date ||
+        r.created_at ||
+        r.updated_at;
+      const parsed = rawDate ? new Date(rawDate) : null;
+      if (!parsed || Number.isNaN(parsed.getTime())) return false;
+      const ymd = parsed.toISOString().slice(0, 10);
+      if (exportFromDate && ymd < exportFromDate) return false;
+      if (exportToDate && ymd > exportToDate) return false;
+      return true;
+    });
+  };
+
+  const displayedReports = (exportFromDate || exportToDate)
+    ? getDateFilteredReports()
+    : recentReports;
+
+  const handleExportExcel = async () => {
+    const rowsToExport = getDateFilteredReports();
+    if (rowsToExport.length === 0) {
+      alert('No reports found for the selected date range.');
+      return;
+    }
+    setExportingExcel(true);
+    try {
+      const workbook = new ExcelJS.Workbook();
+      const sheet = workbook.addWorksheet('Valuation Reports');
+
+      const columns = [
+        { header: 'S.NO:', key: 'sno', width: 8 },
+        { header: 'REPORT DATE', key: 'report_date', width: 15 },
+        { header: 'INSTITUTION NAME', key: 'institution_name', width: 20 },
+        { header: 'BANK NAME', key: 'bank_name', width: 24 },
+        { header: 'TYPE OF CASE', key: 'type_of_case', width: 15 },
+        { header: 'BRANCH NAME', key: 'branch_name', width: 18 },
+        { header: 'CASE ID', key: 'case_id', width: 20 },
+        { header: 'NAME OF THE APPLICANT', key: 'applicant_name', width: 26 },
+        { header: 'CONTACT', key: 'contact', width: 18 },
+        { header: 'PROPERTY ADDRESS', key: 'property_address', width: 45 },
+        { header: 'DISTANCE FROM BRANCH', key: 'distance_from_branch', width: 18 },
+        { header: 'BILL Amount', key: 'bill_amount', width: 16 },
+        { header: 'FILE STATUS', key: 'file_status', width: 16 },
+        { header: 'SITE ENGINEER PAYMENT STATUS', key: 'payment_status', width: 24 },
+        { header: 'PAYMENT MODE', key: 'payment_mode', width: 16 },
+        { header: 'PAYMENT REFERENCE NUMBER', key: 'payment_ref', width: 24 },
+      ];
+      sheet.columns = columns;
+
+      const headerRow = sheet.getRow(1);
+      headerRow.height = 28;
+      headerRow.eachCell((cell) => {
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } };
+        cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF000000' } };
+        cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+        cell.border = {
+          top: { style: 'thin', color: { argb: 'FF94A3B8' } },
+          left: { style: 'thin', color: { argb: 'FF94A3B8' } },
+          bottom: { style: 'thin', color: { argb: 'FF94A3B8' } },
+          right: { style: 'thin', color: { argb: 'FF94A3B8' } },
+        };
+      });
+
+      sheet.autoFilter = {
+        from: { row: 1, column: 1 },
+        to: { row: 1, column: columns.length },
+      };
+
+      const formatExcelDate = (raw) => {
+        if (!raw) return '';
+        const d = new Date(raw);
+        if (Number.isNaN(d.getTime())) return String(raw);
+        return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
+      };
+
+      rowsToExport.forEach((r, idx) => {
+        const inst = r.institution_details || r.institutionDetails || {};
+        const prop = r.property_identification || r.propertyIdentification || {};
+        const chars = r.property_characteristics || r.propertyCharacteristics || {};
+        const finalVal = r.final_valuation || r.finalValuation || {};
+
+        const rawDate = inst.date_of_report || finalVal.report_date || r.created_at || r.updated_at;
+        const dist = chars.distance_from_branch_km;
+        const distVal = dist !== undefined && dist !== null && String(dist).trim() !== '' ? String(dist) : '';
+        const billVal = finalVal.final_market_value || r.final_market_value || '';
+        const statusLower = (r.status || 'draft').toLowerCase();
+        const fileStatus =
+          statusLower === 'approved' || statusLower === 'completed'
+            ? 'CLOSED'
+            : statusLower.replace(/_/g, ' ').toUpperCase();
+
+        const row = sheet.addRow({
+          sno: idx + 1,
+          report_date: formatExcelDate(rawDate),
+          institution_name: (inst.vendor_engineer_institution_name || 'KGN ASSOCIATES').toUpperCase(),
+          bank_name: (inst.bank_name || r.bank_name || '').toUpperCase(),
+          type_of_case: '',
+          branch_name: (inst.branch_name || '').toUpperCase(),
+          case_id: inst.loan_application_id || r.report_number || '',
+          applicant_name: (inst.applicant_name || r.customer_name || '').toUpperCase(),
+          contact: inst.applicant_contact_number || inst.contact_number || '',
+          property_address: (prop.address_as_per_actual_site || prop.address_as_per_documents || prop.locality_name || '').toUpperCase(),
+          distance_from_branch: distVal,
+          bill_amount: billVal !== '' ? Number(billVal) || billVal : '',
+          file_status: fileStatus,
+          payment_status: '',
+          payment_mode: '',
+          payment_ref: '',
+        });
+
+        row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+          cell.font = { name: 'Calibri', size: 10, color: { argb: 'FF0F172A' } };
+          cell.alignment = {
+            vertical: 'middle',
+            horizontal: colNumber === 10 ? 'left' : 'center',
+            wrapText: true,
+          };
+          cell.border = {
+            top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+            left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+            bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+            right: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+          };
+        });
+      });
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+      const dateTag =
+        exportFromDate || exportToDate
+          ? `${exportFromDate || 'start'}_to_${exportToDate || 'end'}`
+          : new Date().toISOString().slice(0, 10);
+      saveAs(blob, `My_Valuation_Reports_${dateTag}.xlsx`);
+    } catch (err) {
+      console.error('Excel export failed:', err);
+      alert('Excel export failed. Please try again.');
+    } finally {
+      setExportingExcel(false);
     }
   };
 
@@ -334,23 +490,79 @@ const Dashboard = () => {
               </Link>
             </div>
 
-            {/* ── Recent Valuations ── */}
+            {/* ── Recent Valuations + Date-Wise Excel Export ── */}
             <div className={styles.recentPanel}>
-              <div className={styles.recentPanelHeader}>
+              <div className={styles.recentPanelHeader} style={{ flexWrap: 'wrap', gap: '12px' }}>
                 <div>
                   <h3 className={styles.sectionTitle}>Recent Certified Valuations</h3>
-                  <p className={styles.sectionSub}>Latest assessments ready for review and digital signature</p>
+                  <p className={styles.sectionSub}>Filter by date and download your Excel report sheet</p>
                 </div>
-                <Link href="/report-list" className={styles.viewAllLink}>
-                  <span>View All</span>
-                  <ArrowRight size={14} />
-                </Link>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '5px 10px' }}>
+                    <Calendar size={14} style={{ color: '#64748b' }} />
+                    <input
+                      type="date"
+                      value={exportFromDate}
+                      onChange={(e) => setExportFromDate(e.target.value)}
+                      title="From Date"
+                      style={{ border: 'none', background: 'transparent', fontSize: '0.8rem', color: '#1e293b', outline: 'none' }}
+                    />
+                    <span style={{ color: '#94a3b8', fontSize: '0.78rem' }}>to</span>
+                    <input
+                      type="date"
+                      value={exportToDate}
+                      onChange={(e) => setExportToDate(e.target.value)}
+                      title="To Date"
+                      style={{ border: 'none', background: 'transparent', fontSize: '0.8rem', color: '#1e293b', outline: 'none' }}
+                    />
+                    {(exportFromDate || exportToDate) && (
+                      <button
+                        type="button"
+                        onClick={() => { setExportFromDate(''); setExportToDate(''); }}
+                        title="Clear dates"
+                        style={{ border: 'none', background: 'transparent', color: '#64748b', cursor: 'pointer', display: 'flex', padding: 0 }}
+                      >
+                        <X size={13} />
+                      </button>
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleExportExcel}
+                    disabled={exportingExcel}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      padding: '8px 14px',
+                      borderRadius: '8px',
+                      border: '1px solid rgba(21, 128, 61, 0.4)',
+                      background: 'rgba(22, 163, 74, 0.12)',
+                      color: '#15803d',
+                      fontSize: '0.82rem',
+                      fontWeight: 700,
+                      cursor: exportingExcel ? 'wait' : 'pointer',
+                      whiteSpace: 'nowrap',
+                    }}
+                    title="Download Excel (.xlsx) for selected date range"
+                  >
+                    <FileSpreadsheet size={15} />
+                    <span>{exportingExcel ? 'Exporting...' : 'Download Excel'}</span>
+                  </button>
+
+                  <Link href="/report-list" className={styles.viewAllLink}>
+                    <span>View All</span>
+                    <ArrowRight size={14} />
+                  </Link>
+                </div>
               </div>
 
-              {recentReports.length === 0 ? (
+              {displayedReports.length === 0 ? (
                 <div className={styles.emptyState}>
                   <Building size={36} className={styles.emptyIcon} />
-                  <p className={styles.emptyText}>No valuation reports recorded yet.</p>
+                  <p className={styles.emptyText}>No valuation reports found for the selected criteria.</p>
                   <Link href="/property-values" className={styles.emptyLink}>
                     Create First Valuation Report →
                   </Link>
@@ -368,7 +580,7 @@ const Dashboard = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {recentReports.map((rep) => {
+                      {displayedReports.map((rep) => {
                         const repId         = rep.id || rep._id;
                         const isDownloading     = downloadingId === repId;
                         const isWordDownloading = downloadingWordId === repId;
