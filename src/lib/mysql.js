@@ -192,6 +192,26 @@ async function ensureTables() {
         sampleVal3.id, sampleVal3.report_number, sampleVal3.status, sampleVal3.applicant_name, sampleVal3.bank_name, sampleVal3.locality_name, sampleVal3.final_market_value, JSON.stringify(sampleVal3)
       ]);
     }
+
+    await p.query(`
+      CREATE TABLE IF NOT EXISTS assignments (
+        id VARCHAR(64) PRIMARY KEY,
+        employee_id VARCHAR(64) NOT NULL,
+        employee_name VARCHAR(255) DEFAULT '',
+        case_id VARCHAR(100) DEFAULT '',
+        applicant_name VARCHAR(255) DEFAULT '',
+        contact_number VARCHAR(50) DEFAULT '',
+        bank_name VARCHAR(255) DEFAULT '',
+        branch_name VARCHAR(255) DEFAULT '',
+        property_address TEXT,
+        notes TEXT,
+        pdf_name VARCHAR(255) DEFAULT '',
+        pdf_url LONGTEXT,
+        status VARCHAR(50) DEFAULT 'assigned',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
   } catch (err) {
     console.warn('[MySQL Initialization Note]:', err.message);
   }
@@ -511,6 +531,59 @@ export async function deleteValuation(id) {
   return true;
 }
 
+// Assignments / Case Allotment repository methods
+export async function getAssignments({ employeeId = '' } = {}) {
+  try {
+    let sql = `SELECT * FROM assignments`;
+    const params = [];
+    if (employeeId) {
+      sql += ` WHERE employee_id = ?`;
+      params.push(employeeId);
+    }
+    sql += ` ORDER BY created_at DESC`;
+    return await query(sql, params);
+  } catch (err) {
+    return null;
+  }
+}
+
+export async function createAssignment(data) {
+  const id = data.id || `assign_${Date.now()}`;
+  const sql = `
+    INSERT INTO assignments (
+      id, employee_id, employee_name, case_id, applicant_name, contact_number,
+      bank_name, branch_name, property_address, notes, pdf_name, pdf_url, status
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+  await query(sql, [
+    id,
+    data.employee_id || '',
+    data.employee_name || '',
+    data.case_id || '',
+    data.applicant_name || '',
+    data.contact_number || '',
+    data.bank_name || '',
+    data.branch_name || '',
+    data.property_address || '',
+    data.notes || '',
+    data.pdf_name || '',
+    data.pdf_url || '',
+    data.status || 'assigned',
+  ]);
+  const rows = await query(`SELECT * FROM assignments WHERE id = ? LIMIT 1`, [id]);
+  return rows[0] || { id, ...data };
+}
+
+export async function updateAssignmentStatus(id, status) {
+  await query(`UPDATE assignments SET status = ? WHERE id = ?`, [status, id]);
+  return true;
+}
+
+export async function deleteAssignment(id) {
+  await query(`DELETE FROM assignments WHERE id = ?`, [id]);
+  return true;
+}
+
 const mysqlDb = {
   query,
   findUser,
@@ -522,6 +595,10 @@ const mysqlDb = {
   getValuationById,
   upsertValuation,
   deleteValuation,
+  getAssignments,
+  createAssignment,
+  updateAssignmentStatus,
+  deleteAssignment,
 };
 
 export default mysqlDb;

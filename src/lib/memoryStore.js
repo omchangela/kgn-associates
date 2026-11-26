@@ -423,6 +423,44 @@ class MemoryStore {
       recentEmployees,
     };
   }
+
+  // Case Allotments (in-memory fallback)
+  getAssignments({ employeeId = '' } = {}) {
+    this.assignments = this.assignments || [];
+    let list = [...this.assignments].reverse();
+    if (employeeId) {
+      list = list.filter((a) => a.employee_id === employeeId);
+    }
+    return list;
+  }
+
+  createAssignment(data) {
+    this.assignments = this.assignments || [];
+    const item = {
+      id: data.id || `assign_${Date.now()}`,
+      status: 'assigned',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      ...data,
+    };
+    this.assignments.push(item);
+    return item;
+  }
+
+  updateAssignmentStatus(id, status) {
+    this.assignments = this.assignments || [];
+    const item = this.assignments.find((a) => a.id === id);
+    if (!item) return false;
+    item.status = status;
+    item.updated_at = new Date().toISOString();
+    return true;
+  }
+
+  deleteAssignment(id) {
+    this.assignments = this.assignments || [];
+    this.assignments = this.assignments.filter((a) => a.id !== id);
+    return true;
+  }
 }
 
 // Global singleton

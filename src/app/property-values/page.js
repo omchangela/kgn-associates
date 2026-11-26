@@ -127,6 +127,36 @@ const PropertyValues = () => {
       .finally(() => setLoadingEdit(false));
   }, [editId]);
 
+  // ── Pre-fill form from URL query params (when opening from Admin Allotment or Employee Inbox) ──
+  useEffect(() => {
+    if (editId) return;
+    const caseId = searchParams.get('case_id') || '';
+    const applicant = searchParams.get('applicant') || '';
+    const contact = searchParams.get('contact') || '';
+    const bank = searchParams.get('bank') || '';
+    const branch = searchParams.get('branch') || '';
+    const address = searchParams.get('address') || '';
+    const engineer = searchParams.get('engineer') || '';
+    if (!caseId && !applicant && !contact && !bank && !branch && !address && !engineer) return;
+
+    setFormData(prev => ({
+      ...prev,
+      institutionDetails: {
+        ...prev.institutionDetails,
+        ...(caseId && { loan_application_id: caseId }),
+        ...(applicant && { applicant_name: applicant }),
+        ...(contact && { applicant_contact_number: contact }),
+        ...(bank && { bank_name: bank }),
+        ...(branch && { branch_name: branch }),
+        ...(engineer && { site_engineer_name: engineer }),
+      },
+      propertyIdentification: {
+        ...prev.propertyIdentification,
+        ...(address && { address_as_per_actual_site: address }),
+      },
+    }));
+  }, [editId, searchParams]);
+
   useEffect(() => {
     if (tabContentRef.current) {
       gsap.fromTo(

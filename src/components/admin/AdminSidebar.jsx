@@ -11,7 +11,8 @@ import {
   ArrowLeftRight, 
   LogOut, 
   ShieldCheck,
-  UserPlus
+  UserPlus,
+  Send
 } from 'lucide-react';
 import { KgnCrest } from '@/components/common/SvgDecorations';
 import { useAuth } from '@/context/AuthContext';
@@ -68,6 +69,15 @@ export default function AdminSidebar({ isOpen, onClose }) {
           >
             <FileText size={18} className={styles.navIcon} />
             <span>Valuation Reports</span>
+          </Link>
+
+          <Link
+            href="/admin/allotments"
+            className={`${styles.navItem} ${isActive('/admin/allotments') ? styles.active : ''}`}
+            onClick={onClose}
+          >
+            <Send size={18} className={styles.navIcon} />
+            <span>Allot Cases</span>
           </Link>
 
           <Link
