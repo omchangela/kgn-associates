@@ -666,7 +666,33 @@ const ReportList = () => {
                                 </button>
                               </div>
 
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                {cat === 'approved' && (
+                                  <>
+                                    <a
+                                      href={`/api/valuations/${encodeURIComponent(repId)}/generate-pdf`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className={styles.actionBtn}
+                                    >
+                                      <ExternalLink size={14} />
+                                      <span>View PDF</span>
+                                    </a>
+                                    <a
+                                      href={`/api/valuations/${encodeURIComponent(repId)}/generate-pdf?download=1`}
+                                      download={`${refNo}.pdf`}
+                                      className={styles.actionBtn}
+                                      style={{
+                                        background: '#15803d',
+                                        color: '#ffffff',
+                                        borderColor: '#15803d',
+                                      }}
+                                    >
+                                      <Download size={14} />
+                                      <span>Download PDF</span>
+                                    </a>
+                                  </>
+                                )}
                                 {canEdit ? (
                                   <Link
                                     href={`/property-values?edit=${encodeURIComponent(repId)}`}
@@ -751,10 +777,24 @@ const ReportList = () => {
                                       Approved by Admin
                                     </div>
                                     <div style={{ fontSize: '0.82rem' }}>
-                                      This valuation dossier has been reviewed, verified, and approved. It is now locked.
+                                      This valuation dossier has been reviewed, verified, and approved. You can view or download the certified PDF below.
                                     </div>
                                   </div>
                                 </div>
+                                <a
+                                  href={`/api/valuations/${encodeURIComponent(repId)}/generate-pdf?download=1`}
+                                  download={`${refNo}.pdf`}
+                                  className={styles.actionBtn}
+                                  style={{
+                                    background: '#15803d',
+                                    color: '#ffffff',
+                                    borderColor: '#15803d',
+                                    whiteSpace: 'nowrap',
+                                  }}
+                                >
+                                  <Download size={14} />
+                                  <span>Download PDF</span>
+                                </a>
                               </div>
                             )}
 
@@ -1084,6 +1124,29 @@ const ReportList = () => {
                                 </div>
 
                                 <div className={styles.gmailRowRight} onClick={(e) => e.stopPropagation()}>
+                                  {cat === 'approved' && (
+                                    <a
+                                      href={`/api/valuations/${encodeURIComponent(itemId)}/generate-pdf?download=1`}
+                                      download={`${refNo}.pdf`}
+                                      style={{
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '4px',
+                                        padding: '4px 10px',
+                                        borderRadius: '6px',
+                                        background: '#dcfce7',
+                                        color: '#15803d',
+                                        fontSize: '0.75rem',
+                                        fontWeight: 700,
+                                        textDecoration: 'none',
+                                        border: '1px solid #bbf7d0',
+                                      }}
+                                      title="Download Approved PDF"
+                                    >
+                                      <Download size={12} />
+                                      <span>PDF</span>
+                                    </a>
+                                  )}
                                   {(cat === 'correction' || cat === 'draft') && (
                                     <Link
                                       href={`/property-values?edit=${encodeURIComponent(itemId)}`}

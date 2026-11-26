@@ -207,7 +207,7 @@ export default function AdminDashboardPage() {
                 </div>
                 <div className={styles.statValue}>{stats.totalEmployees}</div>
                 <div className={styles.statIndicator}>
-                  <span>Valuers &amp; Engineers</span>
+                  <span>Engineers</span>
                 </div>
               </Link>
 
@@ -462,7 +462,7 @@ export default function AdminDashboardPage() {
                                   {emp.first_name ? `${emp.first_name} ${emp.last_name || ''}` : emp.username}
                                 </div>
                                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                                  {emp.role} &bull; {emp.email}
+                                  {(emp.role === 'valuer' || !emp.role) ? 'engineer' : emp.role} &bull; {emp.email}
                                 </div>
                               </div>
                             </div>

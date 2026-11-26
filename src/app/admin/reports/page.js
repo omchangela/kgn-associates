@@ -65,8 +65,9 @@ export default function AdminReportsPage() {
     setDownloadingId(repId);
     try {
       const zip = new JSZip();
-      const caseId = r.case_id || r.report_number || repId;
+      const caseId = r.institution_details?.loan_application_id || r.case_id || r.report_number || repId;
       const mobile = (
+        r.institution_details?.applicant_contact_number ||
         r.institution_details?.contact_number ||
         r.institution_details?.mobile ||
         r.phone_number || r.mobile_number || r.mobile || 'NA'
@@ -76,79 +77,132 @@ export default function AdminReportsPage() {
 
       const errors = [];
 
-      // 1. PDF report
+      // Fetch full report details so we have all photoGroups & photos
+      let fullReport = r;
       try {
-        const pdfUrl = `/api/valuations/${encodeURIComponent(repId)}/generate-pdf`;
-        const pdfRes = await fetch(pdfUrl);
-        if (pdfRes.ok) {
-          const pdfBlob = await pdfRes.blob();
-          folder.file(`${caseId}_Valuation_Report.pdf`, pdfBlob);
-        } else {
-          errors.push('PDF not available');
+        const fullRes = await fetch(`/api/valuations/${encodeURIComponent(repId)}/full_details`);
+        if (fullRes.ok) {
+          fullReport = await fullRes.json();
         }
-      } catch (e) {
-        errors.push('PDF fetch failed');
-      }
+      } catch (_) {}
 
-      // 2. Photographs — scan all photo fields in the report
-      const photoPaths = [];
-      const scanForPhotos = (obj, depth = 0) => {
-        if (!obj || depth > 8) return;
-        if (Array.isArray(obj)) {
-          obj.forEach(item => scanForPhotos(item, depth + 1));
-        } else if (typeof obj === 'object') {
-          for (const key of Object.keys(obj)) {
-            const val = obj[key];
-            if (typeof val === 'string' && (
-              val.match(/\.(jpg|jpeg|png|gif|webp|bmp)/i) ||
-              val.startsWith('/uploads/') ||
-              val.startsWith('data:image/')
-            )) {
-              if (!photoPaths.includes(val)) photoPaths.push(val);
+      // 1. WORD (.docx) + PDF (.pdf) reports in parallel
+      await Promise.all([
+        (async () => {
+          try {
+            const wordRes = await fetch(`/api/valuations/${encodeURIComponent(repId)}/generate-word`);
+            if (wordRes.ok) {
+              const wordBlob = await wordRes.blob();
+              folder.file(`${caseId}_Valuation_Report.docx`, wordBlob);
             } else {
-              scanForPhotos(val, depth + 1);
+              errors.push('Word (.docx) not available');
             }
+          } catch (e) {
+            errors.push('Word (.docx) fetch failed');
           }
-        }
-      };
-      scanForPhotos(r);
+        })(),
+        (async () => {
+          try {
+            const pdfRes = await fetch(`/api/valuations/${encodeURIComponent(repId)}/generate-pdf`);
+            if (pdfRes.ok) {
+              const pdfBlob = await pdfRes.blob();
+              folder.file(`${caseId}_Valuation_Report.pdf`, pdfBlob);
+            } else {
+              errors.push('PDF not available');
+            }
+          } catch (e) {
+            errors.push('PDF fetch failed');
+          }
+        })(),
+      ]);
 
-      let photoIdx = 1;
-      for (const photoUrl of photoPaths) {
+      // 2. Photographs — organized into individual group folders
+      const sanitizeFolderName = (str, fallback) => {
+        const cleaned = (str || '').toString().trim().replace(/[^a-zA-Z0-9_-]+/g, '_').replace(/^_+|_+$/g, '');
+        return cleaned || fallback;
+      };
+
+      const addPhotoToFolder = async (targetFolder, photoUrl, baseName) => {
+        if (!photoUrl || typeof photoUrl !== 'string') return false;
         try {
           if (photoUrl.startsWith('data:image/')) {
-            // base64 inline image
-            const matches = photoUrl.match(/^data:image\/([a-zA-Z]+);base64,(.+)$/);
+            const matches = photoUrl.match(/^data:image\/([a-zA-Z0-9+]+);base64,(.+)$/);
             if (matches) {
-              const ext = matches[1];
-              const b64 = matches[2];
-              folder.file(`Photo_${photoIdx}.${ext}`, b64, { base64: true });
-              photoIdx++;
+              const ext = matches[1] === 'jpeg' ? 'jpg' : matches[1];
+              targetFolder.file(`${baseName}.${ext}`, matches[2], { base64: true });
+              return true;
             }
           } else {
-            const absUrl = photoUrl.startsWith('http') ? photoUrl : photoUrl;
-            const imgRes = await fetch(absUrl);
+            const imgRes = await fetch(photoUrl);
             if (imgRes.ok) {
               const imgBlob = await imgRes.blob();
-              const ext = imgRes.headers.get('content-type')?.split('/')[1] || 'jpg';
-              folder.file(`Photo_${photoIdx}.${ext}`, imgBlob);
-              photoIdx++;
+              const rawExt = imgRes.headers.get('content-type')?.split('/')[1] || 'jpg';
+              const ext = rawExt === 'jpeg' ? 'jpg' : rawExt;
+              targetFolder.file(`${baseName}.${ext}`, imgBlob);
+              return true;
             }
           }
         } catch (e) {
-          errors.push(`Photo ${photoIdx} failed`);
+          errors.push(`${baseName} failed`);
+        }
+        return false;
+      };
+
+      const photosRoot = folder.folder('Photos');
+      let photoCount = 0;
+
+      const photoGroups = Array.isArray(fullReport.photoGroups) ? fullReport.photoGroups : [];
+      if (photoGroups.length > 0) {
+        for (let gIdx = 0; gIdx < photoGroups.length; gIdx++) {
+          const grp = photoGroups[gIdx];
+          const grpName = sanitizeFolderName(grp.note, `Group_${gIdx + 1}`);
+          const grpFolder = photosRoot.folder(`${gIdx + 1}_${grpName}`);
+          const grpPhotos = Array.isArray(grp.photos) ? grp.photos : [];
+          let pNum = 1;
+          for (const p of grpPhotos) {
+            const src = p?.photo || p?.preview || p?.url;
+            if (!src) continue;
+            const desc = sanitizeFolderName(p.description, `Photo_${pNum}`);
+            const ok = await addPhotoToFolder(grpFolder, src, `${pNum}_${desc}`);
+            if (ok) {
+              photoCount++;
+              pNum++;
+            }
+          }
+        }
+      } else if (Array.isArray(fullReport.photos) && fullReport.photos.length > 0) {
+        // Group flat photos by group_note / group_id
+        const grouped = new Map();
+        fullReport.photos.forEach((p, idx) => {
+          const key = p.group_note || p.group_id || 'General';
+          if (!grouped.has(key)) grouped.set(key, []);
+          grouped.get(key).push({ ...p, _idx: idx + 1 });
+        });
+        let gNum = 1;
+        for (const [grpLabel, items] of grouped.entries()) {
+          const grpFolder = photosRoot.folder(`${gNum}_${sanitizeFolderName(grpLabel, `Group_${gNum}`)}`);
+          let pNum = 1;
+          for (const p of items) {
+            const src = p?.photo || p?.preview || p?.url;
+            if (!src) continue;
+            const desc = sanitizeFolderName(p.description, `Photo_${pNum}`);
+            const ok = await addPhotoToFolder(grpFolder, src, `${pNum}_${desc}`);
+            if (ok) {
+              photoCount++;
+              pNum++;
+            }
+          }
+          gNum++;
         }
       }
 
-      // 3. JSON data export
-      const jsonStr = JSON.stringify(r, null, 2);
-      folder.file(`${caseId}_Data.json`, jsonStr);
+      // 3. JSON data export & Summary TXT
+      folder.file(`${caseId}_Data.json`, JSON.stringify(fullReport, null, 2));
 
-      // 4. Summary TXT
-      const customerName = r.customer_name || r.institution_details?.applicant_name || 'N/A';
-      const bankName = r.institution_details?.bank_name || r.bank_name || 'N/A';
-      const locality = r.property_identification?.locality_name || r.locality_name || 'N/A';
-      const finalVal = r.final_valuation?.final_market_value || r.final_market_value || 'N/A';
+      const customerName = fullReport.customer_name || fullReport.institution_details?.applicant_name || 'N/A';
+      const bankName = fullReport.institution_details?.bank_name || fullReport.bank_name || 'N/A';
+      const locality = fullReport.property_identification?.locality_name || fullReport.locality_name || 'N/A';
+      const finalVal = fullReport.final_valuation?.final_market_value || fullReport.final_market_value || 'N/A';
       const summary = [
         'KGN ASSOCIATES — VALUATION REPORT SUMMARY',
         '==========================================',
@@ -157,9 +211,9 @@ export default function AdminReportsPage() {
         `Customer      : ${customerName}`,
         `Bank          : ${bankName}`,
         `Locality      : ${locality}`,
-        `Status        : ${r.status || 'N/A'}`,
+        `Status        : ${fullReport.status || 'N/A'}`,
         `Final Value   : ${finalVal}`,
-        `Photos        : ${photoIdx - 1}`,
+        `Photos        : ${photoCount}`,
         `Generated On  : ${new Date().toLocaleString('en-IN')}`,
         '',
         errors.length ? 'NOTES: ' + errors.join('; ') : '',
@@ -168,7 +222,7 @@ export default function AdminReportsPage() {
 
       const zipBlob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
       saveAs(zipBlob, `${folderName}.zip`);
-      showNotification(`ZIP downloaded: ${folderName}.zip`, 'success');
+      showNotification(`ZIP downloaded: ${folderName}.zip (Word + PDF + ${photoCount} Photos)`, 'success');
     } catch (err) {
       console.error('ZIP download failed:', err);
       showNotification('ZIP download failed. Please try again.', 'error');
@@ -218,7 +272,7 @@ export default function AdminReportsPage() {
         const fullName = `${match.first_name || ''} ${match.last_name || ''}`.trim() || match.username;
         return {
           name: fullName,
-          role: match.role || 'Valuer',
+          role: (match.role === 'valuer' || !match.role) ? 'Engineer' : match.role,
           city: match.city || '',
           initials: fullName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'EM',
         };
@@ -227,13 +281,13 @@ export default function AdminReportsPage() {
 
     const valuerName = report.final_valuation?.valuer_name || 
       report.institution_details?.valuer_name || 
-      report.institution_details?.applicant_name ? 'Rajesh Kumar' : 'Certified Valuer';
+      report.institution_details?.applicant_name ? 'Rajesh Kumar' : 'Certified Engineer';
 
     return {
       name: valuerName,
-      role: 'Valuer',
+      role: 'Engineer',
       city: 'Surat',
-      initials: valuerName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'VA',
+      initials: valuerName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'EN',
     };
   };
 
@@ -317,7 +371,7 @@ export default function AdminReportsPage() {
       const locality = (r.property_identification?.locality_name || r.locality_name || '').toLowerCase();
       const emp = getEmployeeInfo(r).name.toLowerCase();
       const mobile = (r.institution_details?.contact_number || r.institution_details?.mobile || r.phone_number || r.mobile_number || r.mobile || '').replace(/\s+/g, '').toLowerCase();
-      const caseId = (r.case_id || r.id || '').toString().toLowerCase();
+      const caseId = (r.institution_details?.loan_application_id || r.case_id || r.id || '').toString().toLowerCase();
       const q = searchQuery.toLowerCase().replace(/\s+/g, '');
 
       const matchSearch = !q || customer.includes(q) || repNo.includes(q) || bank.includes(q) || locality.includes(q) || emp.includes(q) || mobile.includes(q) || caseId.includes(q);
@@ -365,7 +419,8 @@ export default function AdminReportsPage() {
         { header: 'BANK NAME', key: 'bank_name', width: 24 },
         { header: 'TYPE OF CASE', key: 'type_of_case', width: 15 },
         { header: 'BRANCH NAME', key: 'branch_name', width: 18 },
-        { header: 'CASE ID', key: 'case_id', width: 22 },
+        { header: 'KGN CASE ID', key: 'kgn_case_id', width: 20 },
+        { header: 'BANK CASE ID', key: 'bank_case_id', width: 22 },
         { header: 'NAME OF THE APPLICANT', key: 'applicant_name', width: 26 },
         { header: 'CONTACT', key: 'contact', width: 18 },
         { header: 'PROPERTY ADDRESS', key: 'property_address', width: 48 },
@@ -434,6 +489,10 @@ export default function AdminReportsPage() {
             ? 'CLOSED'
             : statusLower.toUpperCase();
 
+        const repIdStr = (r.id || r._id || '').toString();
+        const kgnCaseId = r.report_number || `KGN-2026-${repIdStr.slice(-4)}`;
+        const bankCaseId = inst.loan_application_id || r.case_id || 'NA';
+
         const row = sheet.addRow({
           sno: idx + 1,
           report_date: formatExcelDate(rawDate),
@@ -441,7 +500,8 @@ export default function AdminReportsPage() {
           bank_name: (inst.bank_name || r.bank_name || 'NA').toUpperCase(),
           type_of_case: 'REGULAR',
           branch_name: (inst.branch_name || 'NA').toUpperCase(),
-          case_id: inst.loan_application_id || r.case_id || r.report_number || 'NA',
+          kgn_case_id: kgnCaseId,
+          bank_case_id: bankCaseId,
           applicant_name: (inst.applicant_name || r.customer_name || 'NA').toUpperCase(),
           contact: inst.applicant_contact_number || inst.contact_number || inst.mobile || r.phone_number || 'NA',
           property_address: (prop.address_as_per_actual_site || prop.address_as_per_documents || prop.locality_name || 'NA').toUpperCase(),
@@ -456,7 +516,7 @@ export default function AdminReportsPage() {
           cell.font = { name: 'Calibri', size: 10, color: { argb: 'FF0F172A' } };
           cell.alignment = {
             vertical: 'middle',
-            horizontal: colNumber === 10 ? 'left' : 'center',
+            horizontal: colNumber === 11 ? 'left' : 'center',
             wrapText: true,
           };
           cell.border = {
@@ -739,7 +799,7 @@ export default function AdminReportsPage() {
                     <tr>
                       <th>Report #</th>
                       <th>Customer Name</th>
-                      <th>Employee (Valuer)</th>
+                      <th>Employee (Engineer)</th>
                       <th>Valuation Value</th>
                       <th>Date</th>
                       <th>Status</th>
@@ -1021,7 +1081,7 @@ export default function AdminReportsPage() {
                 </div>
 
                 <div className={styles.detailItem}>
-                  <span className={styles.detailLabel}>Assigned Employee (Valuer)</span>
+                  <span className={styles.detailLabel}>Assigned Employee (Engineer)</span>
                   <span className={styles.detailValue}>
                     {getEmployeeInfo(selectedReport).name} ({getEmployeeInfo(selectedReport).role})
                   </span>

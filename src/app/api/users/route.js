@@ -27,6 +27,7 @@ export async function GET() {
         last_name: u.last_name || '',
         phone_number: u.phone_number || '',
         city: u.city || '',
+        service_locations: u.service_locations || '',
         role: u.role || 'valuer',
         status: u.status || 'active',
         created_at: u.created_at || u.createdAt || new Date().toISOString(),
@@ -55,6 +56,7 @@ export async function POST(req) {
       name = '',
       phone_number = '',
       city = '',
+      service_locations = '',
       role = 'valuer',
       status = 'active',
     } = body;
@@ -125,6 +127,7 @@ export async function POST(req) {
         last_name: resolvedLast.trim(),
         phone_number: phone_number.trim(),
         city: city.trim(),
+        service_locations: service_locations.trim(),
         role: role || 'valuer',
         status: status || 'active',
       });
@@ -242,7 +245,7 @@ export async function PATCH(req) {
 export async function PUT(req) {
   try {
     const body = await req.json();
-    const { id, first_name, last_name, email, phone_number, city = '', role, status, password } = body;
+    const { id, first_name, last_name, email, phone_number, city = '', service_locations = '', role, status, password } = body;
 
     if (!id) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
@@ -260,6 +263,7 @@ export async function PUT(req) {
         email: email?.trim().toLowerCase() || '',
         phone_number: phone_number?.trim() || '',
         city: city?.trim() || '',
+        service_locations: service_locations?.trim() || '',
         role: role || 'valuer',
         status: status || 'active',
         password: hashedPassword,
@@ -275,6 +279,7 @@ export async function PUT(req) {
         email: email?.trim().toLowerCase() || '',
         phone_number: phone_number?.trim() || '',
         city: city?.trim() || '',
+        service_locations: service_locations?.trim() || '',
         role: role || 'valuer',
         status: status || 'active',
       };

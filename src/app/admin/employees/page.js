@@ -30,12 +30,12 @@ function AdminEmployeesContent() {
   const searchParams = useSearchParams();
 
   const [formData, setFormData] = useState({
-    name: '', email: '', phone_number: '', city: '', password: '', confirm_password: '',
+    name: '', email: '', phone_number: '', city: '', service_locations: '', password: '', confirm_password: '',
   });
 
   const [editFormData, setEditFormData] = useState({
     id: '', first_name: '', last_name: '', email: '', phone_number: '',
-    city: '', role: 'valuer', status: 'active', password: '',
+    city: '', service_locations: '', role: 'valuer', status: 'active', password: '',
   });
 
   const [submitting, setSubmitting] = useState(false);
@@ -99,6 +99,7 @@ function AdminEmployeesContent() {
           email: formData.email,
           phone_number: formData.phone_number,
           city: formData.city,
+          service_locations: formData.service_locations,
           password: formData.password,
           confirm_password: formData.confirm_password,
           role: 'valuer', status: 'active',
@@ -108,7 +109,7 @@ function AdminEmployeesContent() {
       if (res.ok && data.success) {
         showNotification(`Employee "${formData.name}" created successfully!`, 'success');
         setIsModalOpen(false);
-        setFormData({ name: '', email: '', phone_number: '', city: '', password: '', confirm_password: '' });
+        setFormData({ name: '', email: '', phone_number: '', city: '', service_locations: '', password: '', confirm_password: '' });
         setShowPassword(false); setShowConfirmPassword(false);
         fetchUsers();
       } else {
@@ -125,7 +126,7 @@ function AdminEmployeesContent() {
     setEditFormData({
       id: user.id, first_name: user.first_name || '', last_name: user.last_name || '',
       email: user.email || '', phone_number: user.phone_number || '',
-      city: user.city || '', role: user.role || 'valuer', status: user.status || 'active', password: '',
+      city: user.city || '', service_locations: user.service_locations || '', role: user.role || 'valuer', status: user.status || 'active', password: '',
     });
     setShowEditPassword(false);
     setIsEditModalOpen(true);
@@ -191,7 +192,9 @@ function AdminEmployeesContent() {
     const matchSearch = !q || fullName.includes(q) ||
       (u.username && u.username.toLowerCase().includes(q)) ||
       (u.email && u.email.toLowerCase().includes(q)) ||
-      (u.phone_number && u.phone_number.replace(/\s+/g, '').includes(q.replace(/\s+/g, '')));
+      (u.phone_number && u.phone_number.replace(/\s+/g, '').includes(q.replace(/\s+/g, ''))) ||
+      (u.city && u.city.toLowerCase().includes(q)) ||
+      (u.service_locations && u.service_locations.toLowerCase().includes(q));
     const matchStatus = filterStatus === 'all' ||
       (filterStatus === 'active' && u.status !== 'inactive') ||
       (filterStatus === 'inactive' && u.status === 'inactive');
@@ -204,7 +207,7 @@ function AdminEmployeesContent() {
   const getRoleBadge = (role) => {
     if (role === 'admin') return <span className={`${styles.roleBadge} ${styles.roleAdmin}`}><ShieldCheck size={13} /> Admin</span>;
     if (role === 'inspector' || role === 'field_inspector') return <span className={`${styles.roleBadge} ${styles.roleInspector}`}><Briefcase size={13} /> Inspector</span>;
-    return <span className={`${styles.roleBadge} ${styles.roleValuer}`}><ApprovedValuerBadge size={13} /> KGN Associates Engineers</span>;
+    return <span className={`${styles.roleBadge} ${styles.roleValuer}`}><Briefcase size={13} /> Engineer</span>;
   };
 
   const secureInputProps = {
@@ -271,9 +274,9 @@ function AdminEmployeesContent() {
                 </span>
               </div>
               <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
-                <div style={{ position: 'relative', width: '220px' }}>
+                <div style={{ position: 'relative', width: '280px' }}>
                   <Search size={15} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
-                  <input type="text" placeholder="Search name / email / mobile..." value={searchQuery}
+                  <input type="text" placeholder="Search name, email, mobile, location..." value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     style={{ width: '100%', padding: '8px 12px 8px 34px', borderRadius: '6px', background: '#f8fafc', border: '1.5px solid #cbd5e1', color: '#1e293b', fontSize: '0.85rem', outline: 'none' }}
                   />
@@ -295,6 +298,7 @@ function AdminEmployeesContent() {
                       <th>Employee</th>
                       <th>Designation</th>
                       <th>Location</th>
+                      <th>Service Locations</th>
                       <th>Email</th>
                       <th>Phone</th>
                       <th>Status</th>
@@ -304,9 +308,9 @@ function AdminEmployeesContent() {
                   </thead>
                   <tbody>
                     {loading ? (
-                      <tr><td colSpan={8} style={{ textAlign: 'center', padding: '36px', color: 'var(--text-muted)' }}>Loading employees...</td></tr>
+                      <tr><td colSpan={9} style={{ textAlign: 'center', padding: '36px', color: 'var(--text-muted)' }}>Loading employees...</td></tr>
                     ) : filteredUsers.length === 0 ? (
-                      <tr><td colSpan={8} style={{ textAlign: 'center', padding: '36px', color: 'var(--text-muted)' }}>No employees found. Click "+ Add Employee" to get started.</td></tr>
+                      <tr><td colSpan={9} style={{ textAlign: 'center', padding: '36px', color: 'var(--text-muted)' }}>No employees found. Click "+ Add Employee" to get started.</td></tr>
                     ) : filteredUsers.map((u) => {
                       const initials = (u.first_name ? u.first_name[0] : u.username?.[0] || 'V').toUpperCase();
                       const fullName = `${u.first_name || ''} ${u.last_name || ''}`.trim() || u.username;
@@ -325,9 +329,14 @@ function AdminEmployeesContent() {
                           </td>
                           <td>{getRoleBadge(u.role)}</td>
                           <td>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: 'var(--text-muted)', fontSize: '0.87rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: 'var(--text-muted)', fontSize: '0.87rem', whiteSpace: 'nowrap' }}>
                               <MapPin size={13} style={{ color: 'var(--primary-gold)', flexShrink: 0 }} />
-                              {u.city || '—'}
+                              <span>{u.city || '—'}</span>
+                            </div>
+                          </td>
+                          <td>
+                            <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', maxWidth: '200px' }}>
+                              {u.service_locations || '—'}
                             </div>
                           </td>
                           <td><div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: 'var(--text-muted)', fontSize: '0.87rem' }}><Mail size={13} />{u.email}</div></td>
@@ -421,6 +430,22 @@ function AdminEmployeesContent() {
                       <input type="text" name="city" className={styles.inputField} placeholder="e.g. Surat"
                         value={formData.city} onChange={(e) => setFormData({...formData, city: e.target.value})} autoComplete="off" />
                     </div>
+                  </div>
+                </div>
+
+                <div className={styles.inputGroup}>
+                  <label className={styles.label}>Service Locations</label>
+                  <div className={styles.inputWrapper}>
+                    <MapPin className={styles.fieldIcon} size={16} />
+                    <input
+                      type="text"
+                      name="service_locations"
+                      className={styles.inputField}
+                      placeholder="e.g. Anantapur, Hindupur, Kadiri"
+                      value={formData.service_locations}
+                      onChange={(e) => setFormData({...formData, service_locations: e.target.value})}
+                      autoComplete="off"
+                    />
                   </div>
                 </div>
 
@@ -540,12 +565,22 @@ function AdminEmployeesContent() {
                     </div>
                   </div>
                   <div className={styles.inputGroup}>
+                    <label className={styles.label}>Service Locations</label>
+                    <div className={styles.inputWrapper}>
+                      <MapPin className={styles.fieldIcon} size={16} />
+                      <input type="text" name="service_locations" className={styles.inputField}
+                        placeholder="e.g. Anantapur, Hindupur, Kadiri"
+                        value={editFormData.service_locations}
+                        onChange={(e) => setEditFormData({...editFormData, service_locations: e.target.value})} autoComplete="off" />
+                    </div>
+                  </div>
+                  <div className={styles.inputGroup}>
                     <label className={styles.label}>Role</label>
                     <div className={styles.selectWrapper}>
                       <Briefcase className={styles.fieldIcon} size={16} />
                       <select name="role" className={styles.selectField} value={editFormData.role}
                         onChange={(e) => setEditFormData({...editFormData, role: e.target.value})}>
-                        <option value="valuer">Approved Valuer</option>
+                        <option value="valuer">Engineer</option>
                         <option value="field_inspector">Field Inspector</option>
                         <option value="engineer">Chartered Engineer</option>
                         <option value="admin">Administrator</option>

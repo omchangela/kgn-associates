@@ -69,6 +69,11 @@ async function ensureTables() {
     } catch (e) {
       // Column already exists
     }
+    try {
+      await p.query(`ALTER TABLE users ADD COLUMN service_locations TEXT`);
+    } catch (e) {
+      // Column already exists
+    }
 
     await p.query(`
       CREATE TABLE IF NOT EXISTS valuations (
@@ -254,18 +259,18 @@ export async function findUserById(id) {
   }
 }
 
-export async function createUser({ id, username, email, password, first_name = '', last_name = '', phone_number = '', city = '', role = 'valuer', status = 'active' }) {
+export async function createUser({ id, username, email, password, first_name = '', last_name = '', phone_number = '', city = '', service_locations = '', role = 'valuer', status = 'active' }) {
   const sql = `
-    INSERT INTO users (id, username, email, password, first_name, last_name, phone_number, city, role, status)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO users (id, username, email, password, first_name, last_name, phone_number, city, service_locations, role, status)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
-  await query(sql, [id, username, email, password, first_name, last_name, phone_number, city, role, status]);
-  return { id, username, email, first_name, last_name, phone_number, city, role, status };
+  await query(sql, [id, username, email, password, first_name, last_name, phone_number, city, service_locations, role, status]);
+  return { id, username, email, first_name, last_name, phone_number, city, service_locations, role, status };
 }
 
 export async function getAllUsers() {
   try {
-    const sql = `SELECT id, username, email, first_name, last_name, phone_number, COALESCE(city, '') as city, role, COALESCE(status, 'active') as status, created_at FROM users ORDER BY created_at DESC`;
+    const sql = `SELECT id, username, email, first_name, last_name, phone_number, COALESCE(city, '') as city, COALESCE(service_locations, '') as service_locations, role, COALESCE(status, 'active') as status, created_at FROM users ORDER BY created_at DESC`;
     const rows = await query(sql);
     return rows || [];
   } catch (err) {
@@ -285,10 +290,10 @@ export async function updateUserStatus(id, status) {
   }
 }
 
-export async function updateUser(id, { first_name = '', last_name = '', email = '', phone_number = '', city = '', role = 'valuer', status = 'active', password = '' }) {
+export async function updateUser(id, { first_name = '', last_name = '', email = '', phone_number = '', city = '', service_locations = '', role = 'valuer', status = 'active', password = '' }) {
   try {
-    let sql = `UPDATE users SET first_name = ?, last_name = ?, email = ?, phone_number = ?, city = ?, role = ?, status = ?`;
-    const params = [first_name, last_name, email, phone_number, city, role, status];
+    let sql = `UPDATE users SET first_name = ?, last_name = ?, email = ?, phone_number = ?, city = ?, service_locations = ?, role = ?, status = ?`;
+    const params = [first_name, last_name, email, phone_number, city, service_locations, role, status];
     if (password) {
       sql += `, password = ?`;
       params.push(password);
