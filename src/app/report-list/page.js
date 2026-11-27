@@ -484,6 +484,7 @@ const ReportList = () => {
 
                               <Link
                                 href={`/property-values?${new URLSearchParams({
+                                  ...(a.kgn_case_id ? { kgn_case_id: a.kgn_case_id } : {}),
                                   ...(a.case_id ? { case_id: a.case_id } : {}),
                                   ...(a.applicant_name ? { applicant: a.applicant_name } : {}),
                                   ...(a.contact_number ? { contact: a.contact_number } : {}),
@@ -549,7 +550,11 @@ const ReportList = () => {
 
                             <div className={styles.gmailSummaryGrid}>
                               <div className={styles.gmailSummaryItem}>
-                                <span className={styles.gmailSummaryLabel}>Case ID</span>
+                                <span className={styles.gmailSummaryLabel}>KGN Case ID</span>
+                                <span className={styles.gmailSummaryValue} style={{ color: '#0b57d0' }}>{a.kgn_case_id || '—'}</span>
+                              </div>
+                              <div className={styles.gmailSummaryItem}>
+                                <span className={styles.gmailSummaryLabel}>Bank Case ID</span>
                                 <span className={styles.gmailSummaryValue}>{a.case_id || '—'}</span>
                               </div>
                               <div className={styles.gmailSummaryItem}>
@@ -572,59 +577,88 @@ const ReportList = () => {
                               </div>
                             </div>
 
-                            {/* Attached PDF Section */}
-                            {a.pdf_url && (
-                              <div
-                                style={{
-                                  border: '1px solid #cbd5e1',
-                                  borderRadius: '12px',
-                                  overflow: 'hidden',
-                                  background: '#ffffff',
-                                }}
-                              >
-                                <div
-                                  style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'space-between',
-                                    padding: '12px 16px',
-                                    background: '#f8fafc',
-                                    borderBottom: '1px solid #e2e8f0',
-                                    flexWrap: 'wrap',
-                                    gap: '10px',
-                                  }}
-                                >
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700, color: '#0f172a', fontSize: '0.9rem' }}>
-                                    <Paperclip size={16} style={{ color: '#0b57d0' }} />
-                                    <span>Attached Case PDF: {a.pdf_name || 'Document.pdf'}</span>
-                                  </div>
-                                  <div style={{ display: 'flex', gap: '8px' }}>
-                                    <button
-                                      type="button"
-                                      onClick={() => openPdfInNewTab(a.pdf_url, a.pdf_name)}
-                                      className={styles.actionBtn}
-                                    >
-                                      <ExternalLink size={14} />
-                                      <span>Open Fullscreen</span>
-                                    </button>
-                                    <a
-                                      href={a.pdf_url}
-                                      download={a.pdf_name || 'case_document.pdf'}
-                                      className={styles.actionBtn}
-                                      style={{ background: '#0b57d0', color: '#fff', borderColor: '#0b57d0' }}
-                                    >
-                                      <Download size={14} />
-                                      <span>Download PDF</span>
-                                    </a>
-                                  </div>
+                            {/* Attached PDFs / Images Section */}
+                            {(() => {
+                              const attList = Array.isArray(a.attachments) && a.attachments.length > 0
+                                ? a.attachments
+                                : (a.pdf_url ? [{ title: a.pdf_name || 'Document.pdf', file_name: a.pdf_name || 'Document.pdf', file_url: a.pdf_url, mime_type: 'application/pdf' }] : []);
+                              if (attList.length === 0) return null;
+                              return (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                  {attList.map((att, idx) => {
+                                    const isImg = (att.mime_type || '').startsWith('image/') || (att.file_url || '').startsWith('data:image/');
+                                    return (
+                                      <div
+                                        key={idx}
+                                        style={{
+                                          border: '1px solid #cbd5e1',
+                                          borderRadius: '12px',
+                                          overflow: 'hidden',
+                                          background: '#ffffff',
+                                        }}
+                                      >
+                                        <div
+                                          style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'space-between',
+                                            padding: '12px 16px',
+                                            background: '#f8fafc',
+                                            borderBottom: '1px solid #e2e8f0',
+                                            flexWrap: 'wrap',
+                                            gap: '10px',
+                                          }}
+                                        >
+                                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700, color: '#0f172a', fontSize: '0.9rem' }}>
+                                            <Paperclip size={16} style={{ color: '#0b57d0' }} />
+                                            <span>{att.title || att.file_name || `Attachment ${idx + 1}`}</span>
+                                            {att.file_name && att.title && att.title !== att.file_name && (
+                                              <span style={{ fontWeight: 400, fontSize: '0.78rem', color: '#64748b' }}>
+                                                ({att.file_name})
+                                              </span>
+                                            )}
+                                          </div>
+                                          <div style={{ display: 'flex', gap: '8px' }}>
+                                            <button
+                                              type="button"
+                                              onClick={() => openPdfInNewTab(att.file_url, att.title || att.file_name)}
+                                              className={styles.actionBtn}
+                                            >
+                                              <ExternalLink size={14} />
+                                              <span>Open Fullscreen</span>
+                                            </button>
+                                            <a
+                                              href={att.file_url}
+                                              download={att.file_name || 'case_document.pdf'}
+                                              className={styles.actionBtn}
+                                              style={{ background: '#0b57d0', color: '#fff', borderColor: '#0b57d0' }}
+                                            >
+                                              <Download size={14} />
+                                              <span>Download</span>
+                                            </a>
+                                          </div>
+                                        </div>
+                                        {isImg ? (
+                                          <div style={{ padding: '12px', textAlign: 'center', background: '#f8fafc' }}>
+                                            <img
+                                              src={att.file_url}
+                                              alt={att.title || att.file_name}
+                                              style={{ maxWidth: '100%', maxHeight: '480px', borderRadius: '8px', objectFit: 'contain' }}
+                                            />
+                                          </div>
+                                        ) : (
+                                          <iframe
+                                            src={att.file_url}
+                                            title={att.title || att.file_name || 'Attached Case PDF'}
+                                            style={{ width: '100%', height: '500px', border: 'none', display: 'block' }}
+                                          />
+                                        )}
+                                      </div>
+                                    );
+                                  })}
                                 </div>
-                                <iframe
-                                  src={a.pdf_url}
-                                  title={a.pdf_name || 'Attached Case PDF'}
-                                  style={{ width: '100%', height: '520px', border: 'none', display: 'block' }}
-                                />
-                              </div>
-                            )}
+                              );
+                            })()}
                           </div>
                         );
                       })()

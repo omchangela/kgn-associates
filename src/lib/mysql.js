@@ -203,6 +203,7 @@ async function ensureTables() {
         id VARCHAR(64) PRIMARY KEY,
         employee_id VARCHAR(64) NOT NULL,
         employee_name VARCHAR(255) DEFAULT '',
+        kgn_case_id VARCHAR(100) DEFAULT '',
         case_id VARCHAR(100) DEFAULT '',
         applicant_name VARCHAR(255) DEFAULT '',
         contact_number VARCHAR(50) DEFAULT '',
@@ -212,11 +213,18 @@ async function ensureTables() {
         notes TEXT,
         pdf_name VARCHAR(255) DEFAULT '',
         pdf_url LONGTEXT,
+        attachments LONGTEXT,
         status VARCHAR(50) DEFAULT 'assigned',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `);
+    try {
+      await p.query(`ALTER TABLE assignments ADD COLUMN kgn_case_id VARCHAR(100) DEFAULT ''`);
+    } catch (e) {}
+    try {
+      await p.query(`ALTER TABLE assignments ADD COLUMN attachments LONGTEXT`);
+    } catch (e) {}
   } catch (err) {
     console.warn('[MySQL Initialization Note]:', err.message);
   }
@@ -546,7 +554,19 @@ export async function getAssignments({ employeeId = '' } = {}) {
       params.push(employeeId);
     }
     sql += ` ORDER BY created_at DESC`;
-    return await query(sql, params);
+    const rows = await query(sql, params);
+    return (rows || []).map((r) => {
+      let parsedAttachments = [];
+      if (typeof r.attachments === 'string' && r.attachments) {
+        try { parsedAttachments = JSON.parse(r.attachments); } catch (_) {}
+      } else if (Array.isArray(r.attachments)) {
+        parsedAttachments = r.attachments;
+      }
+      if (parsedAttachments.length === 0 && r.pdf_url) {
+        parsedAttachments = [{ title: r.pdf_name || 'Document.pdf', file_name: r.pdf_name || 'Document.pdf', file_url: r.pdf_url, mime_type: 'application/pdf' }];
+      }
+      return { ...r, attachments: parsedAttachments };
+    });
   } catch (err) {
     return null;
   }
@@ -554,16 +574,18 @@ export async function getAssignments({ employeeId = '' } = {}) {
 
 export async function createAssignment(data) {
   const id = data.id || `assign_${Date.now()}`;
+  const attachmentsJson = JSON.stringify(Array.isArray(data.attachments) ? data.attachments : []);
   const sql = `
     INSERT INTO assignments (
-      id, employee_id, employee_name, case_id, applicant_name, contact_number,
-      bank_name, branch_name, property_address, notes, pdf_name, pdf_url, status
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      id, employee_id, employee_name, kgn_case_id, case_id, applicant_name, contact_number,
+      bank_name, branch_name, property_address, notes, pdf_name, pdf_url, attachments, status
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
   await query(sql, [
     id,
     data.employee_id || '',
     data.employee_name || '',
+    data.kgn_case_id || '',
     data.case_id || '',
     data.applicant_name || '',
     data.contact_number || '',
@@ -573,10 +595,12 @@ export async function createAssignment(data) {
     data.notes || '',
     data.pdf_name || '',
     data.pdf_url || '',
+    attachmentsJson,
     data.status || 'assigned',
   ]);
   const rows = await query(`SELECT * FROM assignments WHERE id = ? LIMIT 1`, [id]);
-  return rows[0] || { id, ...data };
+  const row = rows[0] || { id, ...data };
+  return { ...row, attachments: Array.isArray(data.attachments) ? data.attachments : [] };
 }
 
 export async function updateAssignmentStatus(id, status) {

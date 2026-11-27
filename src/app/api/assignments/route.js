@@ -9,6 +9,7 @@ import {
 } from '@/lib/mysql';
 import memoryStore from '@/lib/memoryStore';
 import { getAuthUser } from '@/lib/auth';
+import { generateKgnCaseId } from '@/lib/kgnId';
 
 export async function GET(req) {
   const authUser = getAuthUser(req);
@@ -41,6 +42,7 @@ export async function POST(req) {
       payload = {
         employee_id: (formData.get('employee_id') || '').toString().trim(),
         employee_name: (formData.get('employee_name') || '').toString().trim(),
+        kgn_case_id: (formData.get('kgn_case_id') || '').toString().trim(),
         case_id: (formData.get('case_id') || '').toString().trim(),
         applicant_name: (formData.get('applicant_name') || '').toString().trim(),
         contact_number: (formData.get('contact_number') || '').toString().trim(),
@@ -50,23 +52,44 @@ export async function POST(req) {
         notes: (formData.get('notes') || '').toString().trim(),
       };
 
-      const pdfFile = formData.get('pdf') || formData.get('file');
-      if (pdfFile && typeof pdfFile === 'object' && pdfFile.size > 0) {
-        const bytes = await pdfFile.arrayBuffer();
-        const buffer = Buffer.from(bytes);
-        const mimeType = pdfFile.type || 'application/pdf';
-        payload.pdf_name = pdfFile.name || `case_${Date.now()}.pdf`;
-        // Store as base64 data URL so it works reliably on serverless (Vercel) & localhost
-        payload.pdf_url = `data:${mimeType};base64,${buffer.toString('base64')}`;
+      const uploadedFiles = formData.getAll('files');
+      const uploadedTitles = formData.getAll('titles');
+      const singleFallback = formData.get('pdf') || formData.get('file');
+      const allFiles = uploadedFiles.length > 0
+        ? uploadedFiles
+        : (singleFallback && typeof singleFallback === 'object' ? [singleFallback] : []);
 
-        // Also save to public/uploads if filesystem is writable
+      const attachments = [];
+      for (let i = 0; i < allFiles.length; i++) {
+        const fileItem = allFiles[i];
+        if (!fileItem || typeof fileItem !== 'object' || fileItem.size <= 0) continue;
+        const bytes = await fileItem.arrayBuffer();
+        const buffer = Buffer.from(bytes);
+        const mimeType = fileItem.type || 'application/pdf';
+        const fileName = fileItem.name || `document_${Date.now()}_${i + 1}.pdf`;
+        const title = (uploadedTitles[i] || '').toString().trim() || fileName.replace(/\.[^.]+$/, '');
+        const fileUrl = `data:${mimeType};base64,${buffer.toString('base64')}`;
+
+        attachments.push({
+          title,
+          file_name: fileName,
+          file_url: fileUrl,
+          mime_type: mimeType,
+        });
+
         try {
           const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
           if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
-          const cleanName = payload.pdf_name.replace(/[^a-zA-Z0-9._-]/g, '_');
-          const fname = `${Date.now()}_${cleanName}`;
+          const cleanName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
+          const fname = `${Date.now()}_${i}_${cleanName}`;
           fs.writeFileSync(path.join(uploadsDir, fname), buffer);
         } catch (_) { }
+      }
+
+      payload.attachments = attachments;
+      if (attachments.length > 0) {
+        payload.pdf_name = attachments[0].file_name;
+        payload.pdf_url = attachments[0].file_url;
       }
     } else {
       payload = await req.json();
@@ -80,9 +103,17 @@ export async function POST(req) {
     }
 
     const id = `assign_${Date.now()}`;
+    let nextSeq = null;
+    try {
+      const existing = await getAssignments();
+      if (Array.isArray(existing)) nextSeq = existing.length + 1;
+    } catch (_) {}
+    const kgnCaseId = payload.kgn_case_id || generateKgnCaseId(nextSeq);
+
     const record = {
       id,
       ...payload,
+      kgn_case_id: kgnCaseId,
       status: 'assigned',
     };
 

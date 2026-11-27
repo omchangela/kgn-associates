@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getAllValuations, upsertValuation } from '@/lib/mysql';
 import memoryStore from '@/lib/memoryStore';
 import { getAuthUser } from '@/lib/auth';
+import { generateKgnCaseId } from '@/lib/kgnId';
 
 export async function GET(req) {
   const authUser = getAuthUser(req);
@@ -75,7 +76,12 @@ export async function POST(req) {
   const body = await req.json();
 
   const id = body.id || body._id || `val_${Date.now()}`;
-  const reportNumber = body.report_number || `KGN-2026-${id.slice(-4)}`;
+  let nextSeq = null;
+  try {
+    const existing = await getAllValuations({ limit: 1000 });
+    if (Array.isArray(existing)) nextSeq = existing.length + 1;
+  } catch (_) {}
+  const reportNumber = body.report_number || generateKgnCaseId(nextSeq);
 
   const reportData = {
     id,

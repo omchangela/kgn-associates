@@ -67,6 +67,7 @@ const PropertyValues = () => {
   const [reportStatus, setReportStatus] = useState('draft');
   const [allowEmployeeEdit, setAllowEmployeeEdit] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [kgnCaseId, setKgnCaseId] = useState('');
   const tabContentRef = useRef(null);
 
   // ── Detect Admin Session ──────────────────────────────────────────────────
@@ -130,6 +131,8 @@ const PropertyValues = () => {
   // ── Pre-fill form from URL query params (when opening from Admin Allotment or Employee Inbox) ──
   useEffect(() => {
     if (editId) return;
+    const kgnIdParam = searchParams.get('kgn_case_id') || '';
+    if (kgnIdParam) setKgnCaseId(kgnIdParam);
     const caseId = searchParams.get('case_id') || '';
     const applicant = searchParams.get('applicant') || '';
     const contact = searchParams.get('contact') || '';
@@ -588,13 +591,14 @@ const PropertyValues = () => {
         }
       } else {
         // CREATE new report
-        await propertyValuationAPI.saveFullValuation({
+        const created = await propertyValuationAPI.saveFullValuation({
           ...payload,
+          ...(kgnCaseId ? { report_number: kgnCaseId } : {}),
           status: 'under_review',
           allow_employee_edit: false,
         });
-        // Automatic PDF download removed for employee panel as requested
-        alert('Valuation report submitted successfully!');
+        if (created?.report_number) setKgnCaseId(created.report_number);
+        alert(`Valuation report submitted! KGN Case ID: ${created?.report_number || kgnCaseId || 'Generated'}`);
       }
     } catch (error) {
       console.error('Error submitting form:', error);

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { generateKgnCaseId } from '@/lib/kgnId';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminHeader from '@/components/admin/AdminHeader';
 import Footer from '@/components/footer/Footer';
@@ -37,6 +38,7 @@ export default function AdminAllotmentsPage() {
 
   const [form, setForm] = useState({
     employee_id: '',
+    kgn_case_id: '',
     case_id: '',
     applicant_name: '',
     contact_number: '',
@@ -45,7 +47,27 @@ export default function AdminAllotmentsPage() {
     property_address: '',
     notes: '',
   });
-  const [pdfFile, setPdfFile] = useState(null);
+  const [attachments, setAttachments] = useState([]);
+
+  const autoKgnCaseId = form.kgn_case_id || generateKgnCaseId((assignments?.length || 0) + 1);
+
+  const handleFilesSelected = (fileList) => {
+    if (!fileList || fileList.length === 0) return;
+    const added = Array.from(fileList).map((f, idx) => ({
+      id: `att_${Date.now()}_${idx}_${Math.random().toString(36).slice(2, 6)}`,
+      file: f,
+      title: f.name.replace(/\.[^.]+$/, ''),
+    }));
+    setAttachments((prev) => [...prev, ...added]);
+  };
+
+  const updateAttachmentTitle = (id, title) => {
+    setAttachments((prev) => prev.map((a) => (a.id === id ? { ...a, title } : a)));
+  };
+
+  const removeAttachment = (id) => {
+    setAttachments((prev) => prev.filter((a) => a.id !== id));
+  };
 
   const showNotification = (text, type = 'success') => {
     setNotification({ text, type });
@@ -109,7 +131,8 @@ export default function AdminAllotmentsPage() {
       tableWidth: 182,
       head: [['CASE ALLOTMENT DETAILS', 'INFORMATION']],
       body: [
-        ['Case ID / Loan App ID', form.case_id || 'N/A'],
+        ['KGN Case ID (Ref)', autoKgnCaseId],
+        ['Bank Case ID / Loan App ID', form.case_id || 'N/A'],
         ['Assigned Employee / Valuer', empName || 'N/A'],
         ['Applicant Name', form.applicant_name || 'N/A'],
         ['Contact Number', form.contact_number || 'N/A'],
@@ -133,6 +156,7 @@ export default function AdminAllotmentsPage() {
     const empName = getSelectedEmployeeName();
     const params = new URLSearchParams({
       admin: '1',
+      kgn_case_id: autoKgnCaseId,
       ...(form.case_id ? { case_id: form.case_id } : {}),
       ...(form.applicant_name ? { applicant: form.applicant_name } : {}),
       ...(form.contact_number ? { contact: form.contact_number } : {}),
@@ -147,7 +171,10 @@ export default function AdminAllotmentsPage() {
   const handlePreviewAutoPdf = () => {
     const empName = getSelectedEmployeeName();
     const file = buildAutoCasePdf(empName);
-    setPdfFile(file);
+    setAttachments((prev) => [
+      ...prev,
+      { id: `att_auto_${Date.now()}`, file, title: `Case Allotment (${autoKgnCaseId})` },
+    ]);
     const url = URL.createObjectURL(file);
     window.open(url, '_blank');
     showNotification('Auto-generated Case PDF attached!', 'success');
@@ -167,6 +194,7 @@ export default function AdminAllotmentsPage() {
       const fd = new FormData();
       fd.append('employee_id', form.employee_id);
       fd.append('employee_name', empName);
+      fd.append('kgn_case_id', autoKgnCaseId);
       fd.append('case_id', form.case_id);
       fd.append('applicant_name', form.applicant_name);
       fd.append('contact_number', form.contact_number);
@@ -174,9 +202,17 @@ export default function AdminAllotmentsPage() {
       fd.append('branch_name', form.branch_name);
       fd.append('property_address', form.property_address);
       fd.append('notes', form.notes);
-      // Use uploaded PDF or auto-generate one from the form fields
-      const finalPdf = pdfFile || buildAutoCasePdf(empName);
-      fd.append('pdf', finalPdf);
+
+      if (attachments.length > 0) {
+        attachments.forEach((item) => {
+          fd.append('files', item.file);
+          fd.append('titles', item.title || item.file.name);
+        });
+      } else {
+        const autoFile = buildAutoCasePdf(empName);
+        fd.append('files', autoFile);
+        fd.append('titles', `Case Allotment (${autoKgnCaseId})`);
+      }
 
       const res = await fetch('/api/assignments', {
         method: 'POST',
@@ -188,6 +224,7 @@ export default function AdminAllotmentsPage() {
       showNotification(`Case allotted to ${empName || 'employee'} successfully!`, 'success');
       setForm({
         employee_id: '',
+        kgn_case_id: '',
         case_id: '',
         applicant_name: '',
         contact_number: '',
@@ -196,7 +233,7 @@ export default function AdminAllotmentsPage() {
         property_address: '',
         notes: '',
       });
-      setPdfFile(null);
+      setAttachments([]);
       fetchData();
     } catch (err) {
       showNotification(err.message || 'Failed to allot case', 'error');
@@ -343,11 +380,24 @@ export default function AdminAllotmentsPage() {
 
                 <div>
                   <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                    Case ID / Loan Application ID
+                    KGN Case ID (Auto)
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. C1EEFH6C000518"
+                    readOnly
+                    value={autoKgnCaseId}
+                    title="Auto-generated KGN Case ID (KGN-YYYY-MM-XXXX)"
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d4af37', fontSize: '0.9rem', background: '#fffbeb', color: '#92400e', fontWeight: 700 }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                    Bank Case ID / Loan App ID
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. VISTAAR - 001"
                     value={form.case_id}
                     onChange={(e) => setForm({ ...form, case_id: e.target.value })}
                     style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem', background: '#ffffff', color: '#0f172a' }}
@@ -420,37 +470,101 @@ export default function AdminAllotmentsPage() {
                   />
                 </div>
 
-                <div>
+                <div style={{ gridColumn: '1 / -1' }}>
                   <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                    Attach Case PDF (Optional)
+                    Attach Multiple PDFs / Images (with Separate Title for Each)
                   </label>
                   <label
                     style={{
                       display: 'flex',
                       alignItems: 'center',
+                      justifyContent: 'center',
                       gap: '10px',
-                      padding: '10px 14px',
+                      padding: '12px 16px',
                       borderRadius: '8px',
-                      border: '1px dashed #b8860b',
+                      border: '1.5px dashed #b8860b',
                       background: 'rgba(184,134,11,0.05)',
                       cursor: 'pointer',
-                      fontSize: '0.85rem',
+                      fontSize: '0.86rem',
                       color: '#78530c',
                       fontWeight: 600,
                     }}
                   >
-                    <Upload size={16} />
-                    <span>{pdfFile ? pdfFile.name : 'Choose PDF file to attach...'}</span>
+                    <Upload size={17} />
+                    <span>Click to select one or more PDFs / Images in a single click...</span>
                     <input
                       type="file"
-                      accept="application/pdf,.pdf"
+                      multiple
+                      accept="application/pdf,.pdf,image/*"
                       style={{ display: 'none' }}
-                      onChange={(e) => setPdfFile(e.target.files?.[0] || null)}
+                      onChange={(e) => {
+                        handleFilesSelected(e.target.files);
+                        e.target.value = '';
+                      }}
                     />
                   </label>
+
+                  {attachments.length > 0 && (
+                    <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {attachments.map((att, idx) => (
+                        <div
+                          key={att.id}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                            padding: '8px 12px',
+                            borderRadius: '8px',
+                            background: '#f8fafc',
+                            border: '1px solid #cbd5e1',
+                            flexWrap: 'wrap',
+                          }}
+                        >
+                          <span style={{ fontSize: '0.74rem', fontWeight: 700, padding: '3px 8px', borderRadius: '6px', background: att.file.type?.startsWith('image/') ? '#dbeafe' : '#fef3c7', color: att.file.type?.startsWith('image/') ? '#1d4ed8' : '#92400e' }}>
+                            #{idx + 1} {att.file.type?.startsWith('image/') ? 'IMAGE' : 'PDF'}
+                          </span>
+                          <input
+                            type="text"
+                            placeholder="Enter PDF / Image title (e.g. Sale Deed, EC, Photo)..."
+                            value={att.title}
+                            onChange={(e) => updateAttachmentTitle(att.id, e.target.value)}
+                            style={{
+                              flex: 1,
+                              minWidth: '200px',
+                              padding: '7px 10px',
+                              borderRadius: '6px',
+                              border: '1px solid #cbd5e1',
+                              fontSize: '0.85rem',
+                              background: '#ffffff',
+                              color: '#0f172a',
+                            }}
+                          />
+                          <span style={{ fontSize: '0.76rem', color: '#64748b', maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {att.file.name}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => removeAttachment(att.id)}
+                            style={{
+                              border: 'none',
+                              background: '#fee2e2',
+                              color: '#b91c1c',
+                              borderRadius: '6px',
+                              padding: '5px 9px',
+                              fontSize: '0.76rem',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                            }}
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
-                <div style={{ gridColumn: 'span 2' }}>
+                <div style={{ gridColumn: '1 / -1' }}>
                   <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
                     Instructions / Notes for Employee
                   </label>
@@ -562,10 +676,17 @@ export default function AdminAllotmentsPage() {
                       assignments.map((a) => (
                         <tr key={a.id}>
                           <td>
-                            <span className={styles.reportIdBadge}>
-                              <FileText size={12} />
-                              {a.case_id || a.id.slice(-6)}
-                            </span>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                              <span className={styles.reportIdBadge}>
+                                <FileText size={12} />
+                                {a.kgn_case_id || a.id.slice(-6)}
+                              </span>
+                              {a.case_id && (
+                                <span style={{ fontSize: '0.73rem', color: '#64748b', fontWeight: 600 }}>
+                                  Bank ID: {a.case_id}
+                                </span>
+                              )}
+                            </div>
                           </td>
                           <td>
                             <div style={{ fontWeight: 700, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -594,29 +715,37 @@ export default function AdminAllotmentsPage() {
                             </span>
                           </td>
                           <td>
-                            {a.pdf_url ? (
-                              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                                <button
-                                  type="button"
-                                  onClick={() => openPdf(a)}
-                                  className={styles.pdfBtn}
-                                  title="Preview attached PDF"
-                                >
-                                  <ExternalLink size={12} />
-                                  <span>View PDF</span>
-                                </button>
-                                <a
-                                  href={a.pdf_url}
-                                  download={a.pdf_name || 'case_document.pdf'}
-                                  className={styles.secondaryBtn}
-                                  style={{ padding: '5px 9px', fontSize: '0.75rem', textDecoration: 'none' }}
-                                >
-                                  <Download size={12} />
-                                </a>
-                              </div>
-                            ) : (
-                              <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>No PDF</span>
-                            )}
+                            {(() => {
+                              const list = Array.isArray(a.attachments) && a.attachments.length > 0
+                                ? a.attachments
+                                : (a.pdf_url ? [{ title: a.pdf_name || 'Document.pdf', file_name: a.pdf_name || 'Document.pdf', file_url: a.pdf_url }] : []);
+                              if (list.length === 0) return <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>No Files</span>;
+                              return (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                                  {list.map((att, idx) => (
+                                    <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                                      <button
+                                        type="button"
+                                        onClick={() => openPdf({ pdf_url: att.file_url, pdf_name: att.title || att.file_name })}
+                                        className={styles.pdfBtn}
+                                        title={att.file_name}
+                                      >
+                                        <ExternalLink size={12} />
+                                        <span>{att.title || att.file_name}</span>
+                                      </button>
+                                      <a
+                                        href={att.file_url}
+                                        download={att.file_name || 'document.pdf'}
+                                        className={styles.secondaryBtn}
+                                        style={{ padding: '4px 8px', fontSize: '0.72rem', textDecoration: 'none' }}
+                                      >
+                                        <Download size={12} />
+                                      </a>
+                                    </div>
+                                  ))}
+                                </div>
+                              );
+                            })()}
                           </td>
                           <td style={{ fontSize: '0.8rem', color: '#64748b' }}>
                             {a.created_at ? new Date(a.created_at).toLocaleDateString('en-IN') : 'Recent'}
